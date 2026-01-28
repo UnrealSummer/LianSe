@@ -1,0 +1,27 @@
+# Cocos Creator 3.x
+/library/
+/local/
+/temp/
+/build/
+/profiles/
+
+# Logs
+*.log
+npm-debug.log*
+
+# Dependencies
+/node_modules/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.suo
+*.user
+*.sln.docstates
+
+# Build
+/dist/
