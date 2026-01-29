@@ -94,6 +94,15 @@ export class GridManager extends Component {
     }
 
     /**
+     * 设置指定位置的方块
+     */
+    setBlock(row: number, col: number, block: Node) {
+        if (row >= 0 && row < this.gridSize && col >= 0 && col < this.gridSize) {
+            this.blocks[row][col] = block;
+        }
+    }
+
+    /**
      * 移动方块（更新数组引用）
      */
     moveBlock(fromRow: number, fromCol: number, toRow: number, toCol: number) {

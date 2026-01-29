@@ -240,6 +240,11 @@ export class GameManager extends Component {
             // 获取block2的位置（掉落前记录）
             const block2Pos = block2.getPosition();
             
+            // 立即从数组中清除引用
+            this.gridManager.clearBlock(block2Pos.row, block2Pos.col);
+            // 立即销毁第二个方块
+            block2.node.destroy();
+            
             // 播放混合动画
             block1.playMixAnimation(newColor, () => {
                 // 动画完成后触发掉落
@@ -249,11 +254,6 @@ export class GameManager extends Component {
                     this.checkWinCondition();
                 }, 0.5);  // 等掉落动画结束
             });
-            
-            // 从数组中清除引用
-            this.gridManager.clearBlock(block2Pos.row, block2Pos.col);
-            // 移除第二个方块
-            block2.node.destroy();
 
             // 消耗步数
             this.remainingSteps--;
@@ -277,31 +277,49 @@ export class GameManager extends Component {
     handleDrop(col: number) {
         const gridSize = this.gridManager.gridSize;
         
-        // 从下往上扫描这一列
+        // 从下往上扫描这一列，找出所有空位
+        const emptySlots: number[] = [];
         for (let row = gridSize - 1; row >= 0; row--) {
             const block = this.gridManager.getBlock(row, col);
-            
             if (!block || !block.isValid) {
-                // 发现空位，让上方所有方块掉落一格
-                for (let aboveRow = row - 1; aboveRow >= 0; aboveRow--) {
-                    const aboveBlock = this.gridManager.getBlock(aboveRow, col);
-                    if (aboveBlock && aboveBlock.isValid) {
-                        // 移动到下一行
-                        this.gridManager.moveBlock(aboveRow, col, aboveRow + 1, col);
-                        const blockScript = aboveBlock.getComponent(Block);
-                        if (blockScript) {
-                            blockScript.updateRowCol(aboveRow + 1, col);
-                            blockScript.playDropAnimation(aboveRow + 1, col);
-                        }
-                    }
-                }
-                
-                // 在顶部生成新方块
-                this.gridManager.generateNewBlock(0, col);
-                
-                // 重新从这一行开始检查（因为上方方块已下落）
-                row++;
+                emptySlots.push(row);
             }
+        }
+        
+        // 如果没有空位，直接返回
+        if (emptySlots.length === 0) return;
+        
+        // 收集所有有效的方块（从上到下）
+        const validBlocks: { block: Node, blockScript: Block }[] = [];
+        for (let row = 0; row < gridSize; row++) {
+            const block = this.gridManager.getBlock(row, col);
+            if (block && block.isValid) {
+                const blockScript = block.getComponent(Block);
+                if (blockScript) {
+                    validBlocks.push({ block, blockScript });
+                }
+            }
+        }
+        
+        // 清空这一列的引用
+        for (let row = 0; row < gridSize; row++) {
+            this.gridManager.clearBlock(row, col);
+        }
+        
+        // 将有效方块从下往上填充
+        let targetRow = gridSize - 1;
+        for (let i = validBlocks.length - 1; i >= 0; i--) {
+            const { block, blockScript } = validBlocks[i];
+            this.gridManager.setBlock(targetRow, col, block);
+            blockScript.updateRowCol(targetRow, col);
+            blockScript.playDropAnimation(targetRow, col);
+            targetRow--;
+        }
+        
+        // 在顶部生成新方块填补空位
+        const newBlockCount = emptySlots.length;
+        for (let i = 0; i < newBlockCount; i++) {
+            this.gridManager.generateNewBlock(i, col);
         }
     }
 
