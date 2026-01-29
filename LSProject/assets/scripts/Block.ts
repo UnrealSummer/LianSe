@@ -175,4 +175,38 @@ export class Block extends Component {
             })
             .start();
     }
+
+    /**
+     * 更新行列位置（用于掉落）
+     */
+    updateRowCol(row: number, col: number) {
+        this.row = row;
+        this.col = col;
+    }
+
+    /**
+     * 播放掉落动画
+     */
+    playDropAnimation(targetRow: number, targetCol: number) {
+        // 计算目标位置
+        const gridManager = this.node.parent.getComponent('GridManager');
+        if (!gridManager) return;
+
+        const blockSize = gridManager.blockSize;
+        const spacing = gridManager.spacing;
+        const gridSize = gridManager.gridSize;
+
+        const startX = -((gridSize - 1) * (blockSize + spacing)) / 2;
+        const startY = ((gridSize - 1) * (blockSize + spacing)) / 2;
+
+        const targetX = startX + targetCol * (blockSize + spacing);
+        const targetY = startY - targetRow * (blockSize + spacing);
+
+        // 掉落动画（带缓动）
+        tween(this.node)
+            .to(0.3, { position: new Vec3(targetX, targetY, 0) }, {
+                easing: 'cubicOut'  // 重力感的缓动
+            })
+            .start();
+    }
 }

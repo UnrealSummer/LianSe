@@ -97,12 +97,21 @@ export class GameManager extends Component {
             // 混合成功
             console.log(`混合成功: ${this.getColorName(color1)} + ${this.getColorName(color2)} = ${this.getColorName(newColor)}`);
             
+            // 获取block2的位置（掉落前记录）
+            const block2Pos = block2.getPosition();
+            
             // 播放混合动画
             block1.playMixAnimation(newColor, () => {
-                // 动画完成后的回调
-                this.checkWinCondition();
+                // 动画完成后触发掉落
+                this.handleDrop(block2Pos.col);
+                // 检查胜利条件
+                this.scheduleOnce(() => {
+                    this.checkWinCondition();
+                }, 0.5);  // 等掉落动画结束
             });
             
+            // 从数组中清除引用
+            this.gridManager.clearBlock(block2Pos.row, block2Pos.col);
             // 移除第二个方块
             block2.node.destroy();
 
@@ -121,6 +130,40 @@ export class GameManager extends Component {
     }
 
     /**
+     * 处理指定列的方块掉落和填充
+     */
+    handleDrop(col: number) {
+        const gridSize = this.gridManager.gridSize;
+        
+        // 从下往上扫描这一列
+        for (let row = gridSize - 1; row >= 0; row--) {
+            const block = this.gridManager.getBlock(row, col);
+            
+            if (!block || !block.isValid) {
+                // 发现空位，让上方所有方块掉落一格
+                for (let aboveRow = row - 1; aboveRow >= 0; aboveRow--) {
+                    const aboveBlock = this.gridManager.getBlock(aboveRow, col);
+                    if (aboveBlock && aboveBlock.isValid) {
+                        // 移动到下一行
+                        this.gridManager.moveBlock(aboveRow, col, aboveRow + 1, col);
+                        const blockScript = aboveBlock.getComponent(Block);
+                        if (blockScript) {
+                            blockScript.updateRowCol(aboveRow + 1, col);
+                            blockScript.playDropAnimation(aboveRow + 1, col);
+                        }
+                    }
+                }
+                
+                // 在顶部生成新方块
+                this.gridManager.generateNewBlock(0, col);
+                
+                // 重新从这一行开始检查（因为上方方块已下落）
+                row++;
+            }
+        }
+    }
+
+    /**
      * 检查胜利条件
      */
     checkWinCondition() {
@@ -129,7 +172,8 @@ export class GameManager extends Component {
         for (let row = 0; row < this.gridManager.gridSize; row++) {
             for (let col = 0; col < this.gridManager.gridSize; col++) {
                 const block = this.gridManager.getBlock(row, col);
-                if (block) {
+                // 检查节点是否有效（可能已被销毁）
+                if (block && block.isValid) {
                     const blockScript = block.getComponent(Block);
                     if (blockScript && blockScript.getColorType() === this.targetColor) {
                         count++;
