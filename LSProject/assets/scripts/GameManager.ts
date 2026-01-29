@@ -10,6 +10,7 @@ interface LevelConfig {
     level: number;
     steps: number;
     targetScore: number;  // 目标分数
+    gridSize: number;     // 网格大小
     targets: {            // 多重目标
         color: ColorType;
         count: number;
@@ -65,6 +66,11 @@ export class GameManager extends Component {
         this.levelConfig = this.getLevelConfig(level);
         this.remainingSteps = this.levelConfig.steps;
 
+        // 重新生成网格（根据关卡配置的大小）
+        if (this.gridManager) {
+            this.gridManager.regenerateGrid(this.levelConfig.gridSize);
+        }
+
         this.updateUI();
     }
 
@@ -73,44 +79,49 @@ export class GameManager extends Component {
      */
     getLevelConfig(level: number): LevelConfig {
         const configs: LevelConfig[] = [
-            // 第1关：简单，单一目标
+            // 第1关：简单，单一目标，小网格
             {
                 level: 1,
-                steps: 15,
-                targetScore: 50,
+                steps: 10,
+                targetScore: 30,
+                gridSize: 5,  // 5×5网格
                 targets: [
                     { color: ColorType.ORANGE, count: 2 },
                 ]
             },
-            // 第2关：双重目标
+            // 第2关：双重目标，中等网格
             {
                 level: 2,
-                steps: 20,
-                targetScore: 100,
+                steps: 15,
+                targetScore: 60,
+                gridSize: 6,  // 6×6网格
                 targets: [
                     { color: ColorType.ORANGE, count: 2 },
                     { color: ColorType.PURPLE, count: 2 },
                 ]
             },
-            // 第3关：三重目标
+            // 第3关：三重目标，较大网格
             {
                 level: 3,
-                steps: 25,
-                targetScore: 150,
+                steps: 20,
+                targetScore: 100,
+                gridSize: 7,  // 7×7网格
                 targets: [
                     { color: ColorType.ORANGE, count: 2 },
                     { color: ColorType.PURPLE, count: 2 },
                     { color: ColorType.GREEN, count: 2 },
                 ]
             },
-            // 第4关：高分挑战
+            // 第4关：高分挑战，大网格
             {
                 level: 4,
-                steps: 20,
-                targetScore: 200,
+                steps: 25,
+                targetScore: 150,
+                gridSize: 8,  // 8×8网格
                 targets: [
                     { color: ColorType.ORANGE, count: 3 },
                     { color: ColorType.PURPLE, count: 2 },
+                    { color: ColorType.GREEN, count: 2 },
                 ]
             },
         ];
@@ -334,25 +345,25 @@ export class GameManager extends Component {
     onLevelComplete() {
         console.log('🎉 关卡完成！');
         
+        const nextLevel = this.currentLevel + 1;
+        
         if (this.targetLabel) {
-            this.targetLabel.string = `🎉 第${this.currentLevel}关完成！\n得分: ${this.currentScore}`;
+            if (nextLevel <= 4) {
+                this.targetLabel.string = `🎉 第${this.currentLevel}关完成！\n得分: ${this.currentScore}\n\n2秒后进入下一关...`;
+            } else {
+                this.targetLabel.string = `🎉 第${this.currentLevel}关完成！\n得分: ${this.currentScore}\n\n🏆 全部通关！`;
+            }
         }
 
-        // TODO: 显示下一关按钮
-        // 3秒后自动进入下一关（临时）
+        // 2秒后自动进入下一关
         this.scheduleOnce(() => {
-            const nextLevel = this.currentLevel + 1;
             if (nextLevel <= 4) {
                 console.log(`进入第${nextLevel}关...`);
-                // TODO: 重新生成网格
                 this.initLevel(nextLevel);
             } else {
                 console.log('全部关卡通关！');
-                if (this.targetLabel) {
-                    this.targetLabel.string = '🏆 全部通关！你太强了！';
-                }
             }
-        }, 3);
+        }, 2);
     }
 
     /**

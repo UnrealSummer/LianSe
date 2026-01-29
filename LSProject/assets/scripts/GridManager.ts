@@ -21,19 +21,47 @@ export class GridManager extends Component {
     private blocks: Node[][] = [];  // 二维数组存储方块
 
     start() {
-        this.generateGrid();
+        this.generateGrid(this.gridSize);
+    }
+
+    /**
+     * 重新生成网格（用于关卡切换）
+     */
+    regenerateGrid(newSize: number) {
+        // 清空旧网格
+        this.clearGrid();
+        // 生成新网格
+        this.gridSize = newSize;
+        this.generateGrid(newSize);
+    }
+
+    /**
+     * 清空网格
+     */
+    clearGrid() {
+        for (let row = 0; row < this.blocks.length; row++) {
+            if (this.blocks[row]) {
+                for (let col = 0; col < this.blocks[row].length; col++) {
+                    const block = this.blocks[row][col];
+                    if (block && block.isValid) {
+                        block.destroy();
+                    }
+                }
+            }
+        }
+        this.blocks = [];
     }
 
     /**
      * 生成网格
      */
-    generateGrid() {
-        const startX = -((this.gridSize - 1) * (this.blockSize + this.spacing)) / 2;
-        const startY = ((this.gridSize - 1) * (this.blockSize + this.spacing)) / 2;
+    generateGrid(size: number) {
+        const startX = -((size - 1) * (this.blockSize + this.spacing)) / 2;
+        const startY = ((size - 1) * (this.blockSize + this.spacing)) / 2;
 
-        for (let row = 0; row < this.gridSize; row++) {
+        for (let row = 0; row < size; row++) {
             this.blocks[row] = [];
-            for (let col = 0; col < this.gridSize; col++) {
+            for (let col = 0; col < size; col++) {
                 const block = instantiate(this.blockPrefab);
                 block.setParent(this.node);
                 
