@@ -39,16 +39,10 @@ export class GridManager extends Component {
      * 清空网格
      */
     clearGrid() {
-        for (let row = 0; row < this.blocks.length; row++) {
-            if (this.blocks[row]) {
-                for (let col = 0; col < this.blocks[row].length; col++) {
-                    const block = this.blocks[row][col];
-                    if (block && block.isValid) {
-                        block.destroy();
-                    }
-                }
-            }
-        }
+        // 销毁所有子节点（包括可能残留的方块）
+        this.node.removeAllChildren();
+        
+        // 清空数组
         this.blocks = [];
     }
 

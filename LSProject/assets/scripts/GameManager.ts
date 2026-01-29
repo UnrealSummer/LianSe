@@ -345,17 +345,23 @@ export class GameManager extends Component {
     onLevelComplete() {
         console.log('🎉 关卡完成！');
         
+        // 取消当前选中
+        if (this.selectedBlock) {
+            this.selectedBlock.setSelected(false);
+            this.selectedBlock = null;
+        }
+        
         const nextLevel = this.currentLevel + 1;
         
         if (this.targetLabel) {
             if (nextLevel <= 4) {
-                this.targetLabel.string = `🎉 第${this.currentLevel}关完成！\n得分: ${this.currentScore}\n\n2秒后进入下一关...`;
+                this.targetLabel.string = `🎉 第${this.currentLevel}关完成！\n得分: ${this.currentScore}\n\n1.5秒后进入下一关...`;
             } else {
                 this.targetLabel.string = `🎉 第${this.currentLevel}关完成！\n得分: ${this.currentScore}\n\n🏆 全部通关！`;
             }
         }
 
-        // 2秒后自动进入下一关
+        // 1.5秒后自动进入下一关
         this.scheduleOnce(() => {
             if (nextLevel <= 4) {
                 console.log(`进入第${nextLevel}关...`);
@@ -363,7 +369,7 @@ export class GameManager extends Component {
             } else {
                 console.log('全部关卡通关！');
             }
-        }, 2);
+        }, 1.5);
     }
 
     /**
