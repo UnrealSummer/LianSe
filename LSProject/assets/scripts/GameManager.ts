@@ -245,11 +245,12 @@ export class GameManager extends Component {
             
             console.log(`混合: block1[${block1Pos.row},${block1Pos.col}]消失, block2[${block2Pos.row},${block2Pos.col}]变色`);
             
-            // 立刻从场景移除block1（彻底从视觉上消失）
-            block1.node.removeFromParent();
-            
-            // 立即从数组中清除block1的引用
+            // 先从数组中清除block1的引用（阻止其他逻辑访问）
             this.gridManager.clearBlock(block1Pos.row, block1Pos.col);
+            
+            // 立刻把block1移到屏幕外并缩小为0（确保视觉上完全消失）
+            block1.node.setScale(0, 0, 0);
+            block1.node.setPosition(-10000, -10000, 0);
             
             // 稍后销毁节点（避免内存泄漏）
             this.scheduleOnce(() => {
