@@ -139,30 +139,44 @@ export class Block extends Component {
     }
 
     /**
-     * 让这个方块消失
+     * 让这个方块消失（暴力版：先视觉消失，再销毁）
      */
     disappear() {
         console.log(`[Block] disappear开始: [${this.row},${this.col}]`);
         
         try {
-            // 停止所有动画
+            // 【第1步】立刻视觉上消失
+            this.node.active = false;
+            console.log(`[Block] active=false`);
+            
+            this.node.setScale(0, 0, 0);
+            console.log(`[Block] scale=0`);
+            
+            this.node.setPosition(-99999, -99999, 0);
+            console.log(`[Block] 移到屏幕外`);
+            
+            if (this.sprite) {
+                const Color = require('cc').Color;
+                this.sprite.color = new Color(0, 0, 0, 0);
+                console.log(`[Block] 透明度=0`);
+            }
+            
+            // 【第2步】停止动画
             Tween.stopAllByTarget(this.node);
             if (this.sprite) {
                 Tween.stopAllByTarget(this.sprite);
             }
-            console.log(`[Block] 动画已停止`);
             
-            // 从父节点移除
-            if (this.node && this.node.parent) {
+            // 【第3步】从父节点移除
+            if (this.node.parent) {
                 this.node.parent.removeChild(this.node);
                 console.log(`[Block] 已从父节点移除`);
             }
             
-            // 销毁节点
-            if (this.node && this.node.isValid) {
-                this.node.destroy();
-                console.log(`[Block] 节点已销毁`);
-            }
+            // 【第4步】销毁
+            this.node.destroy();
+            console.log(`[Block] 节点已销毁`);
+            
         } catch (e) {
             console.error(`[Block] disappear出错:`, e);
         }
