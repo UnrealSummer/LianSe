@@ -252,16 +252,16 @@ export class GameManager extends Component {
             
             // block2播放混合动画（第二次点击的方块变色）
             block2.playMixAnimation(newColor, () => {
-                // 变色动画完成后，稍微延迟再掉落（让玩家看清A的位置是空的）
+                // 变色动画完成后，延迟0.5秒再掉落（让玩家清楚看到空洞）
                 this.scheduleOnce(() => {
                     console.log(`开始掉落: 处理列${block1Pos.col}, 空位行${block1Pos.row}`);
                     this.handleDrop(block1Pos.col, block1Pos.row, block2);
-                }, 0.2);  // 0.2秒延迟，看到空洞
+                }, 0.5);  // 0.5秒延迟
                 
                 // 检查胜利条件
                 this.scheduleOnce(() => {
                     this.checkWinCondition();
-                }, 0.8);  // 等掉落动画结束
+                }, 1.2);  // 等掉落动画结束
             });
 
             // 消耗步数
@@ -305,7 +305,8 @@ export class GameManager extends Component {
                 
                 if (blockScript) {
                     const oldPos = blockScript.getPosition();
-                    console.log(`移动方块: [${oldPos.row},${oldPos.col}] → [${row},${col}]`);
+                    const colorName = this.getColorName(blockScript.getColorType());
+                    console.log(`移动方块: [${oldPos.row},${oldPos.col}] ${colorName} → [${row},${col}]`);
                     
                     // 移动下来
                     this.gridManager.setBlock(row, col, aboveBlock);
