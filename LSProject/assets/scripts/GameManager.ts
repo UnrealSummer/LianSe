@@ -249,12 +249,15 @@ export class GameManager extends Component {
             
             // block2播放混合动画（第二次点击的方块变色）
             block2.playMixAnimation(newColor, () => {
-                // 动画完成后触发掉落（block1的位置），跳过block2
-                this.handleDrop(block1Pos.col, block1Pos.row, block2);
+                // 变色动画完成后，稍微延迟再掉落（让玩家看清A的位置是空的）
+                this.scheduleOnce(() => {
+                    this.handleDrop(block1Pos.col, block1Pos.row, block2);
+                }, 0.2);  // 0.2秒延迟，看到空洞
+                
                 // 检查胜利条件
                 this.scheduleOnce(() => {
                     this.checkWinCondition();
-                }, 0.5);  // 等掉落动画结束
+                }, 0.8);  // 等掉落动画结束
             });
 
             // 消耗步数
