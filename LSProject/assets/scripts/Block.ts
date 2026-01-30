@@ -55,6 +55,7 @@ export class Block extends Component {
      */
     init(row: number, col: number) {
         console.log(`[Block] init被调用: [${row},${col}], UUID: ${this.node.uuid}`);
+        console.log(`[Block] 调用栈:`, new Error().stack);
         
         this.row = row;
         this.col = col;
