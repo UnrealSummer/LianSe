@@ -294,37 +294,37 @@ export class GameManager extends Component {
     handleDrop(col: number, emptyRow: number, skipBlock?: Block) {
         console.log(`handleDrop开始: 列${col}, 空位行${emptyRow}`);
         
-        // 从被消除位置往上，依次下落一格（跳过skipBlock）
-        for (let row = emptyRow; row > 0; row--) {
-            const aboveBlock = this.gridManager.getBlock(row - 1, col);
+        // 只检查被消除位置的正上方
+        if (emptyRow <= 0) {
+            console.log(`已经是顶部，无需掉落`);
+            return;
+        }
+        
+        const aboveBlock = this.gridManager.getBlock(emptyRow - 1, col);
+        console.log(`检查[${emptyRow-1},${col}]: ${aboveBlock ? '有方块' : '空'}`);
+        
+        if (aboveBlock && aboveBlock.isValid) {
+            const blockScript = aboveBlock.getComponent(Block);
             
-            console.log(`检查[${row-1},${col}]: ${aboveBlock ? '有方块' : '空'}`);
-            
-            if (aboveBlock && aboveBlock.isValid) {
-                const blockScript = aboveBlock.getComponent(Block);
-                
-                // 如果是skipBlock，跳过（保持在原位），不再继续往上
-                if (skipBlock && blockScript === skipBlock) {
-                    console.log(`遇到skipBlock，停止掉落`);
-                    break;
-                }
-                
-                if (blockScript) {
-                    const oldPos = blockScript.getPosition();
-                    const colorName = this.getColorName(blockScript.getColorType());
-                    console.log(`移动方块: [${oldPos.row},${oldPos.col}] ${colorName} → [${row},${col}]`);
-                    
-                    // 移动下来
-                    this.gridManager.setBlock(row, col, aboveBlock);
-                    this.gridManager.clearBlock(row - 1, col);
-                    blockScript.updateRowCol(row, col);
-                    blockScript.playDropAnimation(row, col);
-                }
-            } else {
-                // 上方是空的，不再继续
-                console.log(`上方是空的，停止掉落`);
-                break;
+            // 如果是skipBlock，不移动（保持空位）
+            if (skipBlock && blockScript === skipBlock) {
+                console.log(`上方是skipBlock，保持空位`);
+                return;
             }
+            
+            if (blockScript) {
+                const oldPos = blockScript.getPosition();
+                const colorName = this.getColorName(blockScript.getColorType());
+                console.log(`移动方块: [${oldPos.row},${oldPos.col}] ${colorName} → [${emptyRow},${col}]`);
+                
+                // 只移动一个方块，不递归
+                this.gridManager.setBlock(emptyRow, col, aboveBlock);
+                this.gridManager.clearBlock(emptyRow - 1, col);
+                blockScript.updateRowCol(emptyRow, col);
+                blockScript.playDropAnimation(emptyRow, col);
+            }
+        } else {
+            console.log(`上方是空的，保持空位`);
         }
     }
 
