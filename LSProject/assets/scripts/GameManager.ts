@@ -239,8 +239,11 @@ export class GameManager extends Component {
             console.log(`混合成功: ${this.getColorName(color1)} + ${this.getColorName(color2)} = ${this.getColorName(newColor)}`);
             console.log(`+${earnedScore}分 ${this.comboCount > 1 ? `(Combo x${this.comboCount})` : ''}`);
             
-            // 获取block1的位置（第一次点击的方块，要被消除）
+            // 获取block1和block2的位置
             const block1Pos = block1.getPosition();
+            const block2Pos = block2.getPosition();
+            
+            console.log(`混合: block1[${block1Pos.row},${block1Pos.col}]消失, block2[${block2Pos.row},${block2Pos.col}]变色`);
             
             // 立即从数组中清除block1的引用
             this.gridManager.clearBlock(block1Pos.row, block1Pos.col);
@@ -251,6 +254,7 @@ export class GameManager extends Component {
             block2.playMixAnimation(newColor, () => {
                 // 变色动画完成后，稍微延迟再掉落（让玩家看清A的位置是空的）
                 this.scheduleOnce(() => {
+                    console.log(`开始掉落: 处理列${block1Pos.col}, 空位行${block1Pos.row}`);
                     this.handleDrop(block1Pos.col, block1Pos.row, block2);
                 }, 0.2);  // 0.2秒延迟，看到空洞
                 
@@ -282,19 +286,27 @@ export class GameManager extends Component {
      * @param skipBlock 不要移动的方块（刚变色的方块）
      */
     handleDrop(col: number, emptyRow: number, skipBlock?: Block) {
+        console.log(`handleDrop开始: 列${col}, 空位行${emptyRow}`);
+        
         // 从被消除位置往上，依次下落一格（跳过skipBlock）
         for (let row = emptyRow; row > 0; row--) {
             const aboveBlock = this.gridManager.getBlock(row - 1, col);
+            
+            console.log(`检查[${row-1},${col}]: ${aboveBlock ? '有方块' : '空'}`);
             
             if (aboveBlock && aboveBlock.isValid) {
                 const blockScript = aboveBlock.getComponent(Block);
                 
                 // 如果是skipBlock，跳过（保持在原位），不再继续往上
                 if (skipBlock && blockScript === skipBlock) {
+                    console.log(`遇到skipBlock，停止掉落`);
                     break;
                 }
                 
                 if (blockScript) {
+                    const oldPos = blockScript.getPosition();
+                    console.log(`移动方块: [${oldPos.row},${oldPos.col}] → [${row},${col}]`);
+                    
                     // 移动下来
                     this.gridManager.setBlock(row, col, aboveBlock);
                     this.gridManager.clearBlock(row - 1, col);
@@ -303,6 +315,7 @@ export class GameManager extends Component {
                 }
             } else {
                 // 上方是空的，不再继续
+                console.log(`上方是空的，停止掉落`);
                 break;
             }
         }
