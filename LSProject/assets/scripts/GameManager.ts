@@ -245,16 +245,18 @@ export class GameManager extends Component {
             
             console.log(`混合: block1[${block1Pos.row},${block1Pos.col}]消失, block2[${block2Pos.row},${block2Pos.col}]变色`);
             
-            // 立即隐藏block1（让它瞬间消失）
-            block1.node.active = false;
+            // 立刻从场景移除block1（彻底从视觉上消失）
+            block1.node.removeFromParent();
             
             // 立即从数组中清除block1的引用
             this.gridManager.clearBlock(block1Pos.row, block1Pos.col);
             
-            // 稍后销毁（避免引用问题）
+            // 稍后销毁节点（避免内存泄漏）
             this.scheduleOnce(() => {
-                block1.node.destroy();
-            }, 0.1);
+                if (block1.node && block1.node.isValid) {
+                    block1.node.destroy();
+                }
+            }, 1);
             
             // block2播放混合动画（第二次点击的方块变色）
             block2.playMixAnimation(newColor, () => {
