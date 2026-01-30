@@ -239,18 +239,28 @@ export class GameManager extends Component {
             console.log(`混合成功: ${this.getColorName(color1)} + ${this.getColorName(color2)} = ${this.getColorName(newColor)}`);
             console.log(`+${earnedScore}分 ${this.comboCount > 1 ? `(Combo x${this.comboCount})` : ''}`);
             
-            // 获取block1和block2的位置
+            // 获取block1和block2的位置和颜色
             const block1Pos = block1.getPosition();
             const block2Pos = block2.getPosition();
+            const block1Color = this.getColorName(color1);
+            const block2Color = this.getColorName(color2);
             
-            console.log(`混合: block1[${block1Pos.row},${block1Pos.col}]消失, block2[${block2Pos.row},${block2Pos.col}]变色`);
+            console.log(`===混合开始===`);
+            console.log(`block1: [${block1Pos.row},${block1Pos.col}] ${block1Color} (第一次点击，要消失)`);
+            console.log(`block2: [${block2Pos.row},${block2Pos.col}] ${block2Color} (第二次点击，要变色)`);
+            console.log(`block1节点名: ${block1.node.name}`);
+            console.log(`block2节点名: ${block2.node.name}`);
             
-            // 先从数组中清除block1的引用（阻止其他逻辑访问）
+            // 先从数组中清除block1的引用
             this.gridManager.clearBlock(block1Pos.row, block1Pos.col);
+            console.log(`已从数组清除[${block1Pos.row},${block1Pos.col}]`);
             
-            // 立刻把block1移到屏幕外并缩小为0（确保视觉上完全消失）
-            block1.node.setScale(0, 0, 0);
-            block1.node.setPosition(-10000, -10000, 0);
+            // 立刻销毁block1的节点
+            console.log(`准备销毁block1节点...`);
+            block1.node.destroy();
+            console.log(`block1节点已销毁`);
+            
+            console.log(`===混合结束，开始变色动画===`);
             
             // 稍后销毁节点（避免内存泄漏）
             this.scheduleOnce(() => {
