@@ -54,15 +54,14 @@ export class Block extends Component {
      * 初始化方块
      */
     init(row: number, col: number) {
-        console.log(`[Block] init被调用: [${row},${col}], UUID: ${this.node.uuid}`);
-        console.log(`[Block] 调用栈:`, new Error().stack);
+        console.log(`===init被调用: [${row},${col}], UUID: ${this.node.uuid}===`);
         
         this.row = row;
         this.col = col;
         
         // 随机生成三原色之一
         this.colorType = Math.floor(Math.random() * 3);  // 0,1,2 对应红黄蓝
-        console.log(`[Block] [${row},${col}] 颜色=${this.colorType}`);
+        console.log(`颜色=${this.colorType}`);
         
         this.updateColor();
 
@@ -83,20 +82,11 @@ export class Block extends Component {
      * 触摸事件
      */
     onTouchEnd(event: EventTouch) {
-        console.log(`===点击方块 [${this.row}, ${this.col}]===`);
+        console.log(`===点击测试方块 [${this.row}, ${this.col}] UUID: ${this.node.uuid}===`);
         
-        // 先变红色，2秒后再消失
-        if (this.sprite) {
-            const Color = require('cc').Color;
-            this.sprite.color = new Color(255, 0, 0);
-            console.log(`[${this.row}, ${this.col}] 已变红色`);
-        }
-        
-        // 2秒后消失
-        this.scheduleOnce(() => {
-            console.log(`2秒后，让[${this.row}, ${this.col}]消失...`);
-            this.disappear();
-        }, 2);
+        // 立刻消失
+        console.log(`立刻销毁...`);
+        this.disappear();
     }
 
     /**
@@ -190,6 +180,7 @@ export class Block extends Component {
             // 【第4步】销毁
             this.node.destroy();
             console.log(`[Block] 节点已销毁`);
+            console.log(`===disappear完成===`);
             
         } catch (e) {
             console.error(`[Block] disappear出错:`, e);
