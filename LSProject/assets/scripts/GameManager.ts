@@ -249,8 +249,8 @@ export class GameManager extends Component {
             
             // block2播放混合动画（第二次点击的方块变色）
             block2.playMixAnimation(newColor, () => {
-                // 动画完成后触发掉落（block1的位置）
-                this.handleDrop(block1Pos.col, block1Pos.row);
+                // 动画完成后触发掉落（block1的位置），跳过block2
+                this.handleDrop(block1Pos.col, block1Pos.row, block2);
                 // 检查胜利条件
                 this.scheduleOnce(() => {
                     this.checkWinCondition();
@@ -273,30 +273,36 @@ export class GameManager extends Component {
     }
 
     /**
-     * 处理指定位置的方块掉落和填充
+     * 处理指定位置的方块掉落
      * @param col 列号
      * @param emptyRow 被消除方块的行号
+     * @param skipBlock 不要移动的方块（刚变色的方块）
      */
-    handleDrop(col: number, emptyRow: number) {
-        // 从被消除的位置往上，让所有方块依次下落一格
+    handleDrop(col: number, emptyRow: number, skipBlock?: Block) {
+        // 从被消除位置往上，依次下落一格（跳过skipBlock）
         for (let row = emptyRow; row > 0; row--) {
             const aboveBlock = this.gridManager.getBlock(row - 1, col);
             
             if (aboveBlock && aboveBlock.isValid) {
-                // 上方有方块，移动到当前位置
-                this.gridManager.setBlock(row, col, aboveBlock);
-                this.gridManager.clearBlock(row - 1, col);
-                
                 const blockScript = aboveBlock.getComponent(Block);
+                
+                // 如果是skipBlock，跳过（保持在原位），不再继续往上
+                if (skipBlock && blockScript === skipBlock) {
+                    break;
+                }
+                
                 if (blockScript) {
+                    // 移动下来
+                    this.gridManager.setBlock(row, col, aboveBlock);
+                    this.gridManager.clearBlock(row - 1, col);
                     blockScript.updateRowCol(row, col);
                     blockScript.playDropAnimation(row, col);
                 }
+            } else {
+                // 上方是空的，不再继续
+                break;
             }
         }
-        
-        // 在顶部(第0行)生成新方块
-        this.gridManager.generateNewBlock(0, col);
     }
 
     /**
