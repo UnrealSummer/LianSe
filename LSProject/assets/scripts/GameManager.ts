@@ -1,4 +1,4 @@
-import { _decorator, Component, Label } from 'cc';
+import { _decorator, Component, Label, Tween } from 'cc';
 import { Block, ColorType } from './Block';
 import { GridManager } from './GridManager';
 const { ccclass, property } = _decorator;
@@ -247,7 +247,9 @@ export class GameManager extends Component {
             
             console.log(`===混合开始===`);
             console.log(`block1: [${block1Pos.row},${block1Pos.col}] ${block1Color} (第一次点击，要消失)`);
+            console.log(`  屏幕位置: (${block1.node.position.x.toFixed(0)}, ${block1.node.position.y.toFixed(0)})`);
             console.log(`block2: [${block2Pos.row},${block2Pos.col}] ${block2Color} (第二次点击，要变色)`);
+            console.log(`  屏幕位置: (${block2.node.position.x.toFixed(0)}, ${block2.node.position.y.toFixed(0)})`);
             console.log(`block1节点名: ${block1.node.name}`);
             console.log(`block2节点名: ${block2.node.name}`);
             
@@ -255,10 +257,21 @@ export class GameManager extends Component {
             this.gridManager.clearBlock(block1Pos.row, block1Pos.col);
             console.log(`已从数组清除[${block1Pos.row},${block1Pos.col}]`);
             
+            // 停止block1的所有动画和tween
+            console.log(`停止block1的所有动画...`);
+            Tween.stopAllByTarget(block1.node);
+            if (block1.sprite) {
+                Tween.stopAllByTarget(block1.sprite);
+            }
+            
             // 立刻销毁block1的节点
             console.log(`准备销毁block1节点...`);
             block1.node.destroy();
-            console.log(`block1节点已销毁`);
+            console.log(`block1节点已destroy()调用完成`);
+            
+            // 验证：检查数组里这个位置是否为空
+            const checkBlock = this.gridManager.getBlock(block1Pos.row, block1Pos.col);
+            console.log(`验证: [${block1Pos.row},${block1Pos.col}]位置的方块: ${checkBlock ? '还有方块！！！' : '已经是null'}`);
             
             console.log(`===混合结束，开始变色动画===`);
             
@@ -271,16 +284,17 @@ export class GameManager extends Component {
             
             // block2播放混合动画（第二次点击的方块变色）
             block2.playMixAnimation(newColor, () => {
-                // 【暂时禁用掉落，只测试消失和变色】
+                console.log(`变色动画完成`);
+                
+                // 【暂时禁用所有后续操作，纯测试消失+变色】
                 // this.scheduleOnce(() => {
                 //     console.log(`开始掉落: 处理列${block1Pos.col}, 空位行${block1Pos.row}`);
                 //     this.handleDrop(block1Pos.col, block1Pos.row, block2);
                 // }, 0.5);
                 
-                // 检查胜利条件
-                this.scheduleOnce(() => {
-                    this.checkWinCondition();
-                }, 0.5);
+                // this.scheduleOnce(() => {
+                //     this.checkWinCondition();
+                // }, 0.5);
             });
 
             // 消耗步数

@@ -144,6 +144,8 @@ export class Block extends Component {
      * 播放混合动画
      */
     playMixAnimation(newColor: ColorType, onComplete?: Function) {
+        console.log(`[Block动画] 开始变色: [${this.row},${this.col}] → ${newColor}`);
+        
         const oldColor = this.sprite.color.clone();
         const targetColor = COLOR_MAP[newColor];
 
@@ -151,9 +153,11 @@ export class Block extends Component {
         this.colorType = newColor;
 
         // 动画序列：放大 -> 颜色渐变 -> 缩小
+        console.log(`[Block动画] 开始tween动画，节点: ${this.node.name}`);
         tween(this.node)
             .to(0.1, { scale: new Vec3(1.3, 1.3, 1) })  // 快速放大
             .call(() => {
+                console.log(`[Block动画] 开始颜色渐变`);
                 // 颜色渐变
                 tween(this.sprite)
                     .to(0.3, { color: targetColor }, {
