@@ -264,7 +264,15 @@ export class GameManager extends Component {
                 Tween.stopAllByTarget(block1.sprite);
             }
             
-            // 立刻销毁block1的节点
+            // 【关键】立刻从父节点移除（视觉上立刻消失）
+            console.log(`从父节点移除block1...`);
+            const parent = block1.node.parent;
+            if (parent) {
+                parent.removeChild(block1.node);
+                console.log(`block1已从场景移除`);
+            }
+            
+            // 然后才销毁
             console.log(`准备销毁block1节点...`);
             block1.node.destroy();
             console.log(`block1节点已destroy()调用完成`);
