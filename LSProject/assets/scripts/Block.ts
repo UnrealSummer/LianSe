@@ -54,11 +54,15 @@ export class Block extends Component {
      * 初始化方块
      */
     init(row: number, col: number) {
+        console.log(`[Block] init被调用: [${row},${col}], UUID: ${this.node.uuid}`);
+        
         this.row = row;
         this.col = col;
         
         // 随机生成三原色之一
         this.colorType = Math.floor(Math.random() * 3);  // 0,1,2 对应红黄蓝
+        console.log(`[Block] [${row},${col}] 颜色=${this.colorType}`);
+        
         this.updateColor();
 
         // 添加触摸事件
