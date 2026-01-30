@@ -1,4 +1,4 @@
-import { _decorator, Component, Label, Tween } from 'cc';
+import { _decorator, Component, Label, Tween, Color } from 'cc';
 import { Block, ColorType } from './Block';
 import { GridManager } from './GridManager';
 const { ccclass, property } = _decorator;
@@ -248,10 +248,15 @@ export class GameManager extends Component {
             console.log(`===混合开始===`);
             console.log(`block1: [${block1Pos.row},${block1Pos.col}] ${block1Color} (第一次点击，要消失)`);
             console.log(`  屏幕位置: (${block1.node.position.x.toFixed(0)}, ${block1.node.position.y.toFixed(0)})`);
+            console.log(`  节点UUID: ${block1.node.uuid}`);
             console.log(`block2: [${block2Pos.row},${block2Pos.col}] ${block2Color} (第二次点击，要变色)`);
             console.log(`  屏幕位置: (${block2.node.position.x.toFixed(0)}, ${block2.node.position.y.toFixed(0)})`);
-            console.log(`block1节点名: ${block1.node.name}`);
-            console.log(`block2节点名: ${block2.node.name}`);
+            console.log(`  节点UUID: ${block2.node.uuid}`);
+            
+            // 检查网格节点总共有多少子节点
+            if (this.gridManager && this.gridManager.node) {
+                console.log(`GridManager子节点总数: ${this.gridManager.node.children.length}`);
+            }
             
             // 先从数组中清除block1的引用
             this.gridManager.clearBlock(block1Pos.row, block1Pos.col);
@@ -262,24 +267,42 @@ export class GameManager extends Component {
             Tween.stopAllByTarget(block1.node);
             if (block1.sprite) {
                 Tween.stopAllByTarget(block1.sprite);
+                
+                // 【测试】先把block1变成纯白色，看看是不是它
+                console.log(`把block1变成纯白色（测试用）`);
+                block1.sprite.color = new Color(255, 255, 255);
             }
             
-            // 【关键】立刻从父节点移除（视觉上立刻消失）
+            // 等待0.5秒，让用户看到白色
+            console.log(`等待0.5秒，观察block1是否变白...`);
+            this.scheduleOnce(() => {
+                this.removeBlock1(block1, block1Pos);
+            }, 0.5);
+            
+            return;  // 暂停后续流程
+            
+            // 【关键】立刻从父节点移除并销毁
             console.log(`从父节点移除block1...`);
             const parent = block1.node.parent;
             if (parent) {
+                const childCountBefore = parent.children.length;
+                console.log(`移除前父节点子节点数: ${childCountBefore}`);
+                
                 parent.removeChild(block1.node);
-                console.log(`block1已从场景移除`);
+                
+                const childCountAfter = parent.children.length;
+                console.log(`移除后父节点子节点数: ${childCountAfter}`);
+                console.log(`block1已从场景移除 (${childCountBefore} → ${childCountAfter})`);
             }
             
-            // 然后才销毁
-            console.log(`准备销毁block1节点...`);
+            // 立刻销毁
+            console.log(`准备destroy...`);
             block1.node.destroy();
-            console.log(`block1节点已destroy()调用完成`);
+            console.log(`destroy完成`);
             
-            // 验证：检查数组里这个位置是否为空
+            // 验证数组
             const checkBlock = this.gridManager.getBlock(block1Pos.row, block1Pos.col);
-            console.log(`验证: [${block1Pos.row},${block1Pos.col}]位置的方块: ${checkBlock ? '还有方块！！！' : '已经是null'}`);
+            console.log(`验证数组: [${block1Pos.row},${block1Pos.col}] = ${checkBlock ? '还有方块！！！' : 'null ✅'}`);
             
             console.log(`===混合结束，开始变色动画===`);
             
@@ -318,6 +341,33 @@ export class GameManager extends Component {
             block1.setSelected(false);
             this.selectedBlock = null;
         }
+    }
+
+    /**
+     * 移除block1的辅助方法
+     */
+    removeBlock1(block1: Block, block1Pos: {row: number, col: number}) {
+        console.log(`===0.5秒后，开始移除block1===`);
+        
+        // 从父节点移除
+        const parent = block1.node.parent;
+        if (parent) {
+            const childCountBefore = parent.children.length;
+            console.log(`移除前父节点子节点数: ${childCountBefore}`);
+            
+            parent.removeChild(block1.node);
+            
+            const childCountAfter = parent.children.length;
+            console.log(`移除后父节点子节点数: ${childCountAfter}`);
+        }
+        
+        // 销毁
+        block1.node.destroy();
+        console.log(`block1已销毁`);
+        
+        // 验证
+        const checkBlock = this.gridManager.getBlock(block1Pos.row, block1Pos.col);
+        console.log(`验证数组: [${block1Pos.row},${block1Pos.col}] = ${checkBlock ? '还有！' : 'null ✅'}`);
     }
 
     /**
