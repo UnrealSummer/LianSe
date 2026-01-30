@@ -1,4 +1,4 @@
-import { _decorator, Component, Node, Sprite, Color, EventTouch, tween, Vec3 } from 'cc';
+import { _decorator, Component, Node, Sprite, Color, EventTouch, tween, Vec3, Tween } from 'cc';
 const { ccclass, property } = _decorator;
 
 /**
@@ -78,13 +78,11 @@ export class Block extends Component {
      * 触摸事件
      */
     onTouchEnd(event: EventTouch) {
-        console.log(`Clicked block at [${this.row}, ${this.col}], color: ${this.colorType}`);
+        console.log(`点击方块 [${this.row}, ${this.col}]`);
         
-        // 查找GameManager并通知点击
-        const gameManager = this.node.parent.parent.getComponent('GameManager');
-        if (gameManager) {
-            gameManager.onBlockClick(this);
-        }
+        // 直接消失（测试用）
+        console.log(`让方块消失...`);
+        this.disappear();
     }
 
     /**
@@ -144,21 +142,30 @@ export class Block extends Component {
      * 让这个方块消失
      */
     disappear() {
-        console.log(`[Block] disappear被调用: [${this.row},${this.col}]`);
+        console.log(`[Block] disappear开始: [${this.row},${this.col}]`);
         
-        // 停止所有动画
-        Tween.stopAllByTarget(this.node);
-        Tween.stopAllByTarget(this.sprite);
-        
-        // 从父节点移除
-        if (this.node.parent) {
-            this.node.parent.removeChild(this.node);
-            console.log(`[Block] 已从父节点移除`);
+        try {
+            // 停止所有动画
+            Tween.stopAllByTarget(this.node);
+            if (this.sprite) {
+                Tween.stopAllByTarget(this.sprite);
+            }
+            console.log(`[Block] 动画已停止`);
+            
+            // 从父节点移除
+            if (this.node && this.node.parent) {
+                this.node.parent.removeChild(this.node);
+                console.log(`[Block] 已从父节点移除`);
+            }
+            
+            // 销毁节点
+            if (this.node && this.node.isValid) {
+                this.node.destroy();
+                console.log(`[Block] 节点已销毁`);
+            }
+        } catch (e) {
+            console.error(`[Block] disappear出错:`, e);
         }
-        
-        // 销毁节点
-        this.node.destroy();
-        console.log(`[Block] 节点已销毁`);
     }
 
     /**
