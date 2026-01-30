@@ -82,11 +82,20 @@ export class Block extends Component {
      * 触摸事件
      */
     onTouchEnd(event: EventTouch) {
-        console.log(`点击方块 [${this.row}, ${this.col}]`);
+        console.log(`===点击方块 [${this.row}, ${this.col}]===`);
         
-        // 直接消失（测试用）
-        console.log(`让方块消失...`);
-        this.disappear();
+        // 先变红色，2秒后再消失
+        if (this.sprite) {
+            const Color = require('cc').Color;
+            this.sprite.color = new Color(255, 0, 0);
+            console.log(`[${this.row}, ${this.col}] 已变红色`);
+        }
+        
+        // 2秒后消失
+        this.scheduleOnce(() => {
+            console.log(`2秒后，让[${this.row}, ${this.col}]消失...`);
+            this.disappear();
+        }, 2);
     }
 
     /**
