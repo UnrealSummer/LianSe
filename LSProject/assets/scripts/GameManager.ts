@@ -219,6 +219,8 @@ export class GameManager extends Component {
 
     /**
      * 尝试混合两个方块
+     * block1: 第一次点击的方块（将被消除）
+     * block2: 第二次点击的方块（将变色）
      */
     tryMix(block1: Block, block2: Block) {
         const color1 = block1.getColorType();
@@ -237,18 +239,18 @@ export class GameManager extends Component {
             console.log(`混合成功: ${this.getColorName(color1)} + ${this.getColorName(color2)} = ${this.getColorName(newColor)}`);
             console.log(`+${earnedScore}分 ${this.comboCount > 1 ? `(Combo x${this.comboCount})` : ''}`);
             
-            // 获取block2的位置（掉落前记录）
-            const block2Pos = block2.getPosition();
+            // 获取block1的位置（第一次点击的方块，要被消除）
+            const block1Pos = block1.getPosition();
             
-            // 立即从数组中清除引用
-            this.gridManager.clearBlock(block2Pos.row, block2Pos.col);
-            // 立即销毁第二个方块
-            block2.node.destroy();
+            // 立即从数组中清除block1的引用
+            this.gridManager.clearBlock(block1Pos.row, block1Pos.col);
+            // 立即销毁block1（第一次点击的方块）
+            block1.node.destroy();
             
-            // 播放混合动画
-            block1.playMixAnimation(newColor, () => {
-                // 动画完成后触发掉落
-                this.handleDrop(block2Pos.col);
+            // block2播放混合动画（第二次点击的方块变色）
+            block2.playMixAnimation(newColor, () => {
+                // 动画完成后触发掉落（block1的列）
+                this.handleDrop(block1Pos.col);
                 // 检查胜利条件
                 this.scheduleOnce(() => {
                     this.checkWinCondition();
@@ -260,7 +262,6 @@ export class GameManager extends Component {
             this.updateUI();
 
             // 取消选中
-            block1.setSelected(false);
             this.selectedBlock = null;
         } else {
             console.log('这两种颜色无法混合');
