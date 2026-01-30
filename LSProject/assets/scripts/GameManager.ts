@@ -267,44 +267,30 @@ export class GameManager extends Component {
             Tween.stopAllByTarget(block1.node);
             if (block1.sprite) {
                 Tween.stopAllByTarget(block1.sprite);
+            }
+
+            // 【关键】完全删除block1节点
+            console.log(`完全删除block1...`);
+            if (block1.node && block1.node.isValid) {
+                // 先从场景移除
+                if (block1.node.parent) {
+                    block1.node.parent.removeChild(block1.node);
+                    console.log(`block1已从父节点移除`);
+                }
                 
-                // 【测试】先把block1变成纯白色，看看是不是它
-                console.log(`把block1变成纯白色（测试用）`);
-                block1.sprite.color = new Color(255, 255, 255);
+                // 立刻销毁
+                block1.node.destroy();
+                console.log(`block1已销毁`);
+                
+                // 置空引用
+                block1 = null;
             }
             
-            // 等待0.5秒，让用户看到白色
-            console.log(`等待0.5秒，观察block1是否变白...`);
-            this.scheduleOnce(() => {
-                this.removeBlock1(block1, block1Pos);
-            }, 0.5);
-            
-            return;  // 暂停后续流程
-            
-            // 【关键】立刻从父节点移除并销毁
-            console.log(`从父节点移除block1...`);
-            const parent = block1.node.parent;
-            if (parent) {
-                const childCountBefore = parent.children.length;
-                console.log(`移除前父节点子节点数: ${childCountBefore}`);
-                
-                parent.removeChild(block1.node);
-                
-                const childCountAfter = parent.children.length;
-                console.log(`移除后父节点子节点数: ${childCountAfter}`);
-                console.log(`block1已从场景移除 (${childCountBefore} → ${childCountAfter})`);
-            }
-            
-            // 立刻销毁
-            console.log(`准备destroy...`);
-            block1.node.destroy();
-            console.log(`destroy完成`);
-            
-            // 验证数组
+            // 验证
             const checkBlock = this.gridManager.getBlock(block1Pos.row, block1Pos.col);
-            console.log(`验证数组: [${block1Pos.row},${block1Pos.col}] = ${checkBlock ? '还有方块！！！' : 'null ✅'}`);
+            console.log(`验证: [${block1Pos.row},${block1Pos.col}] 数组中 = ${checkBlock ? '还有！' : 'null ✅'}`);
             
-            console.log(`===混合结束，开始变色动画===`);
+            console.log(`===block1处理完成，开始block2变色动画===`);
             
             // 稍后销毁节点（避免内存泄漏）
             this.scheduleOnce(() => {
