@@ -218,7 +218,7 @@ export class GameManager extends Component {
     }
 
     /**
-     * 尝试混合两个方块
+     * 尝试混合两个方块（简化版）
      * block1: 第一次点击的方块（将被消除）
      * block2: 第二次点击的方块（将变色）
      */
@@ -235,83 +235,25 @@ export class GameManager extends Component {
             const earnedScore = Math.floor(baseScore * comboMultiplier);
             this.currentScore += earnedScore;
 
-            // 混合成功
-            console.log(`混合成功: ${this.getColorName(color1)} + ${this.getColorName(color2)} = ${this.getColorName(newColor)}`);
-            console.log(`+${earnedScore}分 ${this.comboCount > 1 ? `(Combo x${this.comboCount})` : ''}`);
+            console.log(`混合: ${this.getColorName(color1)} + ${this.getColorName(color2)} = ${this.getColorName(newColor)}`);
+            console.log(`+${earnedScore}分`);
             
-            // 获取block1和block2的位置和颜色
+            // 获取位置
             const block1Pos = block1.getPosition();
-            const block2Pos = block2.getPosition();
-            const block1Color = this.getColorName(color1);
-            const block2Color = this.getColorName(color2);
             
-            console.log(`===混合开始===`);
-            console.log(`block1: [${block1Pos.row},${block1Pos.col}] ${block1Color} (第一次点击，要消失)`);
-            console.log(`  屏幕位置: (${block1.node.position.x.toFixed(0)}, ${block1.node.position.y.toFixed(0)})`);
-            console.log(`  节点UUID: ${block1.node.uuid}`);
-            console.log(`block2: [${block2Pos.row},${block2Pos.col}] ${block2Color} (第二次点击，要变色)`);
-            console.log(`  屏幕位置: (${block2.node.position.x.toFixed(0)}, ${block2.node.position.y.toFixed(0)})`);
-            console.log(`  节点UUID: ${block2.node.uuid}`);
-            
-            // 检查网格节点总共有多少子节点
-            if (this.gridManager && this.gridManager.node) {
-                console.log(`GridManager子节点总数: ${this.gridManager.node.children.length}`);
-            }
-            
-            // 先从数组中清除block1的引用
+            // 从数组清除block1
             this.gridManager.clearBlock(block1Pos.row, block1Pos.col);
-            console.log(`已从数组清除[${block1Pos.row},${block1Pos.col}]`);
+            console.log(`清除数组[${block1Pos.row},${block1Pos.col}]`);
             
-            // 停止block1的所有动画和tween
-            console.log(`停止block1的所有动画...`);
-            Tween.stopAllByTarget(block1.node);
-            if (block1.sprite) {
-                Tween.stopAllByTarget(block1.sprite);
-            }
-
-            // 【关键】完全删除block1节点
-            console.log(`完全删除block1...`);
-            if (block1.node && block1.node.isValid) {
-                // 先从场景移除
-                if (block1.node.parent) {
-                    block1.node.parent.removeChild(block1.node);
-                    console.log(`block1已从父节点移除`);
-                }
-                
-                // 立刻销毁
-                block1.node.destroy();
-                console.log(`block1已销毁`);
-                
-                // 置空引用
-                block1 = null;
-            }
+            // 让block1消失（调用Block自己的方法）
+            console.log(`让block1消失...`);
+            block1.disappear();
+            console.log(`block1已消失`);
             
-            // 验证
-            const checkBlock = this.gridManager.getBlock(block1Pos.row, block1Pos.col);
-            console.log(`验证: [${block1Pos.row},${block1Pos.col}] 数组中 = ${checkBlock ? '还有！' : 'null ✅'}`);
-            
-            console.log(`===block1处理完成，开始block2变色动画===`);
-            
-            // 稍后销毁节点（避免内存泄漏）
-            this.scheduleOnce(() => {
-                if (block1.node && block1.node.isValid) {
-                    block1.node.destroy();
-                }
-            }, 1);
-            
-            // block2播放混合动画（第二次点击的方块变色）
+            // block2变色
+            console.log(`block2开始变色...`);
             block2.playMixAnimation(newColor, () => {
-                console.log(`变色动画完成`);
-                
-                // 【暂时禁用所有后续操作，纯测试消失+变色】
-                // this.scheduleOnce(() => {
-                //     console.log(`开始掉落: 处理列${block1Pos.col}, 空位行${block1Pos.row}`);
-                //     this.handleDrop(block1Pos.col, block1Pos.row, block2);
-                // }, 0.5);
-                
-                // this.scheduleOnce(() => {
-                //     this.checkWinCondition();
-                // }, 0.5);
+                console.log(`变色完成`);
             });
 
             // 消耗步数
@@ -321,40 +263,14 @@ export class GameManager extends Component {
             // 取消选中
             this.selectedBlock = null;
         } else {
-            console.log('这两种颜色无法混合');
-            // 重置连击
+            console.log('无法混合');
             this.comboCount = 0;
             block1.setSelected(false);
             this.selectedBlock = null;
         }
     }
 
-    /**
-     * 移除block1的辅助方法
-     */
-    removeBlock1(block1: Block, block1Pos: {row: number, col: number}) {
-        console.log(`===0.5秒后，开始移除block1===`);
-        
-        // 从父节点移除
-        const parent = block1.node.parent;
-        if (parent) {
-            const childCountBefore = parent.children.length;
-            console.log(`移除前父节点子节点数: ${childCountBefore}`);
-            
-            parent.removeChild(block1.node);
-            
-            const childCountAfter = parent.children.length;
-            console.log(`移除后父节点子节点数: ${childCountAfter}`);
-        }
-        
-        // 销毁
-        block1.node.destroy();
-        console.log(`block1已销毁`);
-        
-        // 验证
-        const checkBlock = this.gridManager.getBlock(block1Pos.row, block1Pos.col);
-        console.log(`验证数组: [${block1Pos.row},${block1Pos.col}] = ${checkBlock ? '还有！' : 'null ✅'}`);
-    }
+    // removeBlock1方法已删除，不再需要
 
     /**
      * 处理指定位置的方块掉落

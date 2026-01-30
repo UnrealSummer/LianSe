@@ -141,6 +141,27 @@ export class Block extends Component {
     }
 
     /**
+     * 让这个方块消失
+     */
+    disappear() {
+        console.log(`[Block] disappear被调用: [${this.row},${this.col}]`);
+        
+        // 停止所有动画
+        Tween.stopAllByTarget(this.node);
+        Tween.stopAllByTarget(this.sprite);
+        
+        // 从父节点移除
+        if (this.node.parent) {
+            this.node.parent.removeChild(this.node);
+            console.log(`[Block] 已从父节点移除`);
+        }
+        
+        // 销毁节点
+        this.node.destroy();
+        console.log(`[Block] 节点已销毁`);
+    }
+
+    /**
      * 播放混合动画
      */
     playMixAnimation(newColor: ColorType, onComplete?: Function) {
