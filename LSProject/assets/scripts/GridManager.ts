@@ -21,28 +21,7 @@ export class GridManager extends Component {
     private blocks: Node[][] = [];  // 二维数组存储方块
 
     start() {
-        // 【测试】只生成一个方块
-        console.log(`只生成一个测试方块`);
-        this.generateTestBlock();
-        
-        // 原来的网格生成（暂时禁用）
-        // this.generateGrid(this.gridSize);
-    }
-    
-    /**
-     * 生成一个测试方块（屏幕中央）
-     */
-    generateTestBlock() {
-        const block = instantiate(this.blockPrefab);
-        block.setParent(this.node);
-        block.setPosition(new Vec3(0, 0, 0));  // 屏幕中央
-        
-        const blockScript = block.getComponent('Block');
-        if (blockScript) {
-            blockScript.init(0, 0);
-        }
-        
-        console.log(`测试方块已生成，UUID: ${block.uuid}`);
+        this.generateGrid(this.gridSize);
     }
 
     /**

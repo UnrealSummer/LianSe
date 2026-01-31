@@ -54,15 +54,11 @@ export class Block extends Component {
      * 初始化方块
      */
     init(row: number, col: number) {
-        console.log(`===init被调用: [${row},${col}], UUID: ${this.node.uuid}===`);
-        
         this.row = row;
         this.col = col;
         
         // 随机生成三原色之一
         this.colorType = Math.floor(Math.random() * 3);  // 0,1,2 对应红黄蓝
-        console.log(`颜色=${this.colorType}`);
-        
         this.updateColor();
 
         // 添加触摸事件
@@ -82,11 +78,13 @@ export class Block extends Component {
      * 触摸事件
      */
     onTouchEnd(event: EventTouch) {
-        console.log(`===点击测试方块 [${this.row}, ${this.col}] UUID: ${this.node.uuid}===`);
+        console.log(`点击方块 [${this.row}, ${this.col}]`);
         
-        // 立刻消失
-        console.log(`立刻销毁...`);
-        this.disappear();
+        // 通知GameManager处理点击
+        const gameManager = this.node.parent.parent.getComponent('GameManager');
+        if (gameManager) {
+            gameManager.onBlockClick(this);
+        }
     }
 
     /**
@@ -143,44 +141,23 @@ export class Block extends Component {
     }
 
     /**
-     * 让这个方块消失（暴力版：先视觉消失，再销毁）
+     * 让这个方块消失
      */
     disappear() {
-        console.log(`[Block] disappear开始: [${this.row},${this.col}]`);
-        
         try {
-            // 【第1步】立刻视觉上消失
-            this.node.active = false;
-            console.log(`[Block] active=false`);
-            
-            this.node.setScale(0, 0, 0);
-            console.log(`[Block] scale=0`);
-            
-            this.node.setPosition(-99999, -99999, 0);
-            console.log(`[Block] 移到屏幕外`);
-            
-            if (this.sprite) {
-                const Color = require('cc').Color;
-                this.sprite.color = new Color(0, 0, 0, 0);
-                console.log(`[Block] 透明度=0`);
-            }
-            
-            // 【第2步】停止动画
+            // 停止动画
             Tween.stopAllByTarget(this.node);
             if (this.sprite) {
                 Tween.stopAllByTarget(this.sprite);
             }
             
-            // 【第3步】从父节点移除
+            // 从父节点移除
             if (this.node.parent) {
                 this.node.parent.removeChild(this.node);
-                console.log(`[Block] 已从父节点移除`);
             }
             
-            // 【第4步】销毁
+            // 销毁
             this.node.destroy();
-            console.log(`[Block] 节点已销毁`);
-            console.log(`===disappear完成===`);
             
         } catch (e) {
             console.error(`[Block] disappear出错:`, e);
@@ -191,8 +168,6 @@ export class Block extends Component {
      * 播放混合动画
      */
     playMixAnimation(newColor: ColorType, onComplete?: Function) {
-        console.log(`[Block动画] 开始变色: [${this.row},${this.col}] → ${newColor}`);
-        
         const oldColor = this.sprite.color.clone();
         const targetColor = COLOR_MAP[newColor];
 
@@ -200,11 +175,9 @@ export class Block extends Component {
         this.colorType = newColor;
 
         // 动画序列：放大 -> 颜色渐变 -> 缩小
-        console.log(`[Block动画] 开始tween动画，节点: ${this.node.name}`);
         tween(this.node)
             .to(0.1, { scale: new Vec3(1.3, 1.3, 1) })  // 快速放大
             .call(() => {
-                console.log(`[Block动画] 开始颜色渐变`);
                 // 颜色渐变
                 tween(this.sprite)
                     .to(0.3, { color: targetColor }, {

@@ -235,25 +235,30 @@ export class GameManager extends Component {
             const earnedScore = Math.floor(baseScore * comboMultiplier);
             this.currentScore += earnedScore;
 
-            console.log(`混合: ${this.getColorName(color1)} + ${this.getColorName(color2)} = ${this.getColorName(newColor)}`);
-            console.log(`+${earnedScore}分`);
+            console.log(`混合: ${this.getColorName(color1)} + ${this.getColorName(color2)} = ${this.getColorName(newColor)} +${earnedScore}分`);
             
             // 获取位置
             const block1Pos = block1.getPosition();
             
             // 从数组清除block1
             this.gridManager.clearBlock(block1Pos.row, block1Pos.col);
-            console.log(`清除数组[${block1Pos.row},${block1Pos.col}]`);
             
-            // 让block1消失（调用Block自己的方法）
-            console.log(`让block1消失...`);
+            // 让block1消失
             block1.disappear();
-            console.log(`block1已消失`);
             
             // block2变色
-            console.log(`block2开始变色...`);
             block2.playMixAnimation(newColor, () => {
-                console.log(`变色完成`);
+                
+                // 变色完成后触发掉落
+                this.scheduleOnce(() => {
+                    console.log(`开始掉落: 处理列${block1Pos.col}, 空位行${block1Pos.row}`);
+                    this.handleDrop(block1Pos.col, block1Pos.row, block2);
+                }, 0.2);
+                
+                // 检查胜利条件
+                this.scheduleOnce(() => {
+                    this.checkWinCondition();
+                }, 0.8);
             });
 
             // 消耗步数
@@ -279,39 +284,28 @@ export class GameManager extends Component {
      * @param skipBlock 不要移动的方块（刚变色的方块）
      */
     handleDrop(col: number, emptyRow: number, skipBlock?: Block) {
-        console.log(`handleDrop开始: 列${col}, 空位行${emptyRow}`);
-        
         // 只检查被消除位置的正上方
         if (emptyRow <= 0) {
-            console.log(`已经是顶部，无需掉落`);
             return;
         }
         
         const aboveBlock = this.gridManager.getBlock(emptyRow - 1, col);
-        console.log(`检查[${emptyRow-1},${col}]: ${aboveBlock ? '有方块' : '空'}`);
         
         if (aboveBlock && aboveBlock.isValid) {
             const blockScript = aboveBlock.getComponent(Block);
             
             // 如果是skipBlock，不移动（保持空位）
             if (skipBlock && blockScript === skipBlock) {
-                console.log(`上方是skipBlock，保持空位`);
                 return;
             }
             
             if (blockScript) {
-                const oldPos = blockScript.getPosition();
-                const colorName = this.getColorName(blockScript.getColorType());
-                console.log(`移动方块: [${oldPos.row},${oldPos.col}] ${colorName} → [${emptyRow},${col}]`);
-                
-                // 只移动一个方块，不递归
+                // 只移动一个方块
                 this.gridManager.setBlock(emptyRow, col, aboveBlock);
                 this.gridManager.clearBlock(emptyRow - 1, col);
                 blockScript.updateRowCol(emptyRow, col);
                 blockScript.playDropAnimation(emptyRow, col);
             }
-        } else {
-            console.log(`上方是空的，保持空位`);
         }
     }
 
@@ -334,8 +328,6 @@ export class GameManager extends Component {
 
         // 检查分数是否达标
         const scoreReached = this.currentScore >= this.levelConfig.targetScore;
-
-        console.log(`进度: 分数 ${this.currentScore}/${this.levelConfig.targetScore}, 目标 ${allTargetsReached ? '✅' : '❌'}`);
 
         // 胜利条件：分数达标 且 所有目标颜色数量达标
         if (scoreReached && allTargetsReached) {
