@@ -79,49 +79,60 @@ export class GameManager extends Component {
      */
     getLevelConfig(level: number): LevelConfig {
         const configs: LevelConfig[] = [
-            // 第1关：简单，单一目标，小网格
+            // 第1关：基础混合教学
             {
                 level: 1,
-                steps: 10,
-                targetScore: 30,
+                steps: 12,
+                targetScore: 40,
                 gridSize: 5,  // 5×5网格
                 targets: [
                     { color: ColorType.ORANGE, count: 2 },
                 ]
             },
-            // 第2关：双重目标，中等网格
+            // 第2关：连锁系统入门（分数目标鼓励连锁）
             {
                 level: 2,
                 steps: 15,
-                targetScore: 60,
+                targetScore: 100,  // 提高分数要求，鼓励触发连锁
                 gridSize: 6,  // 6×6网格
                 targets: [
                     { color: ColorType.ORANGE, count: 2 },
-                    { color: ColorType.PURPLE, count: 2 },
+                    { color: ColorType.PURPLE, count: 1 },
                 ]
             },
-            // 第3关：三重目标，较大网格
+            // 第3关：强化色教学
             {
                 level: 3,
-                steps: 20,
-                targetScore: 100,
-                gridSize: 7,  // 7×7网格
+                steps: 18,
+                targetScore: 150,
+                gridSize: 6,  // 6×6网格
                 targets: [
-                    { color: ColorType.ORANGE, count: 2 },
-                    { color: ColorType.PURPLE, count: 2 },
+                    { color: ColorType.DEEP_RED, count: 1 },  // 需要红+红
                     { color: ColorType.GREEN, count: 2 },
                 ]
             },
-            // 第4关：高分挑战，大网格
+            // 第4关：综合挑战（多种颜色+高分）
             {
                 level: 4,
                 steps: 25,
-                targetScore: 150,
-                gridSize: 8,  // 8×8网格
+                targetScore: 250,
+                gridSize: 7,  // 7×7网格
                 targets: [
+                    { color: ColorType.DEEP_YELLOW, count: 1 },  // 强化色
                     { color: ColorType.ORANGE, count: 3 },
                     { color: ColorType.PURPLE, count: 2 },
-                    { color: ColorType.GREEN, count: 2 },
+                ]
+            },
+            // 第5关：终极挑战（利用彩虹+连锁）
+            {
+                level: 5,
+                steps: 30,
+                targetScore: 400,
+                gridSize: 8,  // 8×8网格
+                targets: [
+                    { color: ColorType.DEEP_RED, count: 2 },
+                    { color: ColorType.DEEP_BLUE, count: 2 },
+                    { color: ColorType.GREEN, count: 3 },
                 ]
             },
         ];
@@ -151,7 +162,7 @@ export class GameManager extends Component {
             const colorCounts = this.countColors();
             
             for (const target of this.levelConfig.targets) {
-                const colorName = this.getColorName(target.color);
+                const colorName = Block.getColorName(target.color);
                 const current = colorCounts[target.color] || 0;
                 const icon = current >= target.count ? '✅' : '⭕';
                 targetText += `${icon} ${colorName} ${current}/${target.count}\n`;
@@ -218,27 +229,29 @@ export class GameManager extends Component {
     }
 
     /**
-     * 尝试混合两个方块（简化版）
-     * block1: 第一次点击的方块（将被消除）
-     * block2: 第二次点击的方块（将变色）
+     * 尝试混合两个方块（版本1：连锁系统）
+     * @param block1 第一次点击的方块（将被消除）
+     * @param block2 第二次点击的方块（将变色）
+     * @param chainCount 连锁层数（默认0，表示玩家主动操作）
      */
-    tryMix(block1: Block, block2: Block) {
+    tryMix(block1: Block, block2: Block, chainCount: number = 0) {
         const color1 = block1.getColorType();
         const color2 = block2.getColorType();
         const newColor = Block.mixColors(color1, color2);
 
         if (newColor !== null) {
-            // 计算分数
-            const baseScore = MIX_SCORES.PRIMARY;
-            this.comboCount++;
-            const comboMultiplier = 1 + (this.comboCount - 1) * (MIX_SCORES.COMBO_MULTIPLIER - 1);
-            const earnedScore = Math.floor(baseScore * comboMultiplier);
+            // 计算分数（连锁加倍）
+            const baseScore = Block.isEnhancedColor(newColor) ? 30 : MIX_SCORES.PRIMARY;
+            const chainMultiplier = Math.pow(2, chainCount); // 连锁翻倍：1x, 2x, 4x, 8x...
+            const earnedScore = Math.floor(baseScore * chainMultiplier);
             this.currentScore += earnedScore;
 
-            console.log(`混合: ${this.getColorName(color1)} + ${this.getColorName(color2)} = ${this.getColorName(newColor)} +${earnedScore}分`);
+            const chainText = chainCount > 0 ? ` [连锁×${chainCount + 1}]` : '';
+            console.log(`${chainText} 混合: ${Block.getColorName(color1)} + ${Block.getColorName(color2)} = ${Block.getColorName(newColor)} +${earnedScore}分`);
             
             // 获取位置
             const block1Pos = block1.getPosition();
+            const block2Pos = block2.getPosition();
             
             // 从数组清除block1
             this.gridManager.clearBlock(block1Pos.row, block1Pos.col);
@@ -253,26 +266,87 @@ export class GameManager extends Component {
                 this.scheduleOnce(() => {
                     console.log(`开始掉落: 处理列${block1Pos.col}, 空位行${block1Pos.row}`);
                     this.handleDrop(block1Pos.col, block1Pos.row, block2);
+                    
+                    // 掉落完成后，检查是否可以触发连锁
+                    this.scheduleOnce(() => {
+                        this.checkAndTriggerChain(block2Pos.row, block2Pos.col, chainCount + 1);
+                    }, 0.3);
                 }, 0.2);
                 
                 // 检查胜利条件
                 this.scheduleOnce(() => {
                     this.checkWinCondition();
-                }, 0.8);
+                }, 1.2);
             });
 
-            // 消耗步数
-            this.remainingSteps--;
-            this.updateUI();
-
-            // 取消选中
-            this.selectedBlock = null;
+            // 只有玩家主动操作才消耗步数
+            if (chainCount === 0) {
+                this.remainingSteps--;
+                this.updateUI();
+                this.selectedBlock = null;
+            }
         } else {
-            console.log('无法混合');
-            this.comboCount = 0;
-            block1.setSelected(false);
-            this.selectedBlock = null;
+            if (chainCount === 0) {
+                console.log('无法混合');
+                this.comboCount = 0;
+                block1.setSelected(false);
+                this.selectedBlock = null;
+            }
         }
+    }
+
+    /**
+     * 检查并触发连锁混合
+     * @param row 刚变色的方块行号
+     * @param col 刚变色的方块列号
+     * @param chainCount 当前连锁层数
+     */
+    checkAndTriggerChain(row: number, col: number, chainCount: number) {
+        // 获取刚变色的方块
+        const centerBlock = this.gridManager.getBlock(row, col);
+        if (!centerBlock || !centerBlock.isValid) {
+            return;
+        }
+
+        const centerScript = centerBlock.getComponent(Block);
+        if (!centerScript) {
+            return;
+        }
+
+        const centerColor = centerScript.getColorType();
+
+        // 检查四个方向的相邻方块
+        const directions = [
+            { dr: -1, dc: 0 },  // 上
+            { dr: 1, dc: 0 },   // 下
+            { dr: 0, dc: -1 },  // 左
+            { dr: 0, dc: 1 },   // 右
+        ];
+
+        for (const dir of directions) {
+            const newRow = row + dir.dr;
+            const newCol = col + dir.dc;
+
+            const adjacentBlock = this.gridManager.getBlock(newRow, newCol);
+            if (adjacentBlock && adjacentBlock.isValid) {
+                const adjacentScript = adjacentBlock.getComponent(Block);
+                if (adjacentScript) {
+                    const adjacentColor = adjacentScript.getColorType();
+                    const mixResult = Block.mixColors(centerColor, adjacentColor);
+
+                    // 如果可以混合，触发自动连锁
+                    if (mixResult !== null) {
+                        console.log(`🔗 检测到连锁机会！`);
+                        this.scheduleOnce(() => {
+                            this.tryMix(adjacentScript, centerScript, chainCount);
+                        }, 0.3);
+                        return; // 只触发第一个找到的连锁
+                    }
+                }
+            }
+        }
+
+        console.log('连锁结束');
     }
 
     // removeBlock1方法已删除，不再需要
@@ -356,7 +430,7 @@ export class GameManager extends Component {
         const nextLevel = this.currentLevel + 1;
         
         if (this.targetLabel) {
-            if (nextLevel <= 4) {
+            if (nextLevel <= 5) {
                 this.targetLabel.string = `🎉 第${this.currentLevel}关完成！\n得分: ${this.currentScore}\n\n1.5秒后进入下一关...`;
             } else {
                 this.targetLabel.string = `🎉 第${this.currentLevel}关完成！\n得分: ${this.currentScore}\n\n🏆 全部通关！`;
@@ -365,7 +439,7 @@ export class GameManager extends Component {
 
         // 1.5秒后自动进入下一关
         this.scheduleOnce(() => {
-            if (nextLevel <= 4) {
+            if (nextLevel <= 5) {
                 console.log(`进入第${nextLevel}关...`);
                 this.initLevel(nextLevel);
             } else {
@@ -391,7 +465,7 @@ export class GameManager extends Component {
         for (const target of this.levelConfig.targets) {
             const current = colorCounts[target.color] || 0;
             if (current < target.count) {
-                const colorName = this.getColorName(target.color);
+                const colorName = Block.getColorName(target.color);
                 failReason += `${colorName}不足 (${current}/${target.count})\n`;
             }
         }
@@ -403,18 +477,4 @@ export class GameManager extends Component {
         // TODO: 显示重试按钮
     }
 
-    /**
-     * 获取颜色名称
-     */
-    getColorName(colorType: ColorType): string {
-        const names = {
-            [ColorType.RED]: '红色',
-            [ColorType.YELLOW]: '黄色',
-            [ColorType.BLUE]: '蓝色',
-            [ColorType.ORANGE]: '橙色',
-            [ColorType.PURPLE]: '紫色',
-            [ColorType.GREEN]: '绿色',
-        };
-        return names[colorType];
-    }
 }

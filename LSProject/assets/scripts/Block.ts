@@ -11,6 +11,12 @@ export enum ColorType {
     ORANGE = 3,   // 橙（红+黄）
     PURPLE = 4,   // 紫（红+蓝）
     GREEN = 5,    // 绿（黄+蓝）
+    // 强化色（版本1新增）
+    DEEP_RED = 6,     // 深红（红+红）
+    DEEP_YELLOW = 7,  // 深黄（黄+黄）
+    DEEP_BLUE = 8,    // 深蓝（蓝+蓝）
+    // 特殊方块
+    RAINBOW = 9,      // 彩虹（可与任意颜色混合）
 }
 
 /**
@@ -23,18 +29,46 @@ const COLOR_MAP = {
     [ColorType.ORANGE]: new Color(255, 149, 0),   // 橙色
     [ColorType.PURPLE]: new Color(175, 82, 222),  // 紫色
     [ColorType.GREEN]: new Color(52, 199, 89),    // 绿色
+    // 强化色（更深、更饱和）
+    [ColorType.DEEP_RED]: new Color(180, 0, 0),       // 深红
+    [ColorType.DEEP_YELLOW]: new Color(200, 160, 0),  // 深黄（金色）
+    [ColorType.DEEP_BLUE]: new Color(0, 50, 150),     // 深蓝
+    // 特殊方块
+    [ColorType.RAINBOW]: new Color(255, 255, 255),    // 彩虹（白色，后续可加渐变效果）
 };
 
 /**
  * 颜色混合规则
  */
 const MIX_RULES = {
+    // 基础混合（三原色→二次色）
     [`${ColorType.RED}_${ColorType.YELLOW}`]: ColorType.ORANGE,
     [`${ColorType.YELLOW}_${ColorType.RED}`]: ColorType.ORANGE,
     [`${ColorType.RED}_${ColorType.BLUE}`]: ColorType.PURPLE,
     [`${ColorType.BLUE}_${ColorType.RED}`]: ColorType.PURPLE,
     [`${ColorType.YELLOW}_${ColorType.BLUE}`]: ColorType.GREEN,
     [`${ColorType.BLUE}_${ColorType.YELLOW}`]: ColorType.GREEN,
+    
+    // 强化混合（同色+同色→强化色）
+    [`${ColorType.RED}_${ColorType.RED}`]: ColorType.DEEP_RED,
+    [`${ColorType.YELLOW}_${ColorType.YELLOW}`]: ColorType.DEEP_YELLOW,
+    [`${ColorType.BLUE}_${ColorType.BLUE}`]: ColorType.DEEP_BLUE,
+    
+    // 彩虹方块规则（可与任意颜色混合，结果为对方颜色的强化版）
+    // 彩虹+红→深红
+    [`${ColorType.RAINBOW}_${ColorType.RED}`]: ColorType.DEEP_RED,
+    [`${ColorType.RED}_${ColorType.RAINBOW}`]: ColorType.DEEP_RED,
+    [`${ColorType.RAINBOW}_${ColorType.YELLOW}`]: ColorType.DEEP_YELLOW,
+    [`${ColorType.YELLOW}_${ColorType.RAINBOW}`]: ColorType.DEEP_YELLOW,
+    [`${ColorType.RAINBOW}_${ColorType.BLUE}`]: ColorType.DEEP_BLUE,
+    [`${ColorType.BLUE}_${ColorType.RAINBOW}`]: ColorType.DEEP_BLUE,
+    // 彩虹+二次色→保持二次色
+    [`${ColorType.RAINBOW}_${ColorType.ORANGE}`]: ColorType.ORANGE,
+    [`${ColorType.ORANGE}_${ColorType.RAINBOW}`]: ColorType.ORANGE,
+    [`${ColorType.RAINBOW}_${ColorType.PURPLE}`]: ColorType.PURPLE,
+    [`${ColorType.PURPLE}_${ColorType.RAINBOW}`]: ColorType.PURPLE,
+    [`${ColorType.RAINBOW}_${ColorType.GREEN}`]: ColorType.GREEN,
+    [`${ColorType.GREEN}_${ColorType.RAINBOW}`]: ColorType.GREEN,
 };
 
 /**
@@ -52,13 +86,28 @@ export class Block extends Component {
 
     /**
      * 初始化方块
+     * @param row 行号
+     * @param col 列号
+     * @param forceColor 强制指定颜色（可选），用于生成特殊方块
      */
-    init(row: number, col: number) {
+    init(row: number, col: number, forceColor?: ColorType) {
         this.row = row;
         this.col = col;
         
-        // 随机生成三原色之一
-        this.colorType = Math.floor(Math.random() * 3);  // 0,1,2 对应红黄蓝
+        if (forceColor !== undefined) {
+            // 强制指定颜色（特殊方块）
+            this.colorType = forceColor;
+        } else {
+            // 5%概率生成彩虹方块
+            const random = Math.random();
+            if (random < 0.05) {
+                this.colorType = ColorType.RAINBOW;
+            } else {
+                // 随机生成三原色之一
+                this.colorType = Math.floor(Math.random() * 3);  // 0,1,2 对应红黄蓝
+            }
+        }
+        
         this.updateColor();
 
         // 添加触摸事件
@@ -138,6 +187,46 @@ export class Block extends Component {
     static mixColors(color1: ColorType, color2: ColorType): ColorType | null {
         const key = `${color1}_${color2}`;
         return MIX_RULES[key] || null;
+    }
+
+    /**
+     * 判断是否为基础三原色
+     */
+    static isPrimaryColor(color: ColorType): boolean {
+        return color === ColorType.RED || color === ColorType.YELLOW || color === ColorType.BLUE;
+    }
+
+    /**
+     * 判断是否为强化色
+     */
+    static isEnhancedColor(color: ColorType): boolean {
+        return color === ColorType.DEEP_RED || color === ColorType.DEEP_YELLOW || color === ColorType.DEEP_BLUE;
+    }
+
+    /**
+     * 判断是否为特殊方块
+     */
+    static isSpecialBlock(color: ColorType): boolean {
+        return color === ColorType.RAINBOW;
+    }
+
+    /**
+     * 获取颜色名称
+     */
+    static getColorName(color: ColorType): string {
+        const names = {
+            [ColorType.RED]: '红色',
+            [ColorType.YELLOW]: '黄色',
+            [ColorType.BLUE]: '蓝色',
+            [ColorType.ORANGE]: '橙色',
+            [ColorType.PURPLE]: '紫色',
+            [ColorType.GREEN]: '绿色',
+            [ColorType.DEEP_RED]: '深红',
+            [ColorType.DEEP_YELLOW]: '深黄',
+            [ColorType.DEEP_BLUE]: '深蓝',
+            [ColorType.RAINBOW]: '彩虹',
+        };
+        return names[color] || '未知';
     }
 
     /**

@@ -42,6 +42,10 @@ export class TestRunner extends Component {
         // 测试3：方块混合逻辑
         this.testColorMixing();
         
+        // 测试4：版本1新功能
+        this.testEnhancedColors();
+        this.testSpecialBlocks();
+        
         // 显示结果
         this.showResults();
     }
@@ -55,8 +59,9 @@ export class TestRunner extends Component {
         const levelConfigs = [
             { level: 1, expectedSize: 5 },
             { level: 2, expectedSize: 6 },
-            { level: 3, expectedSize: 7 },
-            { level: 4, expectedSize: 8 },
+            { level: 3, expectedSize: 6 },
+            { level: 4, expectedSize: 7 },
+            { level: 5, expectedSize: 8 },
         ];
 
         for (const config of levelConfigs) {
@@ -82,8 +87,9 @@ export class TestRunner extends Component {
         const levelConfigs = [
             { level: 1, expectedSize: 5 },
             { level: 2, expectedSize: 6 },
-            { level: 3, expectedSize: 7 },
-            { level: 4, expectedSize: 8 },
+            { level: 3, expectedSize: 6 },
+            { level: 4, expectedSize: 7 },
+            { level: 5, expectedSize: 8 },
         ];
 
         for (const config of levelConfigs) {
@@ -144,6 +150,75 @@ export class TestRunner extends Component {
                 `预期: ${test.expected}, 实际: ${result}`
             );
         }
+    }
+
+    /**
+     * 测试：强化色混合
+     */
+    testEnhancedColors() {
+        console.log('\n=== 测试：强化色混合 ===');
+        
+        const enhancedTests = [
+            { color1: ColorType.RED, color2: ColorType.RED, expected: ColorType.DEEP_RED, name: '红+红=深红' },
+            { color1: ColorType.YELLOW, color2: ColorType.YELLOW, expected: ColorType.DEEP_YELLOW, name: '黄+黄=深黄' },
+            { color1: ColorType.BLUE, color2: ColorType.BLUE, expected: ColorType.DEEP_BLUE, name: '蓝+蓝=深蓝' },
+        ];
+
+        for (const test of enhancedTests) {
+            const result = Block.mixColors(test.color1, test.color2);
+            
+            this.assert(
+                result === test.expected,
+                test.name,
+                `预期: ${test.expected}, 实际: ${result}`
+            );
+        }
+        
+        // 测试辅助方法
+        this.assert(
+            Block.isEnhancedColor(ColorType.DEEP_RED),
+            '深红应该被识别为强化色'
+        );
+        
+        this.assert(
+            !Block.isEnhancedColor(ColorType.RED),
+            '红色不应该被识别为强化色'
+        );
+    }
+
+    /**
+     * 测试：特殊方块
+     */
+    testSpecialBlocks() {
+        console.log('\n=== 测试：特殊方块 ===');
+        
+        // 测试彩虹方块混合规则
+        const rainbowTests = [
+            { color1: ColorType.RAINBOW, color2: ColorType.RED, expected: ColorType.DEEP_RED, name: '彩虹+红=深红' },
+            { color1: ColorType.RED, color2: ColorType.RAINBOW, expected: ColorType.DEEP_RED, name: '红+彩虹=深红' },
+            { color1: ColorType.RAINBOW, color2: ColorType.ORANGE, expected: ColorType.ORANGE, name: '彩虹+橙=橙' },
+        ];
+
+        for (const test of rainbowTests) {
+            const result = Block.mixColors(test.color1, test.color2);
+            
+            this.assert(
+                result === test.expected,
+                test.name,
+                `预期: ${test.expected}, 实际: ${result}`
+            );
+        }
+        
+        // 测试特殊方块识别
+        this.assert(
+            Block.isSpecialBlock(ColorType.RAINBOW),
+            '彩虹应该被识别为特殊方块'
+        );
+        
+        this.assert(
+            !Block.isSpecialBlock(ColorType.RED),
+            '红色不应该被识别为特殊方块'
+        );
     }
 
     /**
