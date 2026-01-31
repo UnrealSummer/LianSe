@@ -151,6 +151,9 @@ export class Block extends Component {
                 Tween.stopAllByTarget(this.sprite);
             }
             
+            // 立即隐藏（重要！destroy是延迟的）
+            this.node.active = false;
+            
             // 从父节点移除
             if (this.node.parent) {
                 this.node.parent.removeChild(this.node);
