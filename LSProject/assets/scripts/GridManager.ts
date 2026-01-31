@@ -21,7 +21,7 @@ export class GridManager extends Component {
     private blocks: Node[][] = [];  // 二维数组存储方块
 
     start() {
-        this.generateGrid(this.gridSize);
+        // 不在这里自动生成，等GameManager调用regenerateGrid
     }
 
     /**
