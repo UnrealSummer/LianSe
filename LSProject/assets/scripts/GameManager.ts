@@ -1,6 +1,8 @@
 import { _decorator, Component, Label, Tween, Color } from 'cc';
 import { Block, ColorType } from './Block';
 import { GridManager } from './GridManager';
+import { UIManager } from './UIManager';
+import { AudioManager } from './AudioManager';
 const { ccclass, property } = _decorator;
 
 /**
@@ -42,6 +44,12 @@ export class GameManager extends Component {
 
     @property(Label)
     scoreLabel: Label = null;  // 分数显示
+
+    @property(UIManager)
+    uiManager: UIManager = null;  // UI管理器
+
+    @property(AudioManager)
+    audioManager: AudioManager = null;  // 音效管理器
 
     private selectedBlock: Block = null;  // 当前选中的方块
     private remainingSteps: number = 15;  // 剩余步数
@@ -156,20 +164,48 @@ export class GameManager extends Component {
 
         // 更新多重目标
         if (this.targetLabel) {
-            let targetText = `第${this.currentLevel}关 目标:\n`;
+            let targetText = `🎯 第${this.currentLevel}关 目标\n`;
+            targetText += `━━━━━━━━━━━━━━\n`;
             
             // 统计当前各颜色数量
             const colorCounts = this.countColors();
             
+            // 分数进度
+            const scoreProgress = Math.min(this.currentScore / this.levelConfig.targetScore * 100, 100);
+            const scoreBar = this.createProgressBar(scoreProgress);
+            targetText += `💰 分数: ${this.currentScore}/${this.levelConfig.targetScore}\n`;
+            targetText += `${scoreBar} ${scoreProgress.toFixed(0)}%\n\n`;
+            
+            // 颜色目标进度
             for (const target of this.levelConfig.targets) {
                 const colorName = Block.getColorName(target.color);
                 const current = colorCounts[target.color] || 0;
-                const icon = current >= target.count ? '✅' : '⭕';
-                targetText += `${icon} ${colorName} ${current}/${target.count}\n`;
+                const progress = Math.min(current / target.count * 100, 100);
+                const progressBar = this.createProgressBar(progress);
+                const icon = current >= target.count ? '✅' : '🔸';
+                
+                targetText += `${icon} ${colorName}: ${current}/${target.count}\n`;
+                targetText += `${progressBar} ${progress.toFixed(0)}%\n`;
             }
             
             this.targetLabel.string = targetText;
         }
+    }
+
+    /**
+     * 创建文本进度条
+     * @param percentage 百分比（0-100）
+     * @returns 进度条字符串
+     */
+    private createProgressBar(percentage: number): string {
+        const barLength = 10;
+        const filledLength = Math.floor(barLength * percentage / 100);
+        const emptyLength = barLength - filledLength;
+        
+        const filled = '█'.repeat(filledLength);
+        const empty = '░'.repeat(emptyLength);
+        
+        return `[${filled}${empty}]`;
     }
 
     /**
@@ -208,6 +244,11 @@ export class GameManager extends Component {
             this.selectedBlock = block;
             block.setSelected(true);
             console.log('选中方块');
+            
+            // 播放点击音效
+            if (this.audioManager) {
+                this.audioManager.playClick();
+            }
         } else {
             // 第二次点击，尝试混合
             if (this.selectedBlock === block) {
@@ -248,6 +289,32 @@ export class GameManager extends Component {
 
             const chainText = chainCount > 0 ? ` [连锁×${chainCount + 1}]` : '';
             console.log(`${chainText} 混合: ${Block.getColorName(color1)} + ${Block.getColorName(color2)} = ${Block.getColorName(newColor)} +${earnedScore}分`);
+            
+            // 播放音效
+            if (this.audioManager) {
+                if (Block.isEnhancedColor(newColor)) {
+                    this.audioManager.playEnhanced();  // 强化色特殊音效
+                } else {
+                    this.audioManager.playMix(chainCount);  // 普通混合音效
+                }
+            }
+            
+            // 显示分数弹出
+            if (this.uiManager) {
+                const worldPos = block2.node.getWorldPosition();
+                this.uiManager.showScorePopup(earnedScore, worldPos, chainCount > 0);
+                
+                // 连锁倍数显示
+                if (chainCount > 0) {
+                    this.uiManager.showComboPopup(chainCount);
+                    this.audioManager?.playChain(chainCount);
+                    
+                    // 高倍连锁时震动屏幕
+                    if (chainCount >= 2) {
+                        this.uiManager.screenShake(chainCount * 0.2);
+                    }
+                }
+            }
             
             // 获取位置
             const block1Pos = block1.getPosition();
@@ -424,6 +491,11 @@ export class GameManager extends Component {
     onLevelComplete() {
         console.log('🎉 关卡完成！');
         
+        // 播放胜利音效
+        if (this.audioManager) {
+            this.audioManager.playWin();
+        }
+        
         // 取消当前选中
         if (this.selectedBlock) {
             this.selectedBlock.setSelected(false);
@@ -456,6 +528,11 @@ export class GameManager extends Component {
      */
     onLevelFailed() {
         console.log('😢 挑战失败！');
+        
+        // 播放失败音效
+        if (this.audioManager) {
+            this.audioManager.playFail();
+        }
         
         const colorCounts = this.countColors();
         let failReason = '';
