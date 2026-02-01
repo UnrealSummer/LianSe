@@ -264,19 +264,18 @@ export class GameManager extends Component {
                 
                 // 变色完成后触发掉落
                 this.scheduleOnce(() => {
-                    console.log(`开始掉落: 处理列${block1Pos.col}, 空位行${block1Pos.row}`);
-                    this.handleDrop(block1Pos.col, block1Pos.row, block2);
+                    this.handleDrop(block1Pos.col, block1Pos.row);
                     
-                    // 掉落完成后，检查是否可以触发连锁
+                    // 掉落完成后，检查是否可以触发连锁（增加延迟确保掉落动画完成）
                     this.scheduleOnce(() => {
                         this.checkAndTriggerChain(block2Pos.row, block2Pos.col, chainCount + 1);
-                    }, 0.3);
+                    }, 0.5);  // 从0.3增加到0.5秒
                 }, 0.2);
                 
                 // 检查胜利条件
                 this.scheduleOnce(() => {
                     this.checkWinCondition();
-                }, 1.2);
+                }, 1.5);  // 也相应增加
             });
 
             // 只有玩家主动操作才消耗步数
@@ -349,36 +348,40 @@ export class GameManager extends Component {
         console.log('连锁结束');
     }
 
-    // removeBlock1方法已删除，不再需要
-
     /**
-     * 处理指定位置的方块掉落
+     * 处理整列的方块掉落（完整版）
      * @param col 列号
      * @param emptyRow 被消除方块的行号
-     * @param skipBlock 不要移动的方块（刚变色的方块）
      */
-    handleDrop(col: number, emptyRow: number, skipBlock?: Block) {
-        // 只检查被消除位置的正上方
-        if (emptyRow <= 0) {
-            return;
-        }
+    handleDrop(col: number, emptyRow: number) {
+        console.log(`[掉落] 开始处理列${col}，空位行${emptyRow}`);
         
-        const aboveBlock = this.gridManager.getBlock(emptyRow - 1, col);
-        
-        if (aboveBlock && aboveBlock.isValid) {
-            const blockScript = aboveBlock.getComponent(Block);
-            
-            // 如果是skipBlock，不移动（保持空位）
-            if (skipBlock && blockScript === skipBlock) {
-                return;
-            }
-            
-            if (blockScript) {
-                // 只移动一个方块
-                this.gridManager.setBlock(emptyRow, col, aboveBlock);
-                this.gridManager.clearBlock(emptyRow - 1, col);
-                blockScript.updateRowCol(emptyRow, col);
-                blockScript.playDropAnimation(emptyRow, col);
+        // 从空位开始，向上查找所有方块并依次下落
+        for (let row = emptyRow; row >= 0; row--) {
+            if (row === 0) {
+                // 最上面一行，生成新方块
+                console.log(`[掉落] 生成新方块: [${row}, ${col}]`);
+                this.gridManager.generateNewBlock(row, col);
+            } else {
+                // 获取上方方块
+                const aboveBlock = this.gridManager.getBlock(row - 1, col);
+                
+                if (aboveBlock && aboveBlock.isValid) {
+                    // 上方有方块，移动下来
+                    const blockScript = aboveBlock.getComponent(Block);
+                    if (blockScript) {
+                        console.log(`[掉落] 移动方块: [${row - 1}, ${col}] -> [${row}, ${col}]`);
+                        this.gridManager.setBlock(row, col, aboveBlock);
+                        this.gridManager.clearBlock(row - 1, col);
+                        blockScript.updateRowCol(row, col);
+                        blockScript.playDropAnimation(row, col);
+                    }
+                } else {
+                    // 上方是空的，直接生成新方块
+                    console.log(`[掉落] 上方为空，生成新方块: [${row}, ${col}]`);
+                    this.gridManager.generateNewBlock(row, col);
+                    break;  // 上方都是空的，不需要继续
+                }
             }
         }
     }
