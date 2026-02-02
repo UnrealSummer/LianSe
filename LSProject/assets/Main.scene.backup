@@ -87,12 +87,6 @@
       },
       {
         "__id__": 24
-      },
-      {
-        "__id__": 35
-      },
-      {
-        "__id__": 36
       }
     ],
     "_prefab": null,
@@ -1057,25 +1051,5 @@
   {
     "__type__": "cc.PostSettingsInfo",
     "_toneMappingType": 0
-  },
-  {
-    "__type__": "custom",
-    "_name": "UIManager",
-    "__prefab": null,
-    "node": {
-      "__id__": 2
-    },
-    "_enabled": true,
-    "_id": "ui-manager-001"
-  },
-  {
-    "__type__": "custom",
-    "_name": "AudioManager",
-    "__prefab": null,
-    "node": {
-      "__id__": 2
-    },
-    "_enabled": true,
-    "_id": "audio-manager-001"
   }
 ]
