@@ -7,31 +7,50 @@ const { ccclass, property } = _decorator;
 @ccclass('GridManager')
 export class GridManager extends Component {
     @property({ type: Prefab })
-    blockPrefab: Prefab = null;  // 方块预制体
+    blockPrefab: Prefab = null;
 
     @property
-    gridSize: number = 8;  // 网格大小 8x8
+    gridSize: number = 8;
 
     @property
-    blockSize: number = 80;  // 方块大小（像素）
+    blockSize: number = 80;
 
     @property
-    spacing: number = 10;  // 方块间距
+    spacing: number = 10;
+    
+    @property
+    maxGridWidth: number = 600;
+    
+    @property
+    maxGridHeight: number = 600;
 
-    private blocks: Node[][] = [];  // 二维数组存储方块
+    private blocks: Node[][] = [];
 
     start() {
-        // 不在这里自动生成，等GameManager调用regenerateGrid
+        this.calculateAdaptiveSize();
+    }
+    
+    private calculateAdaptiveSize(): void {
+        const spacingRatio = 0.18;
+        const availableWidth = this.maxGridWidth;
+        const availableHeight = this.maxGridHeight;
+        
+        const widthBlockSize = availableWidth / (this.gridSize + (this.gridSize - 1) * spacingRatio);
+        const heightBlockSize = availableHeight / (this.gridSize + (this.gridSize - 1) * spacingRatio);
+        
+        this.blockSize = Math.floor(Math.min(widthBlockSize, heightBlockSize));
+        this.spacing = Math.floor(this.blockSize * spacingRatio);
+        
+        console.log(`[GridManager] Adaptive: blockSize=${this.blockSize}, spacing=${this.spacing}`);
     }
 
     /**
-     * 重新生成网格（用于关卡切换）
+     * Regenerate grid
      */
     regenerateGrid(newSize: number) {
-        // 清空旧网格
         this.clearGrid();
-        // 生成新网格
         this.gridSize = newSize;
+        this.calculateAdaptiveSize();
         this.generateGrid(newSize);
     }
 
@@ -50,6 +69,8 @@ export class GridManager extends Component {
      * 生成网格
      */
     generateGrid(size: number) {
+        this.calculateAdaptiveSize();
+        
         const startX = -((size - 1) * (this.blockSize + this.spacing)) / 2;
         const startY = ((size - 1) * (this.blockSize + this.spacing)) / 2;
 
