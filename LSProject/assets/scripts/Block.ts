@@ -56,6 +56,7 @@ export class Block extends Component {
     private col: number;
     private isSelected: boolean = false;
     private frozenOverlay: Node = null;  // 冰冻覆盖层
+    private baseScale: number = 1;  // 基础缩放（由GridSystem设置）
 
     /**
      * Initialize block
@@ -63,6 +64,9 @@ export class Block extends Component {
     init(row: number, col: number, forceColor?: ColorType) {
         this.row = row;
         this.col = col;
+        
+        // Save base scale
+        this.baseScale = this.node.scale.x;
         
         if (forceColor !== undefined) {
             this.colorType = forceColor;
@@ -106,10 +110,12 @@ export class Block extends Component {
         this.isSelected = selected;
         
         if (selected) {
-            this.node.setScale(this.selectedScale, this.selectedScale, 1);
+            this.node.setScale(this.baseScale * this.selectedScale, this.baseScale * this.selectedScale, 1);
         } else {
-            this.node.setScale(1, 1, 1);
+            this.node.setScale(this.baseScale, this.baseScale, 1);
         }
+        
+        console.log(`[Block] Set selected=${selected} at [${this.row}, ${this.col}], scale=${this.node.scale.x.toFixed(2)}, base=${this.baseScale.toFixed(2)}`);
     }
 
     /**
