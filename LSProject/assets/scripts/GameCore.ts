@@ -357,15 +357,38 @@ export class GameCore extends Component {
         console.log('[GameCore] Victory! Stage completed!');
         console.log(`[GameCore] Stats: ${this.totalMoves} moves, max combo x${this.maxCombo}`);
         
-        // Show victory message
-        console.log(`[GameCore] Stage ${this.progressionManager.getCurrentStage()} cleared!`);
-        
-        // Next stage after delay
-        this.progressionManager.nextStage();
-        setTimeout(() => {
-            console.log('[GameCore] Starting next stage...');
-            this.startStage();
-        }, 2000);
+        // Show modifier selection
+        this.showModifierSelection();
+    }
+
+    /**
+     * 显示词条选择
+     */
+    private showModifierSelection(): void {
+        import('./Modifiers').then(({ getWeightedRandomModifiers }) => {
+            const options = getWeightedRandomModifiers(3);
+            
+            console.log('[GameCore] 🎲 Choose a modifier:');
+            options.forEach((mod, index) => {
+                const rarityColor = mod.rarity === 'epic' ? '🟣' : mod.rarity === 'rare' ? '🔵' : '⚪';
+                console.log(`  ${index + 1}. ${rarityColor} ${mod.name} - ${mod.description}`);
+            });
+            
+            // TODO: Show UI for selection
+            // For now, auto-select first one after delay
+            setTimeout(() => {
+                const selected = options[0];
+                this.modifierSystem.addModifier(selected);
+                console.log(`[GameCore] ✅ Selected: ${selected.name}`);
+                
+                // Next stage
+                this.progressionManager.nextStage();
+                setTimeout(() => {
+                    console.log('[GameCore] Starting next stage...');
+                    this.startStage();
+                }, 1000);
+            }, 2000);
+        });
     }
 
     private onTimeUp(): void {

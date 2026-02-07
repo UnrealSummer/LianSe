@@ -1,135 +1,247 @@
+import { _decorator, Component } from 'cc';
 import { IModifier, MatchData } from './ModifierSystem';
+const { ccclass } = _decorator;
 
 /**
- * 词条库 - 5个基础词条
+ * 词条库 - 所有可用的词条
  */
 
-// 1. 溢出伤害转金币
-export const OverflowToGold: IModifier = {
-    id: 'overflow_to_gold',
-    name: '溢出转化',
-    description: '过量伤害的50%转化为金币',
-    rarity: 'common',
-    
-    onDamageDealt(damage: number, target: any): void {
-        if (target && target.getCurrentHp) {
-            const currentHp = target.getCurrentHp();
-            if (damage > currentHp) {
-                const overflow = damage - currentHp;
-                const goldGain = Math.floor(overflow * 0.5);
-                console.log(`[Modifier] Overflow: +${goldGain} gold`);
-                // TODO: 触发金币生成
-            }
-        }
-    }
-};
+// ========== 伤害类词条 ==========
 
-// 2. 连锁乘法增强
-export const ChainMultiplier: IModifier = {
-    id: 'chain_multiplier',
-    name: '连锁爆发',
-    description: '连锁伤害倍率从1.3提升到1.5',
-    rarity: 'common',
-    
-    onChain(chainLevel: number): number {
-        return Math.pow(1.5, chainLevel); // 提升到1.5倍
-    }
-};
-
-// 3. 大消除额外奖励
-export const BigMatchBonus: IModifier = {
-    id: 'big_match_bonus',
-    name: '大丰收',
-    description: '单次消除5个以上时，额外+10伤害',
-    rarity: 'common',
-    
-    onMatch(data: MatchData): MatchData {
-        if (data.count >= 5) {
-            data.baseDamage += 10;
-            console.log(`[Modifier] Big Match: +10 damage`);
-        }
-        return data;
-    }
-};
-
-// 4. 击杀爆炸
-export const KillExplosion: IModifier = {
-    id: 'kill_explosion',
-    name: '连环爆破',
-    description: '击杀敌人时，造成其最大生命值20%的额外伤害',
-    rarity: 'rare',
-    
-    onEnemyKill(enemy: any): void {
-        if (enemy && enemy.getMaxHp) {
-            const explosionDamage = Math.floor(enemy.getMaxHp() * 0.2);
-            console.log(`[Modifier] Kill Explosion: ${explosionDamage} damage`);
-            // TODO: 对下一个敌人造成伤害
-        }
-    }
-};
-
-// 5. 金币倍率
-export const GoldMultiplier: IModifier = {
-    id: 'gold_multiplier',
-    name: '点金术',
-    description: '所有金币收益+50%',
-    rarity: 'common',
-    
-    onCoinCollect(amount: number): number {
-        return Math.floor(amount * 1.5);
-    }
-};
-
-// 6. 首消增强
-export const FirstMatchBonus: IModifier = {
-    id: 'first_match_bonus',
-    name: '先发制人',
-    description: '每回合第一次消除伤害翻倍',
-    rarity: 'rare',
-    
-    // 需要在GameCore中跟踪是否是首次消除
-    onMatch(data: MatchData): MatchData {
-        // TODO: 检查是否是首次消除
-        return data;
-    }
-};
-
-// 7. 颜色稀缺加成
-export const ColorScarcityBonus: IModifier = {
-    id: 'color_scarcity',
-    name: '物以稀为贵',
-    description: '棋盘颜色≤3种时，所有伤害+50%',
-    rarity: 'epic',
+/**
+ * 力量强化 - 所有伤害+20%
+ */
+export class PowerBoost implements IModifier {
+    id = 'power_boost';
+    name = '力量强化';
+    description = '所有伤害+20%';
+    rarity: 'common' | 'rare' | 'epic' = 'common';
     
     onDamageCalculate(damage: number): number {
-        // TODO: 检查棋盘颜色数量
-        // 暂时返回原值
+        return damage * 1.2;
+    }
+}
+
+/**
+ * 连锁大师 - 连锁伤害倍率+50%
+ */
+export class ChainMaster implements IModifier {
+    id = 'chain_master';
+    name = '连锁大师';
+    description = '连锁伤害倍率+50%';
+    rarity: 'common' | 'rare' | 'epic' = 'common';
+    
+    onChain(chainLevel: number): number {
+        return chainLevel * 1.5;
+    }
+}
+
+/**
+ * 暴击 - 20%概率造成双倍伤害
+ */
+export class CriticalHit implements IModifier {
+    id = 'critical_hit';
+    name = '暴击';
+    description = '20%概率造成双倍伤害';
+    rarity: 'common' | 'rare' | 'epic' = 'rare';
+    
+    onDamageCalculate(damage: number): number {
+        if (Math.random() < 0.2) {
+            console.log('[Modifier] 💥 Critical Hit!');
+            return damage * 2;
+        }
         return damage;
     }
-};
+}
 
 /**
- * 词条池
+ * 长消除 - 消除4个及以上时，额外+50%伤害
  */
-export const ModifierPool: IModifier[] = [
-    OverflowToGold,
-    ChainMultiplier,
-    BigMatchBonus,
-    KillExplosion,
-    GoldMultiplier,
-];
+export class LongMatch implements IModifier {
+    id = 'long_match';
+    name = '长消除';
+    description = '消除4个及以上时，额外+50%伤害';
+    rarity: 'common' | 'rare' | 'epic' = 'common';
+    
+    onMatch(data: MatchData): MatchData {
+        if (data.count >= 4) {
+            data.baseDamage = (data.baseDamage || 0) * 1.5;
+            console.log('[Modifier] 🔥 Long Match Bonus!');
+        }
+        return data;
+    }
+}
+
+// ========== 辅助类词条 ==========
 
 /**
- * 按稀有度获取词条
+ * 时间延长 - 每关时间+10秒
+ */
+export class TimeExtension implements IModifier {
+    id = 'time_extension';
+    name = '时间延长';
+    description = '每关时间+10秒';
+    rarity: 'common' | 'rare' | 'epic' = 'common';
+    
+    // 在GameCore中处理
+}
+
+/**
+ * 金币收集者 - 金币获取+50%
+ */
+export class GoldCollector implements IModifier {
+    id = 'gold_collector';
+    name = '金币收集者';
+    description = '金币获取+50%';
+    rarity: 'common' | 'rare' | 'epic' = 'common';
+    
+    onCoinCollect(amount: number): number {
+        return amount * 1.5;
+    }
+}
+
+/**
+ * 冰霜解冻 - 冰冻方块只需解冻1次
+ */
+export class FrostBreaker implements IModifier {
+    id = 'frost_breaker';
+    name = '冰霜解冻';
+    description = '冰冻方块只需解冻1次';
+    rarity: 'common' | 'rare' | 'epic' = 'rare';
+    
+    // 在Block中处理
+}
+
+// ========== 史诗词条 ==========
+
+/**
+ * 狂暴 - 血量低于30%时，伤害翻倍
+ */
+export class Berserk implements IModifier {
+    id = 'berserk';
+    name = '狂暴';
+    description = '敌人血量低于30%时，伤害翻倍';
+    rarity: 'common' | 'rare' | 'epic' = 'epic';
+    
+    private enemySystem: any = null;
+    
+    onAcquire(): void {
+        // 需要在ModifierSystem中设置enemySystem引用
+    }
+    
+    onDamageCalculate(damage: number): number {
+        if (this.enemySystem) {
+            const hpPercent = this.enemySystem.getCurrentHp() / this.enemySystem.getMaxHp();
+            if (hpPercent < 0.3) {
+                console.log('[Modifier] 💢 Berserk Activated!');
+                return damage * 2;
+            }
+        }
+        return damage;
+    }
+}
+
+/**
+ * 彩虹祝福 - 每关开始时，随机生成1个彩虹方块
+ */
+export class RainbowBlessing implements IModifier {
+    id = 'rainbow_blessing';
+    name = '彩虹祝福';
+    description = '每关开始时，随机生成1个彩虹方块';
+    rarity: 'common' | 'rare' | 'epic' = 'epic';
+    
+    // 在GameCore中处理
+}
+
+/**
+ * 完美连锁 - 连锁3次及以上时，额外+100%伤害
+ */
+export class PerfectChain implements IModifier {
+    id = 'perfect_chain';
+    name = '完美连锁';
+    description = '连锁3次及以上时，额外+100%伤害';
+    rarity: 'common' | 'rare' | 'epic' = 'epic';
+    
+    onDamageCalculate(damage: number): number {
+        // 需要从MatchData中获取chainLevel
+        return damage;
+    }
+}
+
+// ========== 词条池 ==========
+
+/**
+ * 获取所有词条
+ */
+export function getAllModifiers(): IModifier[] {
+    return [
+        new PowerBoost(),
+        new ChainMaster(),
+        new CriticalHit(),
+        new LongMatch(),
+        new TimeExtension(),
+        new GoldCollector(),
+        new FrostBreaker(),
+        new Berserk(),
+        new RainbowBlessing(),
+        new PerfectChain()
+    ];
+}
+
+/**
+ * 根据稀有度获取词条
  */
 export function getModifiersByRarity(rarity: 'common' | 'rare' | 'epic'): IModifier[] {
-    return ModifierPool.filter(m => m.rarity === rarity);
+    return getAllModifiers().filter(m => m.rarity === rarity);
 }
 
 /**
  * 随机获取N个词条
  */
 export function getRandomModifiers(count: number): IModifier[] {
-    const shuffled = [...ModifierPool].sort(() => Math.random() - 0.5);
-    return shuffled.slice(0, count);
+    const all = getAllModifiers();
+    const result: IModifier[] = [];
+    const used = new Set<string>();
+    
+    while (result.length < count && result.length < all.length) {
+        const random = all[Math.floor(Math.random() * all.length)];
+        if (!used.has(random.id)) {
+            result.push(random);
+            used.add(random.id);
+        }
+    }
+    
+    return result;
+}
+
+/**
+ * 根据稀有度权重随机获取词条
+ */
+export function getWeightedRandomModifiers(count: number): IModifier[] {
+    const result: IModifier[] = [];
+    const used = new Set<string>();
+    
+    for (let i = 0; i < count; i++) {
+        const rarity = getRandomRarity();
+        const pool = getModifiersByRarity(rarity).filter(m => !used.has(m.id));
+        
+        if (pool.length > 0) {
+            const random = pool[Math.floor(Math.random() * pool.length)];
+            result.push(random);
+            used.add(random.id);
+        }
+    }
+    
+    return result;
+}
+
+/**
+ * 根据权重随机稀有度
+ * 普通70%，稀有25%，史诗5%
+ */
+function getRandomRarity(): 'common' | 'rare' | 'epic' {
+    const rand = Math.random();
+    if (rand < 0.7) return 'common';
+    if (rand < 0.95) return 'rare';
+    return 'epic';
 }

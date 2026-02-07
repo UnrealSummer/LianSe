@@ -28,10 +28,10 @@ export interface IModifier {
  * 消除数据
  */
 export interface MatchData {
+    blocks: any[];          // 消除的方块
     count: number;          // 消除数量
-    color: number;          // 颜色类型
     chainLevel: number;     // 连锁层数
-    matchType: 'line' | 'L' | 'T' | 'square'; // 消除类型
+    matchType: string;      // 消除类型
     baseDamage: number;     // 基础伤害
 }
 
@@ -74,6 +74,28 @@ export class ModifierSystem extends Component {
     clearAll(): void {
         this.activeModifiers.forEach(m => m.onRemove?.());
         this.activeModifiers.clear();
+        console.log('[ModifierSystem] Cleared all modifiers');
+    }
+
+    /**
+     * 获取所有激活的词条
+     */
+    getActiveModifiers(): IModifier[] {
+        return Array.from(this.activeModifiers.values());
+    }
+
+    /**
+     * 获取词条数量
+     */
+    getModifierCount(): number {
+        return this.activeModifiers.size;
+    }
+
+    /**
+     * 是否有指定词条
+     */
+    hasModifier(id: string): boolean {
+        return this.activeModifiers.has(id);
     }
     
     /**
