@@ -1,5 +1,6 @@
 import { _decorator, Component, Node, Prefab, instantiate, Vec3, view, screen } from 'cc';
 import { Block, ColorType } from './Block';
+import { GravityDirection, GravitySystem } from './GravitySystem';
 const { ccclass, property } = _decorator;
 
 /**
@@ -28,6 +29,7 @@ export class GridSystem extends Component {
     private blocks: Node[][] = [];
     private isProcessing: boolean = false;
     private currentColorCount: number = 3; // Track current color count
+    private gravitySystem: GravitySystem = new GravitySystem(); // 重力系统
 
     start() {
         this.calculateAdaptiveSize();
@@ -630,6 +632,13 @@ export class GridSystem extends Component {
             const j = Math.floor(Math.random() * (i + 1));
             [array[i], array[j]] = [array[j], array[i]];
         }
+    }
+
+    /**
+     * 获取重力系统
+     */
+    getGravitySystem(): GravitySystem {
+        return this.gravitySystem;
     }
 
     getProcessing(): boolean {
