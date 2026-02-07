@@ -165,9 +165,13 @@ export class PerfectChain implements IModifier {
     description = '连锁3次及以上时，额外+100%伤害';
     rarity: 'common' | 'rare' | 'epic' = 'epic';
     
-    onDamageCalculate(damage: number): number {
-        // 需要从MatchData中获取chainLevel
-        return damage;
+    onMatch(data: MatchData): MatchData {
+        if (data.chainLevel >= 3) {
+            const oldDamage = data.baseDamage;
+            data.baseDamage = Math.floor(data.baseDamage * 2);
+            console.log(`[Modifier] ⚡ Perfect Chain! ${oldDamage} -> ${data.baseDamage}`);
+        }
+        return data;
     }
 }
 

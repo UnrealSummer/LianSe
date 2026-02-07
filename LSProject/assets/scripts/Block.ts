@@ -364,8 +364,20 @@ export class Block extends Component {
      */
     onNearbyMatch(): void {
         if (this.blockType === BlockType.FROZEN && this.frozenLevel > 0) {
-            this.frozenLevel--;
-            console.log(`[Block] Frozen level decreased: ${this.frozenLevel}`);
+            // Check for frost breaker modifier
+            const gameCore = this.node.parent.parent.getComponent('GameCore');
+            const modifierSystem = gameCore?.modifierSystem;
+            const hasFrostBreaker = modifierSystem?.hasModifier('frost_breaker');
+            
+            if (hasFrostBreaker) {
+                // Frost breaker: instant unfreeze
+                this.frozenLevel = 0;
+                console.log(`[Block] ❄️ Frost Breaker: Instant unfreeze!`);
+            } else {
+                // Normal: decrease level
+                this.frozenLevel--;
+                console.log(`[Block] Frozen level decreased: ${this.frozenLevel}`);
+            }
             
             if (this.frozenLevel === 0) {
                 this.unfreeze();

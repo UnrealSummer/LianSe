@@ -42,6 +42,16 @@ export interface MatchData {
 @ccclass('ModifierSystem')
 export class ModifierSystem extends Component {
     private activeModifiers: Map<string, IModifier> = new Map();
+    private enemySystem: any = null;  // 敌人系统引用
+    
+    start() {
+        // Auto-find EnemySystem
+        const enemyNode = this.node.parent.getChildByName('EnemySystem');
+        if (enemyNode) {
+            this.enemySystem = enemyNode.getComponent('EnemySystem');
+            console.log('[ModifierSystem] EnemySystem found:', !!this.enemySystem);
+        }
+    }
     
     /**
      * 添加词条
@@ -53,6 +63,12 @@ export class ModifierSystem extends Component {
         }
         
         this.activeModifiers.set(modifier.id, modifier);
+        
+        // Inject enemySystem for modifiers that need it
+        if (modifier.id === 'berserk' && this.enemySystem) {
+            (modifier as any).enemySystem = this.enemySystem;
+        }
+        
         modifier.onAcquire?.();
         console.log(`[Modifier] Added: ${modifier.name}`);
     }
