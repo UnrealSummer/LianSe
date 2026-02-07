@@ -10,6 +10,7 @@ import { CoinSystem } from './CoinSystem';
 import { GameOverUI } from './GameOverUI';
 import { AudioManager } from './AudioManager';
 import { PauseUI } from './PauseUI';
+import { DataManager } from './DataManager';
 const { ccclass, property } = _decorator;
 
 /**
@@ -35,6 +36,7 @@ export class GameCore extends Component {
     private gameOverUI: GameOverUI = null;
     private audioManager: AudioManager = null;
     private pauseUI: PauseUI = null;
+    private dataManager: DataManager = null;
     private timeLabel: Label = null;
     private goldLabel: Label = null;
     private stageLabel: Label = null;
@@ -126,6 +128,9 @@ export class GameCore extends Component {
             this.pauseUI = pauseUINode.getComponent(PauseUI);
         }
         
+        // Get DataManager instance
+        this.dataManager = DataManager.getInstance();
+        
         console.log('[GameCore] Components found:', {
             gridSystem: !!this.gridSystem,
             enemySystem: !!this.enemySystem,
@@ -137,7 +142,8 @@ export class GameCore extends Component {
             coinSystem: !!this.coinSystem,
             gameOverUI: !!this.gameOverUI,
             audioManager: !!this.audioManager,
-            pauseUI: !!this.pauseUI
+            pauseUI: !!this.pauseUI,
+            dataManager: !!this.dataManager
         });
         
         // Check if all required components are found
@@ -636,6 +642,14 @@ export class GameCore extends Component {
             this.audioManager.playVictory();
         }
         
+        // Save progress to DataManager
+        if (this.dataManager) {
+            const currentStage = this.progressionManager.getCurrentStage();
+            this.dataManager.updateMaxStage(currentStage);
+            this.dataManager.addMoves(this.totalMoves);
+            this.dataManager.updateMaxCombo(this.maxCombo);
+        }
+        
         // Big coin drop on kill
         let killReward = 0;
         if (this.coinSystem) {
@@ -653,6 +667,11 @@ export class GameCore extends Component {
             
             this.coinSystem.addCoins(killReward);
             console.log(`[GameCore] 💰💰💰 KILL REWARD: ${killReward} coins! (Time bonus: ${timeBonus})`);
+            
+            // Save coins to DataManager
+            if (this.dataManager) {
+                this.dataManager.addCoins(killReward);
+            }
         }
         
         // Show game over UI if available

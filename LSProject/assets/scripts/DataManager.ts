@@ -1,125 +1,203 @@
 import { _decorator, Component, sys } from 'cc';
-const { ccclass, property } = _decorator;
+const { ccclass } = _decorator;
 
 /**
- * 玩家数据
+ * 游戏数据
  */
-export interface PlayerData {
-    highestStage: number;      // 历史最高关卡
-    highestScore: number;      // 历史最高分数
-    totalGames: number;        // 总游戏次数
-    totalGold: number;         // 累计金币
-    lastPlayTime: number;      // 最后游戏时间
+export interface GameData {
+    maxStage: number;           // 最高关卡
+    totalCoins: number;         // 总金币
+    totalMoves: number;         // 总移动次数
+    maxCombo: number;           // 最大连击
+    totalPlayTime: number;      // 总游戏时间（秒）
+    achievements: string[];     // 成就列表
 }
 
 /**
- * 数据管理器 - 负责本地存储
+ * 数据管理器 - 负责数据持久化
  */
 @ccclass('DataManager')
 export class DataManager extends Component {
-    private static readonly STORAGE_KEY = 'lianse_player_data';
     private static instance: DataManager = null;
+    private static readonly SAVE_KEY = 'LianSeGameData';
     
-    private playerData: PlayerData = {
-        highestStage: 0,
-        highestScore: 0,
-        totalGames: 0,
-        totalGold: 0,
-        lastPlayTime: 0
+    private gameData: GameData = {
+        maxStage: 1,
+        totalCoins: 0,
+        totalMoves: 0,
+        maxCombo: 0,
+        totalPlayTime: 0,
+        achievements: []
     };
-    
+
     onLoad() {
+        // Singleton
         if (DataManager.instance) {
             this.destroy();
             return;
         }
         DataManager.instance = this;
         
-        // 加载数据
+        // Load data
         this.loadData();
-        console.log('[DataManager] 数据已加载:', this.playerData);
+        
+        console.log('[DataManager] Initialized');
     }
-    
+
     /**
-     * 获取单例
+     * 获取实例
      */
     static getInstance(): DataManager {
         return DataManager.instance;
     }
-    
+
     /**
      * 加载数据
      */
-    private loadData(): void {
+    loadData(): void {
         try {
-            const dataStr = sys.localStorage.getItem(DataManager.STORAGE_KEY);
+            const dataStr = sys.localStorage.getItem(DataManager.SAVE_KEY);
             if (dataStr) {
-                this.playerData = JSON.parse(dataStr);
-                console.log('[DataManager] 从本地加载数据成功');
+                this.gameData = JSON.parse(dataStr);
+                console.log('[DataManager] Data loaded:', this.gameData);
             } else {
-                console.log('[DataManager] 没有本地数据，使用默认值');
+                console.log('[DataManager] No save data found, using defaults');
             }
         } catch (error) {
-            console.error('[DataManager] 加载数据失败:', error);
+            console.error('[DataManager] Failed to load data:', error);
         }
     }
-    
+
     /**
      * 保存数据
      */
-    private saveData(): void {
+    saveData(): void {
         try {
-            const dataStr = JSON.stringify(this.playerData);
-            sys.localStorage.setItem(DataManager.STORAGE_KEY, dataStr);
-            console.log('[DataManager] 数据已保存');
+            const dataStr = JSON.stringify(this.gameData);
+            sys.localStorage.setItem(DataManager.SAVE_KEY, dataStr);
+            console.log('[DataManager] Data saved:', this.gameData);
         } catch (error) {
-            console.error('[DataManager] 保存数据失败:', error);
+            console.error('[DataManager] Failed to save data:', error);
         }
     }
-    
+
     /**
-     * 获取玩家数据
-     */
-    getPlayerData(): PlayerData {
-        return { ...this.playerData };
-    }
-    
-    /**
-     * 游戏结束，更新数据
-     */
-    onGameEnd(stage: number, score: number, gold: number): void {
-        // 更新最高记录
-        if (stage > this.playerData.highestStage) {
-            this.playerData.highestStage = stage;
-            console.log(`[DataManager] 新纪录！最高关卡: ${stage}`);
-        }
-        
-        if (score > this.playerData.highestScore) {
-            this.playerData.highestScore = score;
-            console.log(`[DataManager] 新纪录！最高分数: ${score}`);
-        }
-        
-        // 累计数据
-        this.playerData.totalGames++;
-        this.playerData.totalGold += gold;
-        this.playerData.lastPlayTime = Date.now();
-        
-        // 保存
-        this.saveData();
-    }
-    
-    /**
-     * 清空数据（调试用）
+     * 清空数据
      */
     clearData(): void {
-        this.playerData = {
-            highestStage: 0,
-            highestScore: 0,
-            totalGames: 0,
-            totalGold: 0,
-            lastPlayTime: 0
+        this.gameData = {
+            maxStage: 1,
+            totalCoins: 0,
+            totalMoves: 0,
+            maxCombo: 0,
+            totalPlayTime: 0,
+            achievements: []
         };
+        sys.localStorage.removeItem(DataManager.SAVE_KEY);
+        console.log('[DataManager] Data cleared');
+    }
+
+    // ========== Getters ==========
+
+    getMaxStage(): number {
+        return this.gameData.maxStage;
+    }
+
+    getTotalCoins(): number {
+        return this.gameData.totalCoins;
+    }
+
+    getTotalMoves(): number {
+        return this.gameData.totalMoves;
+    }
+
+    getMaxCombo(): number {
+        return this.gameData.maxCombo;
+    }
+
+    getTotalPlayTime(): number {
+        return this.gameData.totalPlayTime;
+    }
+
+    getAchievements(): string[] {
+        return this.gameData.achievements;
+    }
+
+    // ========== Setters ==========
+
+    /**
+     * 更新最高关卡
+     */
+    updateMaxStage(stage: number): void {
+        if (stage > this.gameData.maxStage) {
+            this.gameData.maxStage = stage;
+            this.saveData();
+            console.log(`[DataManager] Max stage updated: ${stage}`);
+        }
+    }
+
+    /**
+     * 添加金币
+     */
+    addCoins(amount: number): void {
+        this.gameData.totalCoins += amount;
         this.saveData();
-        console.log('[DataManager] 数据已清空');
+    }
+
+    /**
+     * 消费金币
+     */
+    spendCoins(amount: number): boolean {
+        if (this.gameData.totalCoins >= amount) {
+            this.gameData.totalCoins -= amount;
+            this.saveData();
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * 添加移动次数
+     */
+    addMoves(count: number): void {
+        this.gameData.totalMoves += count;
+        this.saveData();
+    }
+
+    /**
+     * 更新最大连击
+     */
+    updateMaxCombo(combo: number): void {
+        if (combo > this.gameData.maxCombo) {
+            this.gameData.maxCombo = combo;
+            this.saveData();
+            console.log(`[DataManager] Max combo updated: ${combo}`);
+        }
+    }
+
+    /**
+     * 添加游戏时间
+     */
+    addPlayTime(seconds: number): void {
+        this.gameData.totalPlayTime += seconds;
+        this.saveData();
+    }
+
+    /**
+     * 解锁成就
+     */
+    unlockAchievement(achievementId: string): void {
+        if (!this.gameData.achievements.includes(achievementId)) {
+            this.gameData.achievements.push(achievementId);
+            this.saveData();
+            console.log(`[DataManager] Achievement unlocked: ${achievementId}`);
+        }
+    }
+
+    /**
+     * 检查成就是否解锁
+     */
+    hasAchievement(achievementId: string): boolean {
+        return this.gameData.achievements.includes(achievementId);
     }
 }

@@ -1,4 +1,5 @@
 import { _decorator, Component } from 'cc';
+import { DataManager } from './DataManager';
 const { ccclass } = _decorator;
 
 /**
@@ -10,6 +11,13 @@ export class CoinSystem extends Component {
     private stageCoins: number = 0;
 
     start() {
+        // Load coins from DataManager
+        const dataManager = DataManager.getInstance();
+        if (dataManager) {
+            this.totalCoins = dataManager.getTotalCoins();
+            console.log(`[CoinSystem] Loaded ${this.totalCoins} coins from save`);
+        }
+        
         console.log('[CoinSystem] Initialized');
     }
 
