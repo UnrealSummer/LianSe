@@ -24,6 +24,9 @@ export class GameCore extends Component {
     
     @property({ tooltip: 'GM：起始关卡（1=正常，6=测试冰冻，11=测试石头）' })
     gmStartStage: number = 1;
+    
+    @property({ tooltip: 'GM：重力方向（-1=自动 0=下 1=上 2=左 3=右）' })
+    gmGravityDirection: number = -1;
 
     private gridSystem: GridSystem = null;
     private enemySystem: EnemySystem = null;
@@ -181,8 +184,28 @@ export class GameCore extends Component {
                 if (event.keyCode === KeyCode.ESCAPE) {
                     this.togglePause();
                 }
+                
+                // GM: 数字键切换重力方向
+                if (event.keyCode === KeyCode.DIGIT_1) {
+                    this.setGravityDirection(0); // 下
+                } else if (event.keyCode === KeyCode.DIGIT_2) {
+                    this.setGravityDirection(1); // 上
+                } else if (event.keyCode === KeyCode.DIGIT_3) {
+                    this.setGravityDirection(2); // 左
+                } else if (event.keyCode === KeyCode.DIGIT_4) {
+                    this.setGravityDirection(3); // 右
+                }
             });
         });
+    }
+
+    /**
+     * GM: 设置重力方向
+     */
+    private setGravityDirection(direction: number): void {
+        const gravitySystem = this.gridSystem.getGravitySystem();
+        gravitySystem.setDirection(direction);
+        console.log(`[GameCore] GM: Gravity changed to ${gravitySystem.getDirectionName(direction)}`);
     }
 
     private onBlockClicked(event: any): void {
@@ -286,6 +309,13 @@ export class GameCore extends Component {
         
         // Generate grid with progressive colors
         this.gridSystem.generateGrid(levelConfig.colorCount, levelConfig.obstacles);
+        
+        // GM: Set gravity direction
+        if (this.gmGravityDirection >= 0 && this.gmGravityDirection <= 3) {
+            const gravitySystem = this.gridSystem.getGravitySystem();
+            gravitySystem.setDirection(this.gmGravityDirection);
+            console.log(`[GameCore] GM: Gravity set to ${gravitySystem.getDirectionName(this.gmGravityDirection)}`);
+        }
         
         // Apply rainbow blessing modifier (add rainbow blocks after grid generation)
         const rainbowCount = this.getRainbowBlessingCount();
