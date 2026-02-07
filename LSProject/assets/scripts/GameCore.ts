@@ -235,10 +235,13 @@ export class GameCore extends Component {
         // Generate grid with progressive colors
         this.gridSystem.generateGrid(levelConfig.colorCount, levelConfig.obstacles);
         
-        // Apply rainbow blessing modifier (add rainbow block after grid generation)
-        if (this.modifierSystem.hasModifier('rainbow_blessing')) {
+        // Apply rainbow blessing modifier (add rainbow blocks after grid generation)
+        const rainbowCount = this.getRainbowBlessingCount();
+        if (rainbowCount > 0) {
             this.scheduleOnce(() => {
-                this.addRandomRainbowBlock();
+                for (let i = 0; i < rainbowCount; i++) {
+                    this.addRandomRainbowBlock();
+                }
             }, 0.5);  // Wait for grid to settle
         }
         
@@ -530,6 +533,26 @@ export class GameCore extends Component {
                 adjacentBlock.onNearbyMatch();
             }
         }
+    }
+
+    /**
+     * 获取彩虹祝福词条数量（支持叠加）
+     */
+    private getRainbowBlessingCount(): number {
+        const modifiers = this.modifierSystem.getActiveModifiers();
+        let count = 0;
+        
+        for (const modifier of modifiers) {
+            if (modifier.id === 'rainbow_blessing') {
+                count++;
+            }
+        }
+        
+        if (count > 0) {
+            console.log(`[GameCore] 🌈 Rainbow Blessing x${count}`);
+        }
+        
+        return count;
     }
 
     /**

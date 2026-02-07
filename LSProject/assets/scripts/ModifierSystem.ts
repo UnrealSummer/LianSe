@@ -57,12 +57,26 @@ export class ModifierSystem extends Component {
      * 添加词条
      */
     addModifier(modifier: IModifier): void {
-        if (this.activeModifiers.has(modifier.id)) {
-            console.warn(`Modifier ${modifier.id} already exists`);
+        // Allow stacking for certain modifiers (like rainbow_blessing)
+        const stackableModifiers = ['rainbow_blessing'];
+        
+        if (this.activeModifiers.has(modifier.id) && !stackableModifiers.includes(modifier.id)) {
+            console.warn(`Modifier ${modifier.id} already exists and cannot stack`);
             return;
         }
         
-        this.activeModifiers.set(modifier.id, modifier);
+        // For stackable modifiers, create unique key
+        let key = modifier.id;
+        if (stackableModifiers.includes(modifier.id)) {
+            let index = 1;
+            while (this.activeModifiers.has(`${modifier.id}_${index}`)) {
+                index++;
+            }
+            key = `${modifier.id}_${index}`;
+            console.log(`[ModifierSystem] Stacking modifier: ${modifier.id} (${index})`);
+        }
+        
+        this.activeModifiers.set(key, modifier);
         
         // Inject enemySystem for modifiers that need it
         if (modifier.id === 'berserk' && this.enemySystem) {
