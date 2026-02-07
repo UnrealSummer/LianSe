@@ -4,6 +4,7 @@ import { EnemySystem } from './EnemySystem';
 import { DamageSystem } from './DamageSystem';
 import { ModifierSystem, MatchData } from './ModifierSystem';
 import { ProgressionManager } from './ProgressionManager';
+import { ModifierSelectionUI } from './ModifierSelectionUI';
 const { ccclass, property } = _decorator;
 
 /**
@@ -23,6 +24,7 @@ export class GameCore extends Component {
     private damageSystem: DamageSystem = null;
     private modifierSystem: ModifierSystem = null;
     private progressionManager: ProgressionManager = null;
+    private modifierSelectionUI: ModifierSelectionUI = null;
     private timeLabel: Label = null;
     private goldLabel: Label = null;
     private stageLabel: Label = null;
@@ -78,12 +80,19 @@ export class GameCore extends Component {
             }
         }
         
+        // Auto-find ModifierSelectionUI
+        const modifierUINode = this.node.parent.getChildByName('ModifierSelectionUI');
+        if (modifierUINode) {
+            this.modifierSelectionUI = modifierUINode.getComponent(ModifierSelectionUI);
+        }
+        
         console.log('[GameCore] Components found:', {
             gridSystem: !!this.gridSystem,
             enemySystem: !!this.enemySystem,
             damageSystem: !!this.damageSystem,
             modifierSystem: !!this.modifierSystem,
-            progressionManager: !!this.progressionManager
+            progressionManager: !!this.progressionManager,
+            modifierSelectionUI: !!this.modifierSelectionUI
         });
         
         // Check if all required components are found
@@ -374,21 +383,34 @@ export class GameCore extends Component {
                 console.log(`  ${index + 1}. ${rarityColor} ${mod.name} - ${mod.description}`);
             });
             
-            // TODO: Show UI for selection
-            // For now, auto-select first one after delay
-            setTimeout(() => {
-                const selected = options[0];
-                this.modifierSystem.addModifier(selected);
-                console.log(`[GameCore] ✅ Selected: ${selected.name}`);
-                
-                // Next stage
-                this.progressionManager.nextStage();
+            // Show UI if available
+            if (this.modifierSelectionUI) {
+                this.modifierSelectionUI.show(options, (selected) => {
+                    this.onModifierSelected(selected);
+                });
+            } else {
+                // Fallback: auto-select first one
+                console.warn('[GameCore] ModifierSelectionUI not found, auto-selecting');
                 setTimeout(() => {
-                    console.log('[GameCore] Starting next stage...');
-                    this.startStage();
-                }, 1000);
-            }, 2000);
+                    this.onModifierSelected(options[0]);
+                }, 2000);
+            }
         });
+    }
+
+    /**
+     * 词条被选择
+     */
+    private onModifierSelected(modifier: any): void {
+        this.modifierSystem.addModifier(modifier);
+        console.log(`[GameCore] ✅ Selected: ${modifier.name}`);
+        
+        // Next stage
+        this.progressionManager.nextStage();
+        setTimeout(() => {
+            console.log('[GameCore] Starting next stage...');
+            this.startStage();
+        }, 1000);
     }
 
     private onTimeUp(): void {
