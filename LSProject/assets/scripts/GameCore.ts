@@ -372,6 +372,16 @@ export class GameCore extends Component {
             }
             
             totalDamage += damage;
+            
+            // Show attack effect from blocks to enemy
+            if (this.effectManager && this.enemySystem && match.length > 0) {
+                const firstBlock = match[0];
+                const blockPos = firstBlock.getPosition();
+                const enemyPos = this.enemySystem.node.getPosition();
+                
+                // Show particles flying from blocks to enemy
+                this.effectManager.showAttackEffect(blockPos, enemyPos, match.length);
+            }
         }
 
         console.log(`[GameCore] Chain ${this.chainLevel}: ${totalDamage} damage${hasCritical ? ' 💥 CRITICAL!' : ''}`);

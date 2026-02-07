@@ -54,6 +54,46 @@ export class EffectManager extends Component {
     }
 
     /**
+     * 显示攻击特效（从方块飞向敌人）
+     */
+    showAttackEffect(fromPos: Vec3, toPos: Vec3, count: number = 1): void {
+        for (let i = 0; i < count; i++) {
+            setTimeout(() => {
+                this.createAttackParticle(fromPos, toPos);
+            }, i * 50);  // 每个粒子延迟50ms
+        }
+    }
+
+    /**
+     * 创建攻击粒子
+     */
+    private createAttackParticle(fromPos: Vec3, toPos: Vec3): void {
+        const particle = new Node('AttackParticle');
+        this.effectRoot.addChild(particle);
+        
+        // Add sprite
+        const sprite = particle.addComponent(cc.Sprite);
+        sprite.color = new cc.Color(255, 200, 50);  // 金黄色
+        
+        // Set initial position
+        particle.setPosition(fromPos);
+        particle.setScale(0.3, 0.3, 1);
+        
+        // Animate to target
+        tween(particle)
+            .to(0.3, { position: toPos }, { easing: 'sineIn' })
+            .call(() => {
+                particle.destroy();
+            })
+            .start();
+        
+        // Fade out
+        tween(sprite)
+            .to(0.3, { color: new cc.Color(255, 200, 50, 0) })
+            .start();
+    }
+
+    /**
      * 伤害数字动画
      */
     private animateDamageNumber(node: Node): void {
