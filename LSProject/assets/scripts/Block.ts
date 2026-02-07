@@ -89,7 +89,7 @@ export class Block extends Component {
         this.isSelected = selected;
         
         if (selected) {
-            this.node.setScale(1.15, 1.15, 1);
+            this.node.setScale(1.1, 1.1, 1);  // 从1.15改成1.1
         } else {
             this.node.setScale(1, 1, 1);
         }
