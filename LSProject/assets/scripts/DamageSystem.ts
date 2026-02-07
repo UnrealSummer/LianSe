@@ -7,8 +7,13 @@ const { ccclass, property } = _decorator;
  */
 @ccclass('DamageSystem')
 export class DamageSystem extends Component {
-    @property(ModifierSystem)
-    modifierSystem: ModifierSystem = null;
+    private modifierSystem: ModifierSystem = null;
+
+    start() {
+        // Auto-find ModifierSystem
+        this.modifierSystem = this.node.parent.getChildByName('ModifierSystem')?.getComponent(ModifierSystem);
+        console.log('[DamageSystem] ModifierSystem found:', !!this.modifierSystem);
+    }
 
     /**
      * 计算消除伤害
