@@ -288,9 +288,31 @@ export class GridSystem extends Component {
     }
 
     /**
-     * Drop blocks and fill empty spaces
+     * Drop blocks and fill empty spaces (支持4个方向)
      */
     dropBlocks(callback: Function): void {
+        const direction = this.gravitySystem.getCurrentDirection();
+        
+        switch (direction) {
+            case GravityDirection.DOWN:
+                this.dropBlocksDown(callback);
+                break;
+            case GravityDirection.UP:
+                this.dropBlocksUp(callback);
+                break;
+            case GravityDirection.LEFT:
+                this.dropBlocksLeft(callback);
+                break;
+            case GravityDirection.RIGHT:
+                this.dropBlocksRight(callback);
+                break;
+        }
+    }
+
+    /**
+     * 向下掉落（默认）
+     */
+    private dropBlocksDown(callback: Function): void {
         let hasDropped = false;
         const dropAnimations: Promise<void>[] = [];
 
@@ -301,7 +323,6 @@ export class GridSystem extends Component {
             for (let row = this.gridSize - 1; row >= 0; row--) {
                 if (this.blocks[row][col] !== null) {
                     if (row !== emptyRow) {
-                        // Move block down
                         const block = this.blocks[row][col];
                         this.blocks[emptyRow][col] = block;
                         this.blocks[row][col] = null;
@@ -311,7 +332,6 @@ export class GridSystem extends Component {
                             blockScript.setPosition(emptyRow, col);
                         }
                         
-                        // Animate drop
                         const targetY = this.calculateBlockY(emptyRow);
                         dropAnimations.push(this.animateDrop(block, targetY));
                         hasDropped = true;
@@ -325,22 +345,11 @@ export class GridSystem extends Component {
         for (let col = 0; col < this.gridSize; col++) {
             for (let row = 0; row < this.gridSize; row++) {
                 if (this.blocks[row][col] === null) {
-                    const block = instantiate(this.blockPrefab);
-                    block.setParent(this.node);
-                    
-                    const baseScale = this.blockSize / 60;
-                    block.setScale(baseScale, baseScale, 1);
-                    
+                    const block = this.createNewBlock(row, col);
                     const x = this.calculateBlockX(col);
-                    const startY = this.calculateBlockY(-1); // Start above grid
+                    const startY = this.calculateBlockY(-1);
                     const targetY = this.calculateBlockY(row);
                     block.setPosition(new Vec3(x, startY, 0));
-                    
-                    const blockScript = block.getComponent(Block);
-                    if (blockScript) {
-                        const color = Math.floor(Math.random() * this.currentColorCount);
-                        blockScript.init(row, col, color);
-                    }
                     
                     this.blocks[row][col] = block;
                     dropAnimations.push(this.animateDrop(block, targetY));
@@ -349,14 +358,208 @@ export class GridSystem extends Component {
             }
         }
 
-        // Wait for all animations to complete
         if (hasDropped) {
-            Promise.all(dropAnimations).then(() => {
-                callback();
-            });
+            Promise.all(dropAnimations).then(() => callback());
         } else {
             callback();
         }
+    }
+
+    /**
+     * 向上掉落
+     */
+    private dropBlocksUp(callback: Function): void {
+        let hasDropped = false;
+        const dropAnimations: Promise<void>[] = [];
+
+        for (let col = 0; col < this.gridSize; col++) {
+            let emptyRow = 0;
+            
+            for (let row = 0; row < this.gridSize; row++) {
+                if (this.blocks[row][col] !== null) {
+                    if (row !== emptyRow) {
+                        const block = this.blocks[row][col];
+                        this.blocks[emptyRow][col] = block;
+                        this.blocks[row][col] = null;
+                        
+                        const blockScript = block.getComponent(Block);
+                        if (blockScript) {
+                            blockScript.setPosition(emptyRow, col);
+                        }
+                        
+                        const targetY = this.calculateBlockY(emptyRow);
+                        dropAnimations.push(this.animateDrop(block, targetY));
+                        hasDropped = true;
+                    }
+                    emptyRow++;
+                }
+            }
+        }
+
+        for (let col = 0; col < this.gridSize; col++) {
+            for (let row = this.gridSize - 1; row >= 0; row--) {
+                if (this.blocks[row][col] === null) {
+                    const block = this.createNewBlock(row, col);
+                    const x = this.calculateBlockX(col);
+                    const startY = this.calculateBlockY(this.gridSize);
+                    const targetY = this.calculateBlockY(row);
+                    block.setPosition(new Vec3(x, startY, 0));
+                    
+                    this.blocks[row][col] = block;
+                    dropAnimations.push(this.animateDrop(block, targetY));
+                    hasDropped = true;
+                }
+            }
+        }
+
+        if (hasDropped) {
+            Promise.all(dropAnimations).then(() => callback());
+        } else {
+            callback();
+        }
+    }
+
+    /**
+     * 向左掉落
+     */
+    private dropBlocksLeft(callback: Function): void {
+        let hasDropped = false;
+        const dropAnimations: Promise<void>[] = [];
+
+        for (let row = 0; row < this.gridSize; row++) {
+            let emptyCol = 0;
+            
+            for (let col = 0; col < this.gridSize; col++) {
+                if (this.blocks[row][col] !== null) {
+                    if (col !== emptyCol) {
+                        const block = this.blocks[row][col];
+                        this.blocks[row][emptyCol] = block;
+                        this.blocks[row][col] = null;
+                        
+                        const blockScript = block.getComponent(Block);
+                        if (blockScript) {
+                            blockScript.setPosition(row, emptyCol);
+                        }
+                        
+                        const targetX = this.calculateBlockX(emptyCol);
+                        const currentY = block.getPosition().y;
+                        dropAnimations.push(this.animateDropHorizontal(block, targetX, currentY));
+                        hasDropped = true;
+                    }
+                    emptyCol++;
+                }
+            }
+        }
+
+        for (let row = 0; row < this.gridSize; row++) {
+            for (let col = this.gridSize - 1; col >= 0; col--) {
+                if (this.blocks[row][col] === null) {
+                    const block = this.createNewBlock(row, col);
+                    const startX = this.calculateBlockX(this.gridSize);
+                    const targetX = this.calculateBlockX(col);
+                    const y = this.calculateBlockY(row);
+                    block.setPosition(new Vec3(startX, y, 0));
+                    
+                    this.blocks[row][col] = block;
+                    dropAnimations.push(this.animateDropHorizontal(block, targetX, y));
+                    hasDropped = true;
+                }
+            }
+        }
+
+        if (hasDropped) {
+            Promise.all(dropAnimations).then(() => callback());
+        } else {
+            callback();
+        }
+    }
+
+    /**
+     * 向右掉落
+     */
+    private dropBlocksRight(callback: Function): void {
+        let hasDropped = false;
+        const dropAnimations: Promise<void>[] = [];
+
+        for (let row = 0; row < this.gridSize; row++) {
+            let emptyCol = this.gridSize - 1;
+            
+            for (let col = this.gridSize - 1; col >= 0; col--) {
+                if (this.blocks[row][col] !== null) {
+                    if (col !== emptyCol) {
+                        const block = this.blocks[row][col];
+                        this.blocks[row][emptyCol] = block;
+                        this.blocks[row][col] = null;
+                        
+                        const blockScript = block.getComponent(Block);
+                        if (blockScript) {
+                            blockScript.setPosition(row, emptyCol);
+                        }
+                        
+                        const targetX = this.calculateBlockX(emptyCol);
+                        const currentY = block.getPosition().y;
+                        dropAnimations.push(this.animateDropHorizontal(block, targetX, currentY));
+                        hasDropped = true;
+                    }
+                    emptyCol--;
+                }
+            }
+        }
+
+        for (let row = 0; row < this.gridSize; row++) {
+            for (let col = 0; col < this.gridSize; col++) {
+                if (this.blocks[row][col] === null) {
+                    const block = this.createNewBlock(row, col);
+                    const startX = this.calculateBlockX(-1);
+                    const targetX = this.calculateBlockX(col);
+                    const y = this.calculateBlockY(row);
+                    block.setPosition(new Vec3(startX, y, 0));
+                    
+                    this.blocks[row][col] = block;
+                    dropAnimations.push(this.animateDropHorizontal(block, targetX, y));
+                    hasDropped = true;
+                }
+            }
+        }
+
+        if (hasDropped) {
+            Promise.all(dropAnimations).then(() => callback());
+        } else {
+            callback();
+        }
+    }
+
+    /**
+     * 创建新方块
+     */
+    private createNewBlock(row: number, col: number): Node {
+        const block = instantiate(this.blockPrefab);
+        block.setParent(this.node);
+        
+        const baseScale = this.blockSize / 60;
+        block.setScale(baseScale, baseScale, 1);
+        
+        const blockScript = block.getComponent(Block);
+        if (blockScript) {
+            const color = Math.floor(Math.random() * this.currentColorCount);
+            blockScript.init(row, col, color);
+        }
+        
+        return block;
+    }
+
+    /**
+     * 水平掉落动画
+     */
+    private animateDropHorizontal(block: Node, targetX: number, y: number): Promise<void> {
+        return new Promise((resolve) => {
+            import('cc').then(({ tween, Vec3 }) => {
+                tween(block)
+                    .to(0.3, { position: new Vec3(targetX, y, 0) }, { easing: 'cubicOut' })
+                    .call(() => resolve())
+                    .start();
+            });
+        });
     }
 
     private calculateBlockX(col: number): number {

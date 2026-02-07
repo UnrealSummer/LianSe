@@ -1,4 +1,5 @@
 import { _decorator, Component, Node, Sprite, Label, tween, Vec3, Color } from 'cc';
+import { EnemyType, EnemyConfig, ENEMY_CONFIGS } from './EnemyTypes';
 const { ccclass, property } = _decorator;
 
 /**
