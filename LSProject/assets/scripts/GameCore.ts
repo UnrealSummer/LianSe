@@ -28,6 +28,8 @@ export class GameCore extends Component {
     private isGameRunning: boolean = false;
     private chainLevel: number = 0;
     private selectedBlock: { row: number, col: number } = null;
+    private totalMoves: number = 0;
+    private maxCombo: number = 0;
 
     start() {
         console.log('[GameCore] Starting game...');
@@ -163,6 +165,10 @@ export class GameCore extends Component {
         this.timeLeft = levelConfig.timeLimit;
         this.isGameRunning = true;
         
+        // Reset stage stats
+        this.totalMoves = 0;
+        this.maxCombo = 0;
+        
         this.updateUI();
     }
 
@@ -180,6 +186,7 @@ export class GameCore extends Component {
 
     private trySwap(row1: number, col1: number, row2: number, col2: number): void {
         this.gridSystem.setProcessing(true);
+        this.totalMoves++; // Count move
         
         // Swap blocks with animation
         this.gridSystem.swapBlocks(row1, col1, row2, col2, () => {
@@ -217,6 +224,12 @@ export class GameCore extends Component {
         }
 
         console.log(`[GameCore] Chain ${this.chainLevel}: ${totalDamage} damage`);
+        
+        // Show chain combo
+        if (this.chainLevel > 1) {
+            console.log(`[GameCore] 🔥 COMBO x${this.chainLevel}!`);
+        }
+        
         this.enemySystem.takeDamage(totalDamage);
         
         const allBlocks = matches.flat();
@@ -230,6 +243,13 @@ export class GameCore extends Component {
                     console.log(`[GameCore] Chain continues! Found ${chainMatches.length} more matches`);
                     this.processMatches(chainMatches);
                 } else {
+                    // Chain ended
+                    if (this.chainLevel > 1) {
+                        console.log(`[GameCore] ⭐ Chain ended! Total combo: x${this.chainLevel}`);
+                        if (this.chainLevel > this.maxCombo) {
+                            this.maxCombo = this.chainLevel;
+                        }
+                    }
                     this.gridSystem.setProcessing(false);
                     this.chainLevel = 0;
                     if (this.enemySystem.isDead()) {
@@ -243,6 +263,7 @@ export class GameCore extends Component {
     private onVictory(): void {
         this.isGameRunning = false;
         console.log('[GameCore] Victory! Stage completed!');
+        console.log(`[GameCore] Stats: ${this.totalMoves} moves, max combo x${this.maxCombo}`);
         
         // Show victory message
         console.log(`[GameCore] Stage ${this.progressionManager.getCurrentStage()} cleared!`);
@@ -280,14 +301,24 @@ export class GameCore extends Component {
     }
 
     private updateUI(): void {
+        const currentStage = this.progressionManager.getCurrentStage();
+        const levelConfig = this.progressionManager.getCurrentLevelConfig();
+        
         if (this.timeLabel) {
-            this.timeLabel.string = `Time: ${Math.ceil(this.timeLeft)}s`;
+            const timeColor = this.timeLeft <= 10 ? 'red' : 'white';
+            this.timeLabel.string = `时间: ${Math.ceil(this.timeLeft)}s`;
+            // Warning color when time is low
+            if (this.timeLeft <= 10) {
+                this.timeLabel.node.setScale(1.2, 1.2, 1);
+            } else {
+                this.timeLabel.node.setScale(1, 1, 1);
+            }
         }
         if (this.goldLabel) {
-            this.goldLabel.string = `Gold: 0`;
+            this.goldLabel.string = `金币: ${this.progressionManager.getTotalGold()}`;
         }
         if (this.stageLabel) {
-            this.stageLabel.string = `Stage: ${this.progressionManager.getCurrentStage()}`;
+            this.stageLabel.string = `第${currentStage}关 (${levelConfig.colorCount}色)`;
         }
     }
 }
