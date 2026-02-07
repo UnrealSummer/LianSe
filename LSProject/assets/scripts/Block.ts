@@ -156,6 +156,22 @@ export class Block extends Component {
     setFrozen(level: number = 2): void {
         this.blockType = BlockType.FROZEN;
         this.frozenLevel = level;
+        
+        console.log(`[Block] Setting frozen at [${this.row}, ${this.col}], level=${level}`);
+        
+        // Method 1: Change block color to blue (more obvious)
+        if (this.sprite) {
+            const originalColor = this.sprite.color.clone();
+            this.sprite.color = new Color(
+                Math.floor(originalColor.r * 0.5),
+                Math.floor(originalColor.g * 0.5),
+                255,  // Full blue
+                255
+            );
+            console.log(`[Block] Changed color to blue at [${this.row}, ${this.col}]`);
+        }
+        
+        // Method 2: Also create overlay
         this.createFrozenOverlay();
     }
 
@@ -163,27 +179,35 @@ export class Block extends Component {
      * 创建冰冻覆盖层
      */
     private createFrozenOverlay(): void {
-        if (this.frozenOverlay) return;
+        if (this.frozenOverlay) {
+            console.log(`[Block] Frozen overlay already exists at [${this.row}, ${this.col}]`);
+            return;
+        }
 
+        console.log(`[Block] Creating frozen overlay at [${this.row}, ${this.col}]`);
+        
         this.frozenOverlay = new Node('FrozenOverlay');
         this.frozenOverlay.setParent(this.node);
+        this.frozenOverlay.layer = this.node.layer;
         
         const sprite = this.frozenOverlay.addComponent(Sprite);
         sprite.type = Sprite.Type.SIMPLE;
         sprite.sizeMode = Sprite.SizeMode.CUSTOM;
         
-        // Use UITransform to set size
+        // Set bright blue color with high alpha
+        sprite.color = new Color(0, 150, 255, 220);  // 明亮的蓝色，高不透明度
+        
+        // Add UITransform
         import('cc').then(({ UITransform }) => {
-            const transform = this.frozenOverlay.addComponent(UITransform);
+            const transform = this.frozenOverlay.getComponent(UITransform) || this.frozenOverlay.addComponent(UITransform);
             transform.setContentSize(60, 60);
+            console.log(`[Block] Frozen overlay size set: 60x60`);
         });
         
-        sprite.color = new Color(100, 180, 255, 180);  // 半透明蓝色
+        this.frozenOverlay.setPosition(0, 0, 1);  // z=1 to be on top
+        this.frozenOverlay.setScale(1.1, 1.1, 1);
         
-        this.frozenOverlay.setPosition(0, 0, 0);
-        this.frozenOverlay.setScale(1.05, 1.05, 1);  // 稍微大一点
-        
-        console.log(`[Block] Created frozen overlay at [${this.row}, ${this.col}]`);
+        console.log(`[Block] Frozen overlay created successfully at [${this.row}, ${this.col}]`);
     }
 
     /**
@@ -205,6 +229,10 @@ export class Block extends Component {
      */
     private unfreeze(): void {
         this.blockType = BlockType.NORMAL;
+        
+        // Restore original color
+        this.updateColor();
+        
         if (this.frozenOverlay) {
             this.frozenOverlay.destroy();
             this.frozenOverlay = null;
