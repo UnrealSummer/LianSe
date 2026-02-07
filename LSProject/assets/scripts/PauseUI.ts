@@ -1,114 +1,95 @@
-import { _decorator, Component, Node, Button } from 'cc';
+import { _decorator, Component, Node, Button, Label } from 'cc';
 const { ccclass, property } = _decorator;
 
 /**
- * 暂停界面
+ * 暂停UI
  */
 @ccclass('PauseUI')
 export class PauseUI extends Component {
-    @property({ type: Node })
-    panel: Node = null; // 暂停面板
-    
-    @property({ type: Button })
-    resumeButton: Button = null; // 继续游戏
-    
-    @property({ type: Button })
-    restartButton: Button = null; // 重新开始
-    
-    @property({ type: Button })
-    settingsButton: Button = null; // 设置（可选）
-    
-    @property({ type: Button })
-    quitButton: Button = null; // 退出游戏（可选）
-    
-    private onResumeCallback: (() => void) | null = null;
-    private onRestartCallback: (() => void) | null = null;
-    private onQuitCallback: (() => void) | null = null;
-    
+    @property(Button)
+    resumeButton: Button = null;
+
+    @property(Button)
+    restartButton: Button = null;
+
+    @property(Button)
+    quitButton: Button = null;
+
+    private onResumeCallback: () => void = null;
+    private onRestartCallback: () => void = null;
+    private onQuitCallback: () => void = null;
+
     start() {
+        // Hide by default
         this.hide();
-        
-        // 绑定按钮事件
+
+        // Setup button events
         if (this.resumeButton) {
-            this.resumeButton.node.on(Button.EventType.CLICK, this.onResumeClicked, this);
+            this.resumeButton.node.on(Node.EventType.TOUCH_END, () => {
+                this.onResumeClicked();
+            });
         }
-        
+
         if (this.restartButton) {
-            this.restartButton.node.on(Button.EventType.CLICK, this.onRestartClicked, this);
+            this.restartButton.node.on(Node.EventType.TOUCH_END, () => {
+                this.onRestartClicked();
+            });
         }
-        
-        if (this.settingsButton) {
-            this.settingsButton.node.on(Button.EventType.CLICK, this.onSettingsClicked, this);
-        }
-        
+
         if (this.quitButton) {
-            this.quitButton.node.on(Button.EventType.CLICK, this.onQuitClicked, this);
+            this.quitButton.node.on(Node.EventType.TOUCH_END, () => {
+                this.onQuitClicked();
+            });
         }
     }
-    
+
     /**
      * 显示暂停界面
      */
-    show(onResume?: () => void, onRestart?: () => void, onQuit?: () => void): void {
-        this.onResumeCallback = onResume || null;
-        this.onRestartCallback = onRestart || null;
-        this.onQuitCallback = onQuit || null;
-        
-        if (this.panel) {
-            this.panel.active = true;
-        }
-        
-        console.log('[PauseUI] 暂停界面已显示');
+    show(onResume: () => void, onRestart: () => void, onQuit?: () => void): void {
+        this.onResumeCallback = onResume;
+        this.onRestartCallback = onRestart;
+        this.onQuitCallback = onQuit;
+
+        this.node.active = true;
+        console.log('[PauseUI] Showing pause menu');
     }
-    
+
     /**
      * 隐藏暂停界面
      */
     hide(): void {
-        if (this.panel) {
-            this.panel.active = false;
-        }
+        this.node.active = false;
     }
-    
+
     /**
-     * 继续游戏
+     * 继续按钮点击
      */
     private onResumeClicked(): void {
-        console.log('[PauseUI] 继续游戏');
+        console.log('[PauseUI] Resume clicked');
         this.hide();
-        
         if (this.onResumeCallback) {
             this.onResumeCallback();
         }
     }
-    
+
     /**
-     * 重新开始
+     * 重新开始按钮点击
      */
     private onRestartClicked(): void {
-        console.log('[PauseUI] 重新开始');
+        console.log('[PauseUI] Restart clicked');
         this.hide();
-        
         if (this.onRestartCallback) {
             this.onRestartCallback();
         }
     }
-    
+
     /**
-     * 设置
-     */
-    private onSettingsClicked(): void {
-        console.log('[PauseUI] 打开设置');
-        // TODO: 打开设置界面
-    }
-    
-    /**
-     * 退出游戏
+     * 退出按钮点击
      */
     private onQuitClicked(): void {
-        console.log('[PauseUI] 退出游戏');
+        console.log('[PauseUI] Quit clicked');
         this.hide();
-        
         if (this.onQuitCallback) {
             this.onQuitCallback();
         }

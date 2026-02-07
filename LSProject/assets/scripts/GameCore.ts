@@ -1,4 +1,4 @@
-import { _decorator, Component, Label, Node } from 'cc';
+import { _decorator, Component, Label, Node, director } from 'cc';
 import { GridSystem } from './GridSystem';
 import { EnemySystem } from './EnemySystem';
 import { DamageSystem } from './DamageSystem';
@@ -9,6 +9,7 @@ import { EffectManager } from './EffectManager';
 import { CoinSystem } from './CoinSystem';
 import { GameOverUI } from './GameOverUI';
 import { AudioManager } from './AudioManager';
+import { PauseUI } from './PauseUI';
 const { ccclass, property } = _decorator;
 
 /**
@@ -33,12 +34,14 @@ export class GameCore extends Component {
     private coinSystem: CoinSystem = null;
     private gameOverUI: GameOverUI = null;
     private audioManager: AudioManager = null;
+    private pauseUI: PauseUI = null;
     private timeLabel: Label = null;
     private goldLabel: Label = null;
     private stageLabel: Label = null;
 
     private timeLeft: number = 0;
     private isGameRunning: boolean = false;
+    private isPaused: boolean = false;
     private chainLevel: number = 0;
     private selectedBlock: { row: number, col: number } = null;
     private totalMoves: number = 0;
@@ -117,6 +120,12 @@ export class GameCore extends Component {
             this.audioManager = audioManagerNode.getComponent(AudioManager);
         }
         
+        // Auto-find PauseUI
+        const pauseUINode = this.node.parent.getChildByName('PauseUI');
+        if (pauseUINode) {
+            this.pauseUI = pauseUINode.getComponent(PauseUI);
+        }
+        
         console.log('[GameCore] Components found:', {
             gridSystem: !!this.gridSystem,
             enemySystem: !!this.enemySystem,
@@ -127,7 +136,8 @@ export class GameCore extends Component {
             effectManager: !!this.effectManager,
             coinSystem: !!this.coinSystem,
             gameOverUI: !!this.gameOverUI,
-            audioManager: !!this.audioManager
+            audioManager: !!this.audioManager,
+            pauseUI: !!this.pauseUI
         });
         
         // Check if all required components are found
@@ -149,6 +159,15 @@ export class GameCore extends Component {
         // Listen for block events
         this.node.on('block-clicked', this.onBlockClicked, this);
         this.node.on('block-swipe', this.onBlockSwipe, this);
+        
+        // Listen for pause key (ESC)
+        import('cc').then(({ input, Input, KeyCode }) => {
+            input.on(Input.EventType.KEY_DOWN, (event) => {
+                if (event.keyCode === KeyCode.ESCAPE) {
+                    this.togglePause();
+                }
+            });
+        });
     }
 
     private onBlockClicked(event: any): void {
@@ -775,5 +794,59 @@ export class GameCore extends Component {
         if (this.stageLabel) {
             this.stageLabel.string = `第${currentStage}关 (${levelConfig.colorCount}色)`;
         }
+    }
+
+    /**
+     * 切换暂停状态
+     */
+    togglePause(): void {
+        if (!this.isGameRunning) return;
+        
+        if (this.isPaused) {
+            this.resumeGame();
+        } else {
+            this.pauseGame();
+        }
+    }
+
+    /**
+     * 暂停游戏
+     */
+    pauseGame(): void {
+        this.isPaused = true;
+        console.log('[GameCore] Game paused');
+        
+        if (this.pauseUI) {
+            this.pauseUI.show(
+                () => this.resumeGame(),
+                () => this.restartFromPause(),
+                () => this.quitGame()
+            );
+        }
+    }
+
+    /**
+     * 继续游戏
+     */
+    resumeGame(): void {
+        this.isPaused = false;
+        console.log('[GameCore] Game resumed');
+    }
+
+    /**
+     * 从暂停重新开始
+     */
+    restartFromPause(): void {
+        this.isPaused = false;
+        this.startNewGame();
+    }
+
+    /**
+     * 退出游戏
+     */
+    quitGame(): void {
+        console.log('[GameCore] Quit game');
+        // TODO: Return to main menu
+        director.loadScene('MainMenu');
     }
 }
