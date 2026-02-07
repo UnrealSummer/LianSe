@@ -71,26 +71,27 @@ export class EffectManager extends Component {
         const particle = new Node('AttackParticle');
         this.effectRoot.addChild(particle);
         
-        // Add sprite
-        const sprite = particle.addComponent(cc.Sprite);
-        sprite.color = new cc.Color(255, 200, 50);  // 金黄色
+        // Use Label as particle (simple and visible)
+        const label = particle.addComponent(Label);
+        label.string = '●';  // 圆点
+        label.fontSize = 30;
+        label.color = new cc.Color(255, 200, 50);  // 金黄色
         
         // Set initial position
         particle.setPosition(fromPos);
-        particle.setScale(0.3, 0.3, 1);
+        particle.setScale(1, 1, 1);
+        
+        console.log(`[EffectManager] Attack particle: ${fromPos.x.toFixed(0)},${fromPos.y.toFixed(0)} -> ${toPos.x.toFixed(0)},${toPos.y.toFixed(0)}`);
         
         // Animate to target
-        tween(particle)
-            .to(0.3, { position: toPos }, { easing: 'sineIn' })
-            .call(() => {
-                particle.destroy();
-            })
-            .start();
-        
-        // Fade out
-        tween(sprite)
-            .to(0.3, { color: new cc.Color(255, 200, 50, 0) })
-            .start();
+        import('cc').then(({ tween, Vec3 }) => {
+            tween(particle)
+                .to(0.3, { position: toPos }, { easing: 'sineIn' })
+                .call(() => {
+                    particle.destroy();
+                })
+                .start();
+        });
     }
 
     /**
