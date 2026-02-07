@@ -1,4 +1,4 @@
-import { _decorator, Component, Node, Prefab, instantiate, Vec3 } from 'cc';
+import { _decorator, Component, Node, Prefab, instantiate, Vec3, view, screen } from 'cc';
 import { Block, ColorType } from './Block';
 const { ccclass, property } = _decorator;
 
@@ -14,11 +14,11 @@ export class GridSystem extends Component {
     @property
     gridSize: number = 8;
     
-    @property
-    maxGridWidth: number = 600;
+    @property({ tooltip: '屏幕宽度占比（0-1），推荐0.9' })
+    screenWidthRatio: number = 0.9;
     
-    @property
-    maxGridHeight: number = 600;
+    @property({ tooltip: '屏幕高度占比（0-1），推荐0.5-0.6' })
+    screenHeightRatio: number = 0.55;
     
     @property({ tooltip: '方块间隔比例（0-1），推荐0.15-0.25' })
     spacingRatio: number = 0.2;
@@ -33,19 +33,28 @@ export class GridSystem extends Component {
     }
     
     /**
-     * Calculate adaptive block size and spacing
+     * Calculate adaptive block size and spacing based on screen size
      */
     private calculateAdaptiveSize(): void {
-        const availableWidth = this.maxGridWidth;
-        const availableHeight = this.maxGridHeight;
+        // Get actual screen size
+        const screenSize = screen.windowSize;
+        const designWidth = view.getVisibleSize().width;
+        const designHeight = view.getVisibleSize().height;
         
+        // Calculate available space (use design resolution)
+        const availableWidth = designWidth * this.screenWidthRatio;
+        const availableHeight = designHeight * this.screenHeightRatio;
+        
+        // Calculate block size
         const widthBlockSize = availableWidth / (this.gridSize + (this.gridSize - 1) * this.spacingRatio);
         const heightBlockSize = availableHeight / (this.gridSize + (this.gridSize - 1) * this.spacingRatio);
         
         this.blockSize = Math.floor(Math.min(widthBlockSize, heightBlockSize));
         this.spacing = Math.floor(this.blockSize * this.spacingRatio);
         
-        console.log(`[GridSystem] Adaptive size: blockSize=${this.blockSize}, spacing=${this.spacing}, ratio=${this.spacingRatio}`);
+        console.log(`[GridSystem] Screen: ${screenSize.width}x${screenSize.height}, Design: ${designWidth.toFixed(0)}x${designHeight.toFixed(0)}`);
+        console.log(`[GridSystem] Available: ${availableWidth.toFixed(0)}x${availableHeight.toFixed(0)}`);
+        console.log(`[GridSystem] Block: ${this.blockSize}px, Spacing: ${this.spacing}px (ratio=${this.spacingRatio})`);
     }
 
     /**
