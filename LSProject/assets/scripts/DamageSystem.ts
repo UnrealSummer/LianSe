@@ -37,7 +37,8 @@ export class DamageSystem extends Component {
             if (this.modifierSystem) {
                 chainMultiplier = this.modifierSystem.calculateChainMultiplier(matchData.chainLevel);
             } else {
-                chainMultiplier = Math.pow(1.3, matchData.chainLevel);
+                // 降低基础连锁倍率：1.1倍 (1连=1.1, 2连=1.21, 3连=1.33)
+                chainMultiplier = Math.pow(1.1, matchData.chainLevel);
             }
         }
 

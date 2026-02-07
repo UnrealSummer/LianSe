@@ -147,7 +147,11 @@ export class ModifierSystem extends Component {
      * 计算连锁倍率
      */
     calculateChainMultiplier(chainLevel: number): number {
-        let multiplier = Math.pow(1.3, chainLevel); // 默认1.3倍
+        // 降低基础连锁倍率，让"连锁大师"词条更有价值
+        // 旧：1.3倍 (1连=1.3, 2连=1.69, 3连=2.2)
+        // 新：1.1倍 (1连=1.1, 2连=1.21, 3连=1.33)
+        let multiplier = Math.pow(1.1, chainLevel);
+        
         this.activeModifiers.forEach(modifier => {
             if (modifier.onChain) {
                 multiplier = modifier.onChain(chainLevel);

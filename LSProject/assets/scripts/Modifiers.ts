@@ -23,16 +23,18 @@ export class PowerBoost implements IModifier {
 }
 
 /**
- * 连锁大师 - 连锁伤害倍率+50%
+ * 连锁大师 - 连锁伤害倍率大幅提升
  */
 export class ChainMaster implements IModifier {
     id = 'chain_master';
     name = '连锁大师';
-    description = '连锁伤害倍率+50%';
+    description = '连锁伤害倍率大幅提升';
     rarity: 'common' | 'rare' | 'epic' = 'common';
     
     onChain(chainLevel: number): number {
-        return chainLevel * 1.5;
+        // 基础：1.1倍 (1连=1.1, 2连=1.21, 3连=1.33)
+        // 连锁大师：1.5倍 (1连=1.5, 2连=2.25, 3连=3.38)
+        return Math.pow(1.5, chainLevel);
     }
 }
 
