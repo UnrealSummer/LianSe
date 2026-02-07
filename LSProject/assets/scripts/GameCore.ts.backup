@@ -1,0 +1,547 @@
+import { _decorator, Component, Label, Vec3 } from 'cc';
+import { GridSystem } from './GridSystem';
+import { EnemySystem } from './EnemySystem';
+import { DamageSystem } from './DamageSystem';
+import { ModifierSystem, MatchData } from './ModifierSystem';
+import { ProgressionManager } from './ProgressionManager';
+import { CombatFeedback } from './CombatFeedback';
+import { AudioManager } from './AudioManager';
+import { DataManager } from './DataManager';
+import { GameOverUI } from './GameOverUI';
+import { PauseUI } from './PauseUI';
+import { ComboDisplay } from './ComboDisplay';
+import { TimeWarning } from './TimeWarning';
+// import { LevelGenerator } from './LevelGenerator';
+const { ccclass, property } = _decorator;
+
+/**
+ * 游戏核心控制器 - ACB架构
+ */
+@ccclass('GameCore')
+export class GameCore extends Component {
+    @property({ type: GridSystem })
+    gridSystem: GridSystem = null;
+
+    @property({ type: EnemySystem })
+    enemySystem: EnemySystem = null;
+
+    @property({ type: DamageSystem })
+    damageSystem: DamageSystem = null;
+
+    @property({ type: ModifierSystem })
+    modifierSystem: ModifierSystem = null;
+
+    @property({ type: ProgressionManager })
+    progressionManager: ProgressionManager = null;
+
+    @property({ type: CombatFeedback })
+    combatFeedback: CombatFeedback = null;
+
+    @property({ type: AudioManager })
+    audioManager: AudioManager = null;
+    
+    @property({ type: GameOverUI })
+    gameOverUI: GameOverUI = null;
+    
+    @property({ type: PauseUI })
+    pauseUI: PauseUI = null;
+    
+    @property({ type: ComboDisplay })
+    comboDisplay: ComboDisplay = null;
+    
+    @property({ type: TimeWarning })
+    timeWarning: TimeWarning = null;
+
+    @property({ type: Label })
+    timeLabel: Label = null;
+
+    @property({ type: Label })
+    goldLabel: Label = null;
+
+    @property({ type: Label })
+    stageLabel: Label = null;
+
+    @property
+    timeLimit: number = 60; // 60秒时间限制
+
+    private timeLeft: number = 0;
+    private isGameRunning: boolean = false;
+    private isPaused: boolean = false; // 是否暂停
+    private chainLevel: number = 0;
+    private currentGold: number = 0;
+    private totalDamage: number = 0;
+    private comboCount: number = 0;
+    // private levelGenerator: LevelGenerator | null = null;
+
+    start() {
+        // this.levelGenerator = new LevelGenerator();
+        this.startNewGame();
+        this.node.on('block-swiped', this.onBlockSwiped, this);
+    }
+
+    /**
+     * 开始新游戏
+     */
+    startNewGame(): void {
+        this.progressionManager.reset();
+        this.modifierSystem.clearAll();
+        this.startStage();
+    }
+
+    /**
+     * 开始关卡
+     */
+    startStage(): void {
+        const currentStage = this.progressionManager.getCurrentStage();
+        
+        if (!this.levelGenerator) {
+            console.error('[GameCore] LevelGenerator not initialized!');
+            return;
+        }
+        
+        const levelConfig = this.levelGenerator.generateLevel(currentStage);
+        console.log(`[GameCore] Stage ${currentStage}, Colors: ${levelConfig.colorCount}, Obstacles: ${levelConfig.obstacles.length}`);
+        
+        this.gridSystem.generateGrid(levelConfig.obstacles, levelConfig.colorCount);
+
+        const enemyData = this.progressionManager.getCurrentEnemy();
+        this.enemySystem.initEnemy(enemyData);
+
+        this.timeLeft = this.timeLimit;
+        this.isGameRunning = true;
+
+        this.updateUI();
+
+        console.log(`[GameCore] Stage ${this.progressionManager.getCurrentStage()} started`);
+    }
+
+    update(dt: number) {
+        if (!this.isGameRunning || this.isPaused) return;
+
+        // 倒计时
+        this.timeLeft -= dt;
+        if (this.timeLeft <= 0) {
+            this.timeLeft = 0;
+            this.onTimeUp();
+        }
+
+        this.updateUI();
+
+        // ❌ 移除自动检测消除
+        // 改为玩家点击交换方块后才检测
+    }
+    
+    /**
+     * 暂停游戏
+     */
+    pauseGame(): void {
+        if (!this.isGameRunning || this.isPaused) return;
+        
+        this.isPaused = true;
+        console.log('[GameCore] 游戏已暂停');
+        
+        if (this.pauseUI) {
+            this.pauseUI.show(
+                () => this.resumeGame(),
+                () => this.restartGame(),
+                () => this.quitGame()
+            );
+        }
+    }
+    
+    /**
+     * 继续游戏
+     */
+    resumeGame(): void {
+        if (!this.isPaused) return;
+        
+        this.isPaused = false;
+        console.log('[GameCore] 游戏继续');
+    }
+    
+    /**
+     * 退出游戏
+     */
+    quitGame(): void {
+        console.log('[GameCore] 退出游戏');
+        // TODO: 返回主菜单
+        this.isGameRunning = false;
+        this.isPaused = false;
+    }
+
+    /**
+     * 检测并处理消除
+     */
+    private checkMatches(): void {
+        const matches = this.gridSystem.findAllMatches();
+        
+        if (matches.length > 0) {
+            this.gridSystem.setProcessing(true);
+            this.processMatches(matches);
+        }
+    }
+
+    /**
+     * 处理消除
+     */
+    private processMatches(matches: any[][]): void {
+        // 检查游戏是否还在运行
+        if (!this.isGameRunning) {
+            console.log(`[GameCore] 游戏已停止，跳过消除处理`);
+            this.gridSystem.setProcessing(false);
+            return;
+        }
+        
+        matches.forEach(matchGroup => {
+            // 构建消除数据
+            const matchData: MatchData = {
+                count: matchGroup.length,
+                color: 0, // TODO: 获取实际颜色
+                chainLevel: this.chainLevel,
+                matchType: 'line',
+                baseDamage: 10 // 基础伤害
+            };
+
+            // 应用词条修改
+            let modifiedData = this.modifierSystem.triggerMatch(matchData);
+            
+            // 连击大师：每次消除伤害+3（可叠加）
+            const hasComboMaster = this.modifierSystem.getActiveModifiers()
+                .some(m => m.id === 'combo_master');
+            if (hasComboMaster) {
+                this.comboCount++;
+                modifiedData.baseDamage += this.comboCount * 3;
+                console.log(`[Modifier] 连击大师: 连击${this.comboCount}次, +${this.comboCount * 3}伤害`);
+            }
+
+            // 计算伤害（传递上下文）
+            const enemyHp = this.enemySystem.getCurrentHp();
+            const enemyMaxHp = this.enemySystem.getMaxHp();
+            const damage = this.damageSystem.calculateMatchDamage(modifiedData, {
+                timeLeft: this.timeLeft,
+                timeLimit: this.timeLimit,
+                enemyHp: enemyHp,
+                enemyMaxHp: enemyMaxHp
+            });
+
+            // 显示伤害数字
+            if (this.combatFeedback) {
+                const enemyPos = this.enemySystem.node?.position || new Vec3(0, 300, 0);
+                this.combatFeedback.showDamage(damage, enemyPos, matchData.count >= 5);
+            }
+
+            // 播放音效
+            if (this.audioManager) {
+                this.audioManager.playMix(this.chainLevel);
+            }
+
+            // 造成伤害
+            this.enemySystem.takeDamage(damage);
+            this.damageSystem.dealDamage(damage, this.enemySystem);
+            
+            // 累计总伤害
+            this.totalDamage += damage;
+            
+            // 获得金币（基础：3个=1金币，4个=2金币，5个=3金币...）
+            let baseGold = Math.max(1, matchData.count - 2);
+            
+            // 金币雨：每次消除额外+1金币
+            const hasGoldRain = this.modifierSystem.getActiveModifiers()
+                .some(m => m.id === 'gold_rain');
+            if (hasGoldRain) {
+                baseGold += 1;
+                console.log(`[Modifier] 金币雨: +1金币`);
+            }
+            
+            // 贪婪：消除4个方块时，额外获得2金币
+            const hasGreedy = this.modifierSystem.getActiveModifiers()
+                .some(m => m.id === 'greedy');
+            if (hasGreedy && matchData.count === 4) {
+                baseGold += 2;
+                console.log(`[Modifier] 贪婪: +2金币`);
+            }
+            
+            this.addGold(baseGold);
+
+            // 检查击杀
+            if (!this.enemySystem.isAlive()) {
+                this.onEnemyDefeated();
+            }
+
+            // 消除方块
+            this.gridSystem.removeBlocks(matchGroup);
+
+            console.log(`[Match] ${matchData.count} blocks, ${damage} damage, ${baseGold} gold, chain ${this.chainLevel}`);
+        });
+        });
+
+        // 处理掉落
+        this.scheduleOnce(() => {
+            this.gridSystem.handleGravity();
+            
+            // 掉落完成后检测新消除
+            this.scheduleOnce(() => {
+                // 检查游戏是否还在运行
+                if (!this.isGameRunning) {
+                    console.log(`[GameCore] 游戏已停止，跳过连锁检测`);
+                    this.gridSystem.setProcessing(false);
+                    return;
+                }
+                
+                // 检查是否还有可消除的
+                const newMatches = this.gridSystem.findAllMatches();
+                if (newMatches.length > 0) {
+                    // 有新消除，增加连锁层数
+                    this.chainLevel++;
+                    
+                    // 显示连锁提示
+                    if (this.chainLevel > 0 && this.combatFeedback) {
+                        this.combatFeedback.showChainCombo(this.chainLevel);
+                        this.combatFeedback.screenShake(this.chainLevel * 0.1);
+                    }
+                    
+                    // 播放连锁音效
+                    if (this.chainLevel > 0 && this.audioManager) {
+                        this.audioManager.playChain(this.chainLevel);
+                    }
+                    
+                    // ✅ 继续处理新的消除（递归调用）
+                    console.log(`[GameCore] 连锁 ${this.chainLevel}！继续消除...`);
+                    this.processMatches(newMatches);
+                } else {
+                    // 没有新消除，重置连锁，解除处理状态
+                    this.chainLevel = 0;
+                    this.gridSystem.setProcessing(false);
+                    console.log(`[GameCore] 连锁结束`);
+                }
+            }, 0.5);
+        }, 0.3);
+    }
+
+    /**
+     * 敌人被击败
+     */
+    private onEnemyDefeated(): void {
+        if (!this.isGameRunning) {
+            console.log(`[GameCore] 敌人已经被击败过了，跳过`);
+            return;
+        }
+        
+        this.isGameRunning = false;
+        
+        // 重置连击次数
+        this.comboCount = 0;
+        
+        // 触发击杀事件
+        if (this.modifierSystem) {
+            this.modifierSystem.triggerKill(this.enemySystem);
+            
+            // 时间奖励：击杀敌人时，剩余时间+5秒
+            const hasTimeReward = this.modifierSystem.getActiveModifiers()
+                .some(m => m.id === 'time_reward');
+            if (hasTimeReward) {
+                this.timeLeft += 5;
+                console.log(`[Modifier] 时间奖励: +5秒，当前剩余 ${this.timeLeft.toFixed(1)}秒`);
+            }
+        }
+
+        console.log(`[GameCore] Enemy defeated!`);
+
+        // 播放胜利音效
+        if (this.audioManager) {
+            this.audioManager.playWin();
+        }
+
+        // 屏幕震动
+        if (this.combatFeedback) {
+            this.combatFeedback.screenShake(0.8);
+        }
+
+        // 立即显示词条选择
+        console.log(`[GameCore] 立即显示词条选择...`);
+        
+        if (!this.progressionManager) {
+            console.error(`[GameCore] progressionManager 未设置！`);
+            return;
+        }
+        
+        this.progressionManager.nextStage(() => {
+            console.log(`[GameCore] 词条选择完成，开始下一关`);
+            // 词条选择完成，开始下一关
+            this.startStage();
+        });
+    }
+
+    /**
+     * 时间耗尽
+     */
+    private onTimeUp(): void {
+        this.isGameRunning = false;
+        console.log(`[GameCore] Time up! Game Over`);
+        
+        // 保存游戏数据
+        this.saveGameData();
+        
+        // 显示结算界面
+        this.showGameOver();
+    }
+    
+    /**
+     * 显示游戏结束结算界面
+     */
+    private showGameOver(): void {
+        if (!this.gameOverUI) {
+            console.error('[GameCore] GameOverUI 未设置！');
+            return;
+        }
+        
+        const currentStage = this.progressionManager.getCurrentStage();
+        const currentScore = this.calculateScore();
+        
+        this.gameOverUI.show(currentStage, currentScore, this.currentGold, () => {
+            // 重新开始回调
+            this.restartGame();
+        });
+    }
+    
+    /**
+     * 计算分数
+     */
+    private calculateScore(): number {
+        const currentStage = this.progressionManager.getCurrentStage();
+        // 分数 = 关卡 × 1000 + 总伤害 × 10 + 金币 × 1
+        return currentStage * 1000 + this.totalDamage * 10 + this.currentGold;
+    }
+    
+    /**
+     * 重新开始游戏
+     */
+    private restartGame(): void {
+        console.log('[GameCore] 重新开始游戏');
+        
+        // 重置数据
+        this.currentGold = 0;
+        this.totalDamage = 0;
+        this.chainLevel = 0;
+        
+        // 清空词条
+        if (this.modifierSystem) {
+            this.modifierSystem.clearAll();
+        }
+        
+        // 重新开始
+        this.startNewGame();
+    }
+    
+    /**
+     * 保存游戏数据
+     */
+    private saveGameData(): void {
+        const dataManager = DataManager.getInstance();
+        if (!dataManager) {
+            console.warn('[GameCore] DataManager 未找到，无法保存数据');
+            return;
+        }
+        
+        const currentStage = this.progressionManager.getCurrentStage();
+        const currentScore = this.calculateScore();
+        
+        dataManager.onGameEnd(currentStage, currentScore, this.currentGold);
+        
+        console.log(`[GameCore] 游戏数据已保存: 关卡=${currentStage}, 分数=${currentScore}, 金币=${this.currentGold}`);
+    }
+    
+    /**
+     * 添加金币
+     */
+    private addGold(amount: number): void {
+        // 应用词条修改（点金术等）
+        let finalAmount = amount;
+        if (this.modifierSystem) {
+            finalAmount = this.modifierSystem.collectGold(amount);
+        }
+        
+        this.currentGold += finalAmount;
+        
+        // 更新UI
+        if (this.goldLabel) {
+            this.goldLabel.string = `金币: ${this.currentGold}`;
+        }
+        
+        console.log(`[Gold] +${finalAmount} (基础: ${amount}), 总计: ${this.currentGold}`);
+    }
+
+    /**
+     * 方块滑动事件处理
+     */
+    private onBlockSwiped(fromRow: number, fromCol: number, toRow: number, toCol: number): void {
+        console.log(`[GameCore] 收到滑动事件: [${fromRow},${fromCol}] → [${toRow},${toCol}]`);
+        
+        if (!this.isGameRunning || this.gridSystem.getProcessing()) {
+            console.log(`[GameCore] 游戏未运行或正在处理中，忽略滑动`);
+            return;
+        }
+
+        // 检查目标位置是否在网格内
+        const gridSize = this.gridSystem.gridSize;
+        if (toRow < 0 || toRow >= gridSize || toCol < 0 || toCol >= gridSize) {
+            console.log(`[GameCore] 滑动超出边界: [${toRow},${toCol}]`);
+            return;
+        }
+        
+        console.log(`[GameCore] 滑动交换 [${fromRow}, ${fromCol}] → [${toRow}, ${toCol}]`);
+        this.trySwap(fromRow, fromCol, toRow, toCol);
+    }
+
+    /**
+     * 尝试交换方块
+     */
+    private trySwap(row1: number, col1: number, row2: number, col2: number): void {
+        this.gridSystem.setProcessing(true);
+        
+        // 交换方块
+        this.gridSystem.swapBlocks(row1, col1, row2, col2, () => {
+            // 交换完成，检查是否有消除
+            const matches = this.gridSystem.findAllMatches();
+            
+            if (matches.length > 0) {
+                // 有消除，处理消除
+                console.log(`[GameCore] 交换成功，发现 ${matches.length} 组可消除`);
+                this.processMatches(matches);
+            } else {
+                // 没有消除，交换回去
+                console.log(`[GameCore] 交换无效，恢复原状`);
+                this.gridSystem.swapBlocks(row2, col2, row1, col1, () => {
+                    this.gridSystem.setProcessing(false);
+                });
+            }
+        });
+    }
+
+    /**
+     * 更新UI
+     */
+    private updateUI(): void {
+        // 更新时间（使用TimeWarning组件）
+        if (this.timeWarning) {
+            this.timeWarning.updateTime(this.timeLeft, this.timeLimit);
+        } else if (this.timeLabel) {
+            this.timeLabel.string = `时间: ${Math.ceil(this.timeLeft)}s`;
+        }
+
+        // 更新金币
+        if (this.goldLabel) {
+            this.goldLabel.string = `金币: ${this.currentGold}`;
+        }
+
+        // 更新关卡
+        if (this.stageLabel) {
+            this.stageLabel.string = `关卡: ${this.progressionManager.getCurrentStage()}`;
+        }
+        
+        // 更新连击数
+        if (this.comboDisplay) {
+            this.comboDisplay.updateCombo(this.comboCount);
+        }
+    }
+}
