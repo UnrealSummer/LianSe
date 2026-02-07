@@ -128,6 +128,13 @@ export class EnemySystem extends Component {
     }
 
     /**
+     * 是否死亡
+     */
+    isDead(): boolean {
+        return this.currentHp <= 0;
+    }
+
+    /**
      * 获取当前血量
      */
     getCurrentHp(): number {
