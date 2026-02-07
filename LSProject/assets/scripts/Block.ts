@@ -1,4 +1,4 @@
-import { _decorator, Component, Sprite, Color, EventTouch, Node, Vec3 } from 'cc';
+import { _decorator, Component, Sprite, Color, EventTouch, Node, Vec3, UITransform } from 'cc';
 const { ccclass, property } = _decorator;
 
 /**
@@ -57,6 +57,8 @@ export class Block extends Component {
     private isSelected: boolean = false;
     private frozenOverlay: Node = null;  // 冰冻覆盖层
     private baseScale: number = 1;  // 基础缩放（由GridSystem设置）
+    private touchStartPos: Vec3 = null;  // 触摸开始位置
+    private isDragging: boolean = false;  // 是否正在拖拽
 
     /**
      * Initialize block
@@ -76,8 +78,11 @@ export class Block extends Component {
         
         this.updateColor();
 
-        // Add touch event
+        // Add touch events
+        this.node.on(Node.EventType.TOUCH_START, this.onTouchStart, this);
+        this.node.on(Node.EventType.TOUCH_MOVE, this.onTouchMove, this);
         this.node.on(Node.EventType.TOUCH_END, this.onTouchEnd, this);
+        this.node.on(Node.EventType.TOUCH_CANCEL, this.onTouchCancel, this);
     }
 
     /**
@@ -92,15 +97,93 @@ export class Block extends Component {
     /**
      * Touch end
      */
-    onTouchEnd(event: EventTouch) {
-        console.log(`[Block] Clicked: [${this.row}, ${this.col}]`);
+    /**
+     * Touch start
+     */
+    onTouchStart(event: EventTouch): void {
+        const touchPos = event.getUILocation();
+        this.touchStartPos = new Vec3(touchPos.x, touchPos.y, 0);
+        this.isDragging = false;
+    }
+
+    /**
+     * Touch move - detect swipe
+     */
+    onTouchMove(event: EventTouch): void {
+        if (!this.touchStartPos) return;
         
-        // Emit event to parent
-        this.node.parent.parent.emit('block-clicked', {
-            row: this.row,
-            col: this.col,
-            block: this
-        });
+        const touchPos = event.getUILocation();
+        const currentPos = new Vec3(touchPos.x, touchPos.y, 0);
+        
+        const deltaX = currentPos.x - this.touchStartPos.x;
+        const deltaY = currentPos.y - this.touchStartPos.y;
+        const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
+        
+        // 滑动距离超过30像素，判定为拖拽
+        if (distance > 30 && !this.isDragging) {
+            this.isDragging = true;
+            
+            // 判断滑动方向
+            const absX = Math.abs(deltaX);
+            const absY = Math.abs(deltaY);
+            
+            let targetRow = this.row;
+            let targetCol = this.col;
+            
+            if (absX > absY) {
+                // 横向滑动
+                if (deltaX > 0) {
+                    targetCol = this.col + 1;  // 向右
+                } else {
+                    targetCol = this.col - 1;  // 向左
+                }
+            } else {
+                // 纵向滑动
+                if (deltaY > 0) {
+                    targetRow = this.row - 1;  // 向上（Y轴向上为正，但row向下增加）
+                } else {
+                    targetRow = this.row + 1;  // 向下
+                }
+            }
+            
+            // 触发交换
+            console.log(`[Block] Swipe detected: [${this.row}, ${this.col}] -> [${targetRow}, ${targetCol}]`);
+            this.node.parent.parent.emit('block-swipe', {
+                row1: this.row,
+                col1: this.col,
+                row2: targetRow,
+                col2: targetCol,
+                block: this
+            });
+        }
+    }
+
+    /**
+     * Touch end - click or swipe complete
+     */
+    onTouchEnd(event: EventTouch) {
+        if (!this.isDragging && this.touchStartPos) {
+            // 没有拖拽，判定为点击
+            console.log(`[Block] Clicked: [${this.row}, ${this.col}]`);
+            
+            // Emit event to parent
+            this.node.parent.parent.emit('block-clicked', {
+                row: this.row,
+                col: this.col,
+                block: this
+            });
+        }
+        
+        this.touchStartPos = null;
+        this.isDragging = false;
+    }
+
+    /**
+     * Touch cancel
+     */
+    onTouchCancel(event: EventTouch): void {
+        this.touchStartPos = null;
+        this.isDragging = false;
     }
 
     /**

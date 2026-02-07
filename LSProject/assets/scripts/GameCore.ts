@@ -128,8 +128,9 @@ export class GameCore extends Component {
         
         this.startNewGame();
         
-        // Listen for block click events
+        // Listen for block events
         this.node.on('block-clicked', this.onBlockClicked, this);
+        this.node.on('block-swipe', this.onBlockSwipe, this);
     }
 
     private onBlockClicked(event: any): void {
@@ -179,6 +180,35 @@ export class GameCore extends Component {
         
         this.trySwap(this.selectedBlock.row, this.selectedBlock.col, row, col);
         this.selectedBlock = null;
+    }
+
+    /**
+     * 滑动交换
+     */
+    private onBlockSwipe(event: any): void {
+        if (!this.isGameRunning || this.gridSystem.getProcessing()) {
+            return;
+        }
+
+        const { row1, col1, row2, col2 } = event;
+        
+        // 检查目标位置是否有效
+        if (row2 < 0 || row2 >= 8 || col2 < 0 || col2 >= 8) {
+            console.log(`[GameCore] Swipe out of bounds: [${row2}, ${col2}]`);
+            return;
+        }
+        
+        console.log(`[GameCore] Swipe: [${row1}, ${col1}] -> [${row2}, ${col2}]`);
+        
+        // 清除选中状态
+        if (this.selectedBlock) {
+            const oldBlock = this.gridSystem.getBlockAt(this.selectedBlock.row, this.selectedBlock.col);
+            if (oldBlock) oldBlock.setSelected(false);
+            this.selectedBlock = null;
+        }
+        
+        // 尝试交换
+        this.trySwap(row1, col1, row2, col2);
     }
 
     startNewGame(): void {
