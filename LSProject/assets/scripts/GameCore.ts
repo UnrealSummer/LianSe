@@ -846,7 +846,8 @@ export class GameCore extends Component {
      */
     quitGame(): void {
         console.log('[GameCore] Quit game');
-        // TODO: Return to main menu
-        director.loadScene('MainMenu');
+        // For now, just restart the game
+        // TODO: Create main menu scene
+        this.startNewGame();
     }
 }
