@@ -45,6 +45,46 @@ export class GameCore extends Component {
 
     start() {
         console.log('[GameCore] Starting game...');
+        
+        // Auto-find components if not set
+        if (!this.gridSystem) {
+            this.gridSystem = this.node.getChildByName('GridSystem')?.getComponent(GridSystem);
+        }
+        if (!this.enemySystem) {
+            this.enemySystem = this.node.getChildByName('EnemySystem')?.getComponent(EnemySystem);
+        }
+        if (!this.damageSystem) {
+            this.damageSystem = this.node.getChildByName('DamageSystem')?.getComponent(DamageSystem);
+        }
+        if (!this.modifierSystem) {
+            this.modifierSystem = this.node.getChildByName('ModifierSystem')?.getComponent(ModifierSystem);
+        }
+        if (!this.progressionManager) {
+            this.progressionManager = this.node.getChildByName('ProgressionManager')?.getComponent(ProgressionManager);
+        }
+        
+        // Auto-find UI labels
+        const uiNode = this.node.parent.getChildByName('UI');
+        if (uiNode) {
+            if (!this.timeLabel) {
+                this.timeLabel = uiNode.getChildByName('TimeLabel')?.getComponent(Label);
+            }
+            if (!this.goldLabel) {
+                this.goldLabel = uiNode.getChildByName('GoldLabel')?.getComponent(Label);
+            }
+            if (!this.stageLabel) {
+                this.stageLabel = uiNode.getChildByName('StageLabel')?.getComponent(Label);
+            }
+        }
+        
+        console.log('[GameCore] Components found:', {
+            gridSystem: !!this.gridSystem,
+            enemySystem: !!this.enemySystem,
+            damageSystem: !!this.damageSystem,
+            modifierSystem: !!this.modifierSystem,
+            progressionManager: !!this.progressionManager
+        });
+        
         this.startNewGame();
         
         // Listen for block swap events
