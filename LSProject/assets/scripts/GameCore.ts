@@ -208,6 +208,17 @@ export class GameCore extends Component {
 
     private trySwap(row1: number, col1: number, row2: number, col2: number): void {
         this.gridSystem.setProcessing(true);
+        
+        // Check if blocks can move before swapping
+        const block1 = this.gridSystem.getBlockAt(row1, col1);
+        const block2 = this.gridSystem.getBlockAt(row2, col2);
+        
+        if (!block1?.canMove() || !block2?.canMove()) {
+            console.log('[GameCore] Cannot swap: block is frozen or immovable');
+            this.gridSystem.setProcessing(false);
+            return;
+        }
+        
         this.totalMoves++; // Count move
         
         // Swap blocks with animation
@@ -220,9 +231,9 @@ export class GameCore extends Component {
                 console.log(`[GameCore] Valid swap! Found ${matches.length} matches`);
                 this.processMatches(matches);
             } else {
-                // Invalid swap, swap back
+                // Invalid swap, swap back (no need to check canMove again)
                 console.log(`[GameCore] Invalid swap, swapping back`);
-                this.gridSystem.swapBlocks(row2, col2, row1, col1, () => {
+                this.gridSystem.swapBlocksForce(row2, col2, row1, col1, () => {
                     this.gridSystem.setProcessing(false);
                 });
             }
