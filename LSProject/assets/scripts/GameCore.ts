@@ -48,19 +48,29 @@ export class GameCore extends Component {
         
         // Auto-find components if not set
         if (!this.gridSystem) {
-            this.gridSystem = this.node.getChildByName('GridSystem')?.getComponent(GridSystem);
+            const gridNode = this.node.getChildByName('GridSystem');
+            console.log('[GameCore] GridSystem node:', gridNode?.name);
+            this.gridSystem = gridNode?.getComponent(GridSystem);
         }
         if (!this.enemySystem) {
-            this.enemySystem = this.node.getChildByName('EnemySystem')?.getComponent(EnemySystem);
+            const enemyNode = this.node.getChildByName('EnemySystem');
+            console.log('[GameCore] EnemySystem node:', enemyNode?.name);
+            this.enemySystem = enemyNode?.getComponent(EnemySystem);
         }
         if (!this.damageSystem) {
-            this.damageSystem = this.node.getChildByName('DamageSystem')?.getComponent(DamageSystem);
+            const damageNode = this.node.getChildByName('DamageSystem');
+            console.log('[GameCore] DamageSystem node:', damageNode?.name);
+            this.damageSystem = damageNode?.getComponent(DamageSystem);
         }
         if (!this.modifierSystem) {
-            this.modifierSystem = this.node.getChildByName('ModifierSystem')?.getComponent(ModifierSystem);
+            const modifierNode = this.node.getChildByName('ModifierSystem');
+            console.log('[GameCore] ModifierSystem node:', modifierNode?.name);
+            this.modifierSystem = modifierNode?.getComponent(ModifierSystem);
         }
         if (!this.progressionManager) {
-            this.progressionManager = this.node.getChildByName('ProgressionManager')?.getComponent(ProgressionManager);
+            const progressionNode = this.node.getChildByName('ProgressionManager');
+            console.log('[GameCore] ProgressionManager node:', progressionNode?.name);
+            this.progressionManager = progressionNode?.getComponent(ProgressionManager);
         }
         
         // Auto-find UI labels
@@ -84,6 +94,20 @@ export class GameCore extends Component {
             modifierSystem: !!this.modifierSystem,
             progressionManager: !!this.progressionManager
         });
+        
+        // Check if all required components are found
+        if (!this.progressionManager) {
+            console.error('[GameCore] ProgressionManager not found! Please check node structure.');
+            return;
+        }
+        if (!this.gridSystem) {
+            console.error('[GameCore] GridSystem not found! Please check node structure.');
+            return;
+        }
+        if (!this.enemySystem) {
+            console.error('[GameCore] EnemySystem not found! Please check node structure.');
+            return;
+        }
         
         this.startNewGame();
         
