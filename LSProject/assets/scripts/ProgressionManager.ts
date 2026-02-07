@@ -1,4 +1,4 @@
-import { _decorator, Component } from 'cc';
+import { _decorator, Component, Node } from 'cc';
 import { EnemyData } from './EnemySystem';
 import { LevelGenerator, LevelConfig } from './LevelGenerator';
 const { ccclass } = _decorator;
@@ -26,6 +26,16 @@ export class ProgressionManager extends Component {
      * 获取当前关卡配置
      */
     getCurrentLevelConfig(): LevelConfig {
+        // Lazy init if not found
+        if (!this.levelGenerator) {
+            this.levelGenerator = this.node.parent.getChildByName('LevelGenerator')?.getComponent(LevelGenerator);
+            if (!this.levelGenerator) {
+                console.warn('[ProgressionManager] LevelGenerator not found, creating inline instance');
+                // Create inline instance as fallback
+                const tempNode = new Node('TempLevelGenerator');
+                this.levelGenerator = tempNode.addComponent(LevelGenerator);
+            }
+        }
         return this.levelGenerator.generateLevel(this.currentStage);
     }
 
