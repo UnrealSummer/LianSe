@@ -396,6 +396,27 @@ export class GameCore extends Component {
         // Apply damage to enemy
         this.enemySystem.takeDamage(totalDamage);
         
+        // Check if enemy died from this damage
+        if (this.enemySystem.isDead()) {
+            console.log('[GameCore] 💀 Enemy defeated! Stopping chain...');
+            
+            // Record max combo
+            if (this.chainLevel > this.maxCombo) {
+                this.maxCombo = this.chainLevel;
+            }
+            
+            // Reset chain
+            this.chainLevel = 0;
+            
+            // Remove blocks but don't continue chain
+            this.gridSystem.removeBlocks(allBlocks).then(() => {
+                this.gridSystem.setProcessing(false);
+                this.onVictory();
+            });
+            
+            return;  // Stop processing
+        }
+        
         // Enemy drops coins on hit (small amount)
         if (this.coinSystem && totalDamage > 0) {
             let coinDrop = Math.floor(totalDamage / 5);  // 每5点伤害掉1金币
@@ -443,10 +464,6 @@ export class GameCore extends Component {
                     // Reset chain for next operation
                     this.chainLevel = 0;
                     this.gridSystem.setProcessing(false);
-                    
-                    if (this.enemySystem.isDead()) {
-                        this.onVictory();
-                    }
                 }
             });
         });
