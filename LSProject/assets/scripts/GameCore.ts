@@ -192,8 +192,16 @@ export class GameCore extends Component {
         const enemyData = this.progressionManager.getCurrentEnemy();
         this.enemySystem.initEnemy(enemyData);
         
-        // Reset time (use level config)
-        this.timeLeft = levelConfig.timeLimit;
+        // Reset time (use level config + modifiers)
+        let timeLimit = levelConfig.timeLimit;
+        
+        // Apply time extension modifier
+        if (this.modifierSystem.hasModifier('time_extension')) {
+            timeLimit += 10;
+            console.log('[GameCore] ⏰ Time Extension: +10s');
+        }
+        
+        this.timeLeft = timeLimit;
         this.isGameRunning = true;
         
         // Reset stage stats
@@ -275,14 +283,19 @@ export class GameCore extends Component {
             allBlocks = Array.from(new Set(allBlocks));
         }
 
+        // Calculate damage for each match
         for (const match of matches) {
-            const matchData: MatchData = {
+            let matchData: MatchData = {
                 blocks: match,
                 chainLevel: this.chainLevel,
                 count: match.length,
                 matchType: 'normal',
                 baseDamage: 0
             };
+            
+            // Apply modifier onMatch hooks
+            matchData = this.modifierSystem.triggerMatch(matchData);
+            
             const damage = this.damageSystem.calculateMatchDamage(matchData);
             totalDamage += damage;
         }

@@ -65,8 +65,9 @@ export class LongMatch implements IModifier {
     
     onMatch(data: MatchData): MatchData {
         if (data.count >= 4) {
-            data.baseDamage = (data.baseDamage || 0) * 1.5;
-            console.log('[Modifier] 🔥 Long Match Bonus!');
+            const oldDamage = data.baseDamage;
+            data.baseDamage = Math.floor(data.baseDamage * 1.5);
+            console.log(`[Modifier] 🔥 Long Match Bonus! ${oldDamage} -> ${data.baseDamage}`);
         }
         return data;
     }
