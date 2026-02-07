@@ -163,10 +163,21 @@ export class Block extends Component {
         this.frozenOverlay.setParent(this.node);
         
         const sprite = this.frozenOverlay.addComponent(Sprite);
-        sprite.color = new Color(150, 200, 255, 150);  // 半透明蓝色
+        sprite.type = Sprite.Type.SIMPLE;
+        sprite.sizeMode = Sprite.SizeMode.CUSTOM;
+        
+        // Use UITransform to set size
+        import('cc').then(({ UITransform }) => {
+            const transform = this.frozenOverlay.addComponent(UITransform);
+            transform.setContentSize(60, 60);
+        });
+        
+        sprite.color = new Color(100, 180, 255, 180);  // 半透明蓝色
         
         this.frozenOverlay.setPosition(0, 0, 0);
-        this.frozenOverlay.setScale(1.1, 1.1, 1);  // 稍微大一点
+        this.frozenOverlay.setScale(1.05, 1.05, 1);  // 稍微大一点
+        
+        console.log(`[Block] Created frozen overlay at [${this.row}, ${this.col}]`);
     }
 
     /**

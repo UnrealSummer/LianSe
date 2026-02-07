@@ -122,6 +122,14 @@ export class GameCore extends Component {
             return;
         }
 
+        // Clicked same block - deselect
+        if (this.selectedBlock.row === row && this.selectedBlock.col === col) {
+            block.setSelected(false);
+            this.selectedBlock = null;
+            console.log(`[GameCore] Deselected block: [${row}, ${col}]`);
+            return;
+        }
+
         // Second selection - check if adjacent
         const dr = Math.abs(this.selectedBlock.row - row);
         const dc = Math.abs(this.selectedBlock.col - col);
@@ -129,7 +137,9 @@ export class GameCore extends Component {
 
         if (!isAdjacent) {
             // Not adjacent, deselect first and select new
-            this.gridSystem.getBlockAt(this.selectedBlock.row, this.selectedBlock.col)?.setSelected(false);
+            const oldBlock = this.gridSystem.getBlockAt(this.selectedBlock.row, this.selectedBlock.col);
+            if (oldBlock) oldBlock.setSelected(false);
+            
             this.selectedBlock = { row, col };
             block.setSelected(true);
             console.log(`[GameCore] Not adjacent, reselected: [${row}, ${col}]`);
@@ -138,7 +148,9 @@ export class GameCore extends Component {
 
         // Adjacent, try to swap
         console.log(`[GameCore] Swapping [${this.selectedBlock.row}, ${this.selectedBlock.col}] <-> [${row}, ${col}]`);
-        this.gridSystem.getBlockAt(this.selectedBlock.row, this.selectedBlock.col)?.setSelected(false);
+        const oldBlock = this.gridSystem.getBlockAt(this.selectedBlock.row, this.selectedBlock.col);
+        if (oldBlock) oldBlock.setSelected(false);
+        
         this.trySwap(this.selectedBlock.row, this.selectedBlock.col, row, col);
         this.selectedBlock = null;
     }
