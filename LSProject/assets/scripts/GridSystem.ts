@@ -27,6 +27,7 @@ export class GridSystem extends Component {
     private spacing: number = 8;
     private blocks: Node[][] = [];
     private isProcessing: boolean = false;
+    private currentColorCount: number = 3; // Track current color count
 
     start() {
         this.calculateAdaptiveSize();
@@ -65,6 +66,7 @@ export class GridSystem extends Component {
     generateGrid(colorCount: number, obstacles: any[]): void {
         this.calculateAdaptiveSize();
         this.clearGrid();
+        this.currentColorCount = colorCount; // Save color count
         
         const startX = -((this.gridSize - 1) * (this.blockSize + this.spacing)) / 2;
         const startY = ((this.gridSize - 1) * (this.blockSize + this.spacing)) / 2;
@@ -297,7 +299,7 @@ export class GridSystem extends Component {
                     
                     const blockScript = block.getComponent(Block);
                     if (blockScript) {
-                        const color = Math.floor(Math.random() * 3); // TODO: Use colorCount
+                        const color = Math.floor(Math.random() * this.currentColorCount);
                         blockScript.init(row, col, color);
                     }
                     

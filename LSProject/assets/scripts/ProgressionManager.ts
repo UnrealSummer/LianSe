@@ -1,5 +1,6 @@
 import { _decorator, Component } from 'cc';
 import { EnemyData } from './EnemySystem';
+import { LevelGenerator, LevelConfig } from './LevelGenerator';
 const { ccclass } = _decorator;
 
 /**
@@ -10,20 +11,34 @@ export class ProgressionManager extends Component {
     private currentStage: number = 1;
     private totalGold: number = 0;
     private totalScore: number = 0;
+    private levelGenerator: LevelGenerator = null;
+
+    start() {
+        // Auto-find LevelGenerator
+        this.levelGenerator = this.node.parent.getChildByName('LevelGenerator')?.getComponent(LevelGenerator);
+        if (!this.levelGenerator) {
+            console.warn('[ProgressionManager] LevelGenerator not found, creating one');
+            this.levelGenerator = new LevelGenerator();
+        }
+    }
+
+    /**
+     * 获取当前关卡配置
+     */
+    getCurrentLevelConfig(): LevelConfig {
+        return this.levelGenerator.generateLevel(this.currentStage);
+    }
 
     /**
      * 获取当前关卡的敌人数据
      */
     getCurrentEnemy(): EnemyData {
-        // 敌人血量随关卡增长
-        const baseHp = 50;
-        const hpGrowth = 30; // 每关+30血
-        const maxHp = baseHp + (this.currentStage - 1) * hpGrowth;
-
+        const config = this.getCurrentLevelConfig();
+        
         return {
             id: `enemy_${this.currentStage}`,
             name: `敌人 Lv.${this.currentStage}`,
-            maxHp: maxHp
+            maxHp: config.enemyHp
         };
     }
 

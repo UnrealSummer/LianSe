@@ -147,17 +147,20 @@ export class GameCore extends Component {
 
     startStage(): void {
         const currentStage = this.progressionManager.getCurrentStage();
-        console.log(`[GameCore] Starting stage ${currentStage}`);
+        const levelConfig = this.progressionManager.getCurrentLevelConfig();
         
-        // Generate grid (basic 3 colors for now)
-        this.gridSystem.generateGrid(3, []);
+        console.log(`[GameCore] Starting stage ${currentStage}`);
+        console.log(`[GameCore] Config: ${levelConfig.colorCount} colors, ${levelConfig.enemyHp} HP, ${levelConfig.timeLimit}s`);
+        
+        // Generate grid with progressive colors
+        this.gridSystem.generateGrid(levelConfig.colorCount, levelConfig.obstacles);
         
         // Generate enemy
         const enemyData = this.progressionManager.getCurrentEnemy();
         this.enemySystem.initEnemy(enemyData);
         
-        // Reset time
-        this.timeLeft = this.timeLimit;
+        // Reset time (use level config)
+        this.timeLeft = levelConfig.timeLimit;
         this.isGameRunning = true;
         
         this.updateUI();
