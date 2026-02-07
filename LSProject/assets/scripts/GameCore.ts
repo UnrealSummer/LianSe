@@ -5,6 +5,7 @@ import { DamageSystem } from './DamageSystem';
 import { ModifierSystem, MatchData } from './ModifierSystem';
 import { ProgressionManager } from './ProgressionManager';
 import { ModifierSelectionUI } from './ModifierSelectionUI';
+import { EffectManager } from './EffectManager';
 const { ccclass, property } = _decorator;
 
 /**
@@ -25,6 +26,7 @@ export class GameCore extends Component {
     private modifierSystem: ModifierSystem = null;
     private progressionManager: ProgressionManager = null;
     private modifierSelectionUI: ModifierSelectionUI = null;
+    private effectManager: EffectManager = null;
     private timeLabel: Label = null;
     private goldLabel: Label = null;
     private stageLabel: Label = null;
@@ -86,13 +88,20 @@ export class GameCore extends Component {
             this.modifierSelectionUI = modifierUINode.getComponent(ModifierSelectionUI);
         }
         
+        // Auto-find EffectManager
+        const effectManagerNode = this.node.parent.getChildByName('EffectManager');
+        if (effectManagerNode) {
+            this.effectManager = effectManagerNode.getComponent(EffectManager);
+        }
+        
         console.log('[GameCore] Components found:', {
             gridSystem: !!this.gridSystem,
             enemySystem: !!this.enemySystem,
             damageSystem: !!this.damageSystem,
             modifierSystem: !!this.modifierSystem,
             progressionManager: !!this.progressionManager,
-            modifierSelectionUI: !!this.modifierSelectionUI
+            modifierSelectionUI: !!this.modifierSelectionUI,
+            effectManager: !!this.effectManager
         });
         
         // Check if all required components are found
@@ -298,6 +307,13 @@ export class GameCore extends Component {
             
             const damage = this.damageSystem.calculateMatchDamage(matchData);
             totalDamage += damage;
+            
+            // Show damage number
+            if (this.effectManager && match.length > 0) {
+                const firstBlock = match[0];
+                const pos = firstBlock.getPosition();
+                this.effectManager.showDamage(damage, pos, false);
+            }
         }
 
         console.log(`[GameCore] Chain ${this.chainLevel}: ${totalDamage} damage`);
@@ -305,9 +321,25 @@ export class GameCore extends Component {
         // Show chain combo
         if (this.chainLevel > 1) {
             console.log(`[GameCore] 🔥 COMBO x${this.chainLevel}!`);
+            
+            // Show combo effect
+            if (this.effectManager && this.enemySystem) {
+                const enemyPos = this.enemySystem.node.getPosition();
+                this.effectManager.showCombo(this.chainLevel, enemyPos);
+            }
         }
         
+        // Apply damage to enemy
         this.enemySystem.takeDamage(totalDamage);
+        
+        // Screen shake on hit
+        if (this.effectManager && totalDamage > 0) {
+            const shakeIntensity = Math.min(totalDamage / 5, 20);
+            this.effectManager.screenShake(shakeIntensity, 0.2);
+            
+            // Enemy hit flash
+            this.effectManager.enemyHitFlash(this.enemySystem.node);
+        }
         
         // Trigger nearby match for adjacent blocks (for frozen blocks)
         this.triggerNearbyMatch(allBlocks);
