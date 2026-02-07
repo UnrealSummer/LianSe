@@ -321,18 +321,6 @@ export class GameCore extends Component {
             const damage = this.damageSystem.calculateMatchDamage(matchData);
             totalDamage += damage;
             
-            // Award coins (1 coin per block)
-            if (this.coinSystem) {
-                let coinAmount = match.length;
-                
-                // Apply gold collector modifier
-                if (this.modifierSystem.hasModifier('gold_collector')) {
-                    coinAmount = Math.floor(coinAmount * 1.5);
-                }
-                
-                this.coinSystem.addCoins(coinAmount);
-            }
-            
             // Show damage number
             if (this.effectManager && match.length > 0) {
                 const firstBlock = match[0];
@@ -356,6 +344,21 @@ export class GameCore extends Component {
         
         // Apply damage to enemy
         this.enemySystem.takeDamage(totalDamage);
+        
+        // Enemy drops coins on hit (small amount)
+        if (this.coinSystem && totalDamage > 0) {
+            let coinDrop = Math.floor(totalDamage / 5);  // 每5点伤害掉1金币
+            
+            // Apply gold collector modifier
+            if (this.modifierSystem.hasModifier('gold_collector')) {
+                coinDrop = Math.floor(coinDrop * 1.5);
+            }
+            
+            if (coinDrop > 0) {
+                this.coinSystem.addCoins(coinDrop);
+                console.log(`[GameCore] 💰 Enemy dropped ${coinDrop} coins`);
+            }
+        }
         
         // Screen shake on hit
         if (this.effectManager && totalDamage > 0) {
@@ -435,6 +438,24 @@ export class GameCore extends Component {
         this.isGameRunning = false;
         console.log('[GameCore] Victory! Stage completed!');
         console.log(`[GameCore] Stats: ${this.totalMoves} moves, max combo x${this.maxCombo}`);
+        
+        // Big coin drop on kill
+        if (this.coinSystem) {
+            const currentStage = this.progressionManager.getCurrentStage();
+            let killReward = 50 + (currentStage * 10);  // 基础50 + 关卡*10
+            
+            // Bonus for time remaining
+            const timeBonus = Math.floor(this.timeLeft * 2);
+            killReward += timeBonus;
+            
+            // Apply gold collector modifier
+            if (this.modifierSystem.hasModifier('gold_collector')) {
+                killReward = Math.floor(killReward * 1.5);
+            }
+            
+            this.coinSystem.addCoins(killReward);
+            console.log(`[GameCore] 💰💰💰 KILL REWARD: ${killReward} coins! (Time bonus: ${timeBonus})`);
+        }
         
         // Show modifier selection
         this.showModifierSelection();
