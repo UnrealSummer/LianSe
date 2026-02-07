@@ -232,6 +232,28 @@ export class GameCore extends Component {
     private processMatches(matches: Node[][]): void {
         this.chainLevel++;
         let totalDamage = 0;
+        let allBlocks = matches.flat();
+
+        // Check for rainbow blocks and add line/column clear
+        const rainbowBlocks = allBlocks.filter(block => {
+            const blockScript = block.getComponent('Block');
+            return blockScript?.isRainbow();
+        });
+
+        if (rainbowBlocks.length > 0) {
+            console.log(`[GameCore] 🌈 Rainbow block activated! Clearing lines/columns`);
+            for (const rainbowBlock of rainbowBlocks) {
+                const blockScript = rainbowBlock.getComponent('Block');
+                const pos = blockScript.getPosition();
+                
+                // Clear entire row and column
+                const lineBlocks = this.gridSystem.getLineBlocks(pos.row, pos.col);
+                allBlocks = allBlocks.concat(lineBlocks);
+            }
+            
+            // Remove duplicates
+            allBlocks = Array.from(new Set(allBlocks));
+        }
 
         for (const match of matches) {
             const matchData: MatchData = {
@@ -253,8 +275,6 @@ export class GameCore extends Component {
         }
         
         this.enemySystem.takeDamage(totalDamage);
-        
-        const allBlocks = matches.flat();
         
         // Trigger nearby match for adjacent blocks (for frozen blocks)
         this.triggerNearbyMatch(allBlocks);

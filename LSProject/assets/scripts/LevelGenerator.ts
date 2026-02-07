@@ -5,7 +5,7 @@ const { ccclass } = _decorator;
  * 障碍配置
  */
 export interface ObstacleConfig {
-    type: 'frozen' | 'stone' | 'chained';
+    type: 'frozen' | 'stone' | 'chained' | 'rainbow';
     row: number;
     col: number;
     level?: number;  // 冰冻层数
@@ -60,7 +60,10 @@ export class LevelGenerator extends Component {
             obstacles.push(...this.createStoneObstacles(stoneCount));
         }
         
-        // TODO: 第13关开始：锁链方块
+        // 第21关开始：彩虹方块（每10关1个）
+        if (stage >= 21 && stage % 10 === 1) {
+            obstacles.push(...this.createRainbowObstacles(1));
+        }
         
         return obstacles;
     }
@@ -113,6 +116,24 @@ export class LevelGenerator extends Component {
         for (const pos of positions) {
             obstacles.push({
                 type: 'stone',
+                row: pos.row,
+                col: pos.col
+            });
+        }
+        
+        return obstacles;
+    }
+
+    /**
+     * 创建彩虹障碍（奖励）
+     */
+    private createRainbowObstacles(count: number): ObstacleConfig[] {
+        const obstacles: ObstacleConfig[] = [];
+        const positions = this.getRandomPositions(count);
+        
+        for (const pos of positions) {
+            obstacles.push({
+                type: 'rainbow',
                 row: pos.row,
                 col: pos.col
             });

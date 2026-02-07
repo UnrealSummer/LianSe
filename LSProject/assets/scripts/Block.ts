@@ -191,6 +191,57 @@ export class Block extends Component {
     }
 
     /**
+     * 设置为彩虹方块
+     */
+    setRainbow(): void {
+        this.colorType = ColorType.RAINBOW;
+        
+        console.log(`[Block] Setting rainbow at [${this.row}, ${this.col}]`);
+        
+        // Rainbow gradient effect
+        if (this.sprite) {
+            this.sprite.color = new Color(255, 255, 255, 255);  // 白色基础
+            console.log(`[Block] Changed to rainbow at [${this.row}, ${this.col}]`);
+            
+            // Add rainbow animation
+            this.startRainbowAnimation();
+        }
+    }
+
+    /**
+     * 彩虹动画
+     */
+    private startRainbowAnimation(): void {
+        if (!this.sprite) return;
+        
+        import('cc').then(({ tween, Color }) => {
+            const colors = [
+                new Color(255, 0, 0),      // 红
+                new Color(255, 127, 0),    // 橙
+                new Color(255, 255, 0),    // 黄
+                new Color(0, 255, 0),      // 绿
+                new Color(0, 127, 255),    // 蓝
+                new Color(139, 0, 255)     // 紫
+            ];
+            
+            let colorIndex = 0;
+            const animateColor = () => {
+                if (!this.sprite || !this.node.isValid) return;
+                
+                tween(this.sprite)
+                    .to(0.5, { color: colors[colorIndex] })
+                    .call(() => {
+                        colorIndex = (colorIndex + 1) % colors.length;
+                        animateColor();
+                    })
+                    .start();
+            };
+            
+            animateColor();
+        });
+    }
+
+    /**
      * 创建冰冻覆盖层
      */
     private createFrozenOverlay(): void {
@@ -270,6 +321,22 @@ export class Block extends Component {
     canMatch(): boolean {
         if (this.blockType === BlockType.STONE) return false;
         return true;
+    }
+
+    /**
+     * 是否可以和指定颜色匹配
+     */
+    canMatchWithColor(color: ColorType): boolean {
+        if (this.colorType === ColorType.RAINBOW) return true;  // 彩虹可以和任意颜色匹配
+        if (color === ColorType.RAINBOW) return true;  // 任意颜色可以和彩虹匹配
+        return this.colorType === color;
+    }
+
+    /**
+     * 是否是彩虹方块
+     */
+    isRainbow(): boolean {
+        return this.colorType === ColorType.RAINBOW;
     }
 
     /**

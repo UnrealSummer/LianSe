@@ -119,8 +119,10 @@ export class GridSystem extends Component {
             } else if (obstacle.type === 'stone') {
                 blockScript.setStone();
                 console.log(`[GridSystem] Applied stone obstacle at [${obstacle.row}, ${obstacle.col}]`);
+            } else if (obstacle.type === 'rainbow') {
+                blockScript.setRainbow();
+                console.log(`[GridSystem] Applied rainbow block at [${obstacle.row}, ${obstacle.col}]`);
             }
-            // TODO: 添加其他障碍类型
         }
     }
 
@@ -241,7 +243,8 @@ export class GridSystem extends Component {
             // Stone blocks cannot match
             if (!blockScript.canMatch()) break;
             
-            if (blockScript.getColorType() !== color) break;
+            // Check if can match with color (supports rainbow)
+            if (!blockScript.canMatchWithColor(color)) break;
 
             matches.push(block);
             r += dRow;
@@ -443,6 +446,32 @@ export class GridSystem extends Component {
     getBlockAt(row: number, col: number): Block {
         const node = this.blocks[row]?.[col];
         return node?.getComponent(Block);
+    }
+
+    /**
+     * Get all blocks in a line (row) and column
+     */
+    getLineBlocks(row: number, col: number): Node[] {
+        const blocks: Node[] = [];
+        
+        // Get entire row
+        for (let c = 0; c < this.gridSize; c++) {
+            const block = this.blocks[row][c];
+            if (block && block.isValid) {
+                blocks.push(block);
+            }
+        }
+        
+        // Get entire column
+        for (let r = 0; r < this.gridSize; r++) {
+            if (r === row) continue;  // Skip the center block (already added)
+            const block = this.blocks[r][col];
+            if (block && block.isValid) {
+                blocks.push(block);
+            }
+        }
+        
+        return blocks;
     }
 
     getProcessing(): boolean {
