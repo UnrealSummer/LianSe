@@ -542,9 +542,35 @@ export class GameCore extends Component {
                     // Reset chain for next operation
                     this.chainLevel = 0;
                     this.gridSystem.setProcessing(false);
+                    
+                    // Check for valid moves after chain ends
+                    this.scheduleOnce(() => {
+                        this.checkForValidMoves();
+                    }, 0.5);
                 }
             });
         });
+    }
+
+    /**
+     * 检查是否有可消除的组合
+     */
+    private checkForValidMoves(): void {
+        if (!this.isGameRunning || this.gridSystem.getProcessing()) return;
+        
+        if (!this.gridSystem.hasValidMoves()) {
+            console.log('[GameCore] ⚠️ No valid moves! Shuffling...');
+            
+            // Show message
+            if (this.effectManager) {
+                // TODO: Show "No moves! Shuffling..." message
+            }
+            
+            // Shuffle after delay
+            setTimeout(() => {
+                this.gridSystem.shuffleGrid();
+            }, 1000);
+        }
     }
 
     /**

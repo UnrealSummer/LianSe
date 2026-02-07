@@ -528,6 +528,110 @@ export class GridSystem extends Component {
         return blocks;
     }
 
+    /**
+     * 检查是否有可消除的组合
+     */
+    hasValidMoves(): boolean {
+        // Check all possible swaps
+        for (let row = 0; row < this.gridSize; row++) {
+            for (let col = 0; col < this.gridSize; col++) {
+                // Try swap right
+                if (col < this.gridSize - 1) {
+                    if (this.wouldCreateMatch(row, col, row, col + 1)) {
+                        return true;
+                    }
+                }
+                
+                // Try swap down
+                if (row < this.gridSize - 1) {
+                    if (this.wouldCreateMatch(row, col, row + 1, col)) {
+                        return true;
+                    }
+                }
+            }
+        }
+        
+        return false;
+    }
+
+    /**
+     * 检查交换是否会产生匹配
+     */
+    private wouldCreateMatch(row1: number, col1: number, row2: number, col2: number): boolean {
+        const block1 = this.blocks[row1]?.[col1];
+        const block2 = this.blocks[row2]?.[col2];
+        
+        if (!block1 || !block2) return false;
+        
+        const block1Script = block1.getComponent(Block);
+        const block2Script = block2.getComponent(Block);
+        
+        if (!block1Script || !block2Script) return false;
+        
+        // Can't swap frozen or stone blocks
+        if (!block1Script.canMove() || !block2Script.canMove()) return false;
+        
+        // Temporarily swap
+        this.blocks[row1][col1] = block2;
+        this.blocks[row2][col2] = block1;
+        
+        // Check for matches
+        const matches1 = this.findMatchesAt(row1, col1);
+        const matches2 = this.findMatchesAt(row2, col2);
+        
+        // Swap back
+        this.blocks[row1][col1] = block1;
+        this.blocks[row2][col2] = block2;
+        
+        return matches1.length >= 3 || matches2.length >= 3;
+    }
+
+    /**
+     * 洗牌
+     */
+    shuffleGrid(): void {
+        console.log('[GridSystem] Shuffling grid...');
+        
+        // Collect all movable blocks
+        const movableBlocks: { block: Node, script: Block }[] = [];
+        
+        for (let row = 0; row < this.gridSize; row++) {
+            for (let col = 0; col < this.gridSize; col++) {
+                const block = this.blocks[row][col];
+                if (!block) continue;
+                
+                const blockScript = block.getComponent(Block);
+                if (!blockScript) continue;
+                
+                // Only shuffle normal blocks (not frozen, stone, or rainbow)
+                if (blockScript.canMove() && !blockScript.isRainbow()) {
+                    movableBlocks.push({ block, script: blockScript });
+                }
+            }
+        }
+        
+        // Shuffle colors
+        const colors = movableBlocks.map(b => b.script.getColorType());
+        this.shuffleArray(colors);
+        
+        // Apply shuffled colors
+        movableBlocks.forEach((b, index) => {
+            b.script.setColorType(colors[index]);
+        });
+        
+        console.log('[GridSystem] Grid shuffled');
+    }
+
+    /**
+     * 洗牌数组
+     */
+    private shuffleArray<T>(array: T[]): void {
+        for (let i = array.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [array[i], array[j]] = [array[j], array[i]];
+        }
+    }
+
     getProcessing(): boolean {
         return this.isProcessing;
     }
