@@ -61,36 +61,8 @@ export class DamageSystem extends Component {
      * 获取基础伤害
      */
     private getBaseDamage(count: number, matchType: string): number {
-        // 消除3个：基础伤害
-        if (count === 3) {
-            return 10;
-        }
-        
-        // 消除4个：1.5倍
-        if (count === 4) {
-            return 15;
-        }
-        
-        // 消除5个：2倍
-        if (count === 5) {
-            return 20;
-        }
-        
-        // L/T形：范围伤害
-        if (matchType === 'L' || matchType === 'T') {
-            return 25;
-        }
-        
-        // 方形：爆炸伤害
-        if (matchType === 'square') {
-            return 30;
-        }
-        
-        // 超过5个：每多一个+5伤害
-        if (count > 5) {
-            return 20 + (count - 5) * 5;
-        }
-
+        // 固定基础伤害10，不受消除数量影响
+        // 让词条的效果更明显
         return 10;
     }
 
