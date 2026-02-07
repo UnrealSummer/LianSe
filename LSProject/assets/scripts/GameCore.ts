@@ -166,6 +166,15 @@ export class GameCore extends Component {
         this.node.on('block-clicked', this.onBlockClicked, this);
         this.node.on('block-swipe', this.onBlockSwipe, this);
         
+        // Listen for enemy skill events
+        if (this.enemySystem) {
+            this.enemySystem.node.on('enemy-freeze-blocks', this.onEnemyFreezeBlocks, this);
+            this.enemySystem.node.on('enemy-counter-attack', this.onEnemyCounterAttack, this);
+            this.enemySystem.node.on('enemy-steal-time', this.onEnemyStealTime, this);
+            this.enemySystem.node.on('enemy-chaos-shuffle', this.onEnemyChaos, this);
+            this.enemySystem.node.on('enemy-gravity-shift', this.onEnemyGravityShift, this);
+        }
+        
         // Listen for pause key (ESC)
         import('cc').then(({ input, Input, KeyCode }) => {
             input.on(Input.EventType.KEY_DOWN, (event) => {
@@ -288,9 +297,10 @@ export class GameCore extends Component {
             }, 0.5);  // Wait for grid to settle
         }
         
-        // Generate enemy
-        const enemyData = this.progressionManager.getCurrentEnemy();
-        this.enemySystem.initEnemy(enemyData);
+        // Generate enemy (使用新的敌人系统)
+        const currentStage = this.progressionManager.getCurrentStage();
+        const levelConfig = this.progressionManager.getCurrentLevelConfig();
+        this.enemySystem.initEnemyForStage(currentStage, levelConfig.enemyHp);
         
         // Reset time (use level config + modifiers)
         let timeLimit = levelConfig.timeLimit;
@@ -884,6 +894,61 @@ export class GameCore extends Component {
     restartFromPause(): void {
         this.isPaused = false;
         this.startNewGame();
+    }
+
+    /**
+     * 敌人技能：冻结方块
+     */
+    private onEnemyFreezeBlocks(count: number): void {
+        console.log(`[GameCore] Enemy freezing ${count} blocks`);
+        for (let i = 0; i < count; i++) {
+            this.gridSystem.freezeRandomBlock();
+        }
+    }
+
+    /**
+     * 敌人技能：反击（变石头）
+     */
+    private onEnemyCounterAttack(): void {
+        console.log('[GameCore] Enemy counter attack!');
+        this.gridSystem.turnRandomBlockToStone();
+    }
+
+    /**
+     * 敌人技能：偷时间
+     */
+    private onEnemyStealTime(seconds: number): void {
+        this.timeLeft = Math.max(0, this.timeLeft - seconds);
+        console.log(`[GameCore] Enemy stole ${seconds} seconds! Time left: ${this.timeLeft.toFixed(1)}s`);
+    }
+
+    /**
+     * 敌人技能：混乱（打乱方块）
+     */
+    private onEnemyChaos(count: number): void {
+        console.log(`[GameCore] Enemy causing chaos! Shuffling ${count} blocks`);
+        for (let i = 0; i < count; i++) {
+            this.gridSystem.shuffleRandomBlock();
+        }
+    }
+
+    /**
+     * 敌人技能：重力改变
+     */
+    private onEnemyGravityShift(activate: boolean): void {
+        const gravitySystem = this.gridSystem.getGravitySystem();
+        
+        if (activate) {
+            // 随机选择一个方向（不包括默认的向下）
+            const directions = [1, 2, 3]; // UP, LEFT, RIGHT
+            const randomDir = directions[Math.floor(Math.random() * directions.length)];
+            gravitySystem.setDirection(randomDir);
+            console.log(`[GameCore] 🔄 Gravity shifted to: ${gravitySystem.getDirectionName(randomDir)}`);
+        } else {
+            // 恢复默认方向
+            gravitySystem.setDirection(0); // DOWN
+            console.log('[GameCore] 🔄 Gravity restored to normal');
+        }
     }
 
     /**

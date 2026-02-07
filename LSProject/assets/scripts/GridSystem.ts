@@ -844,6 +844,94 @@ export class GridSystem extends Component {
         return this.gravitySystem;
     }
 
+    /**
+     * 冻结随机方块
+     */
+    freezeRandomBlock(): void {
+        const normalBlocks: { row: number, col: number }[] = [];
+        
+        for (let row = 0; row < this.gridSize; row++) {
+            for (let col = 0; col < this.gridSize; col++) {
+                const block = this.blocks[row][col];
+                if (!block) continue;
+                
+                const blockScript = block.getComponent(Block);
+                if (blockScript && !blockScript.isFrozen() && !blockScript.isStone() && !blockScript.isRainbow()) {
+                    normalBlocks.push({ row, col });
+                }
+            }
+        }
+        
+        if (normalBlocks.length > 0) {
+            const target = normalBlocks[Math.floor(Math.random() * normalBlocks.length)];
+            const block = this.blocks[target.row][target.col];
+            const blockScript = block.getComponent(Block);
+            if (blockScript) {
+                blockScript.freeze();
+                console.log(`[GridSystem] Froze block at [${target.row}, ${target.col}]`);
+            }
+        }
+    }
+
+    /**
+     * 随机方块变石头
+     */
+    turnRandomBlockToStone(): void {
+        const normalBlocks: { row: number, col: number }[] = [];
+        
+        for (let row = 0; row < this.gridSize; row++) {
+            for (let col = 0; col < this.gridSize; col++) {
+                const block = this.blocks[row][col];
+                if (!block) continue;
+                
+                const blockScript = block.getComponent(Block);
+                if (blockScript && !blockScript.isStone() && !blockScript.isRainbow()) {
+                    normalBlocks.push({ row, col });
+                }
+            }
+        }
+        
+        if (normalBlocks.length > 0) {
+            const target = normalBlocks[Math.floor(Math.random() * normalBlocks.length)];
+            const block = this.blocks[target.row][target.col];
+            const blockScript = block.getComponent(Block);
+            if (blockScript) {
+                blockScript.turnToStone();
+                console.log(`[GridSystem] Turned block to stone at [${target.row}, ${target.col}]`);
+            }
+        }
+    }
+
+    /**
+     * 打乱随机方块颜色
+     */
+    shuffleRandomBlock(): void {
+        const normalBlocks: { row: number, col: number }[] = [];
+        
+        for (let row = 0; row < this.gridSize; row++) {
+            for (let col = 0; col < this.gridSize; col++) {
+                const block = this.blocks[row][col];
+                if (!block) continue;
+                
+                const blockScript = block.getComponent(Block);
+                if (blockScript && blockScript.canMove() && !blockScript.isRainbow()) {
+                    normalBlocks.push({ row, col });
+                }
+            }
+        }
+        
+        if (normalBlocks.length > 0) {
+            const target = normalBlocks[Math.floor(Math.random() * normalBlocks.length)];
+            const block = this.blocks[target.row][target.col];
+            const blockScript = block.getComponent(Block);
+            if (blockScript) {
+                const newColor = Math.floor(Math.random() * this.currentColorCount);
+                blockScript.setColorType(newColor);
+                console.log(`[GridSystem] Shuffled block at [${target.row}, ${target.col}] to color ${newColor}`);
+            }
+        }
+    }
+
     getProcessing(): boolean {
         return this.isProcessing;
     }
