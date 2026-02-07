@@ -112,10 +112,13 @@ export class EffectManager extends Component {
         
         const label = comboNode.addComponent(Label);
         label.string = `COMBO x${comboLevel}!`;
-        label.fontSize = 40;
+        label.fontSize = 40 + (comboLevel * 5);  // 连击越高字越大
         label.color = new cc.Color(255, 200, 0);
         
-        comboNode.setPosition(worldPos);
+        // 根据连击数偏移位置，避免重叠
+        const offsetY = (comboLevel - 1) * 60;  // 每次连击向上偏移60像素
+        const offsetX = (Math.random() - 0.5) * 100;  // 随机左右偏移
+        comboNode.setPosition(worldPos.x + offsetX, worldPos.y + offsetY, worldPos.z);
         comboNode.setScale(0, 0, 1);
         
         // Animate
