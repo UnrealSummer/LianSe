@@ -240,19 +240,60 @@ export class GridSystem extends Component {
     }
 
     /**
-     * Swap blocks
+     * Swap blocks with animation
      */
-    swapBlocks(row1: number, col1: number, row2: number, col2: number): void {
-        const temp = this.blocks[row1][col1];
-        this.blocks[row1][col1] = this.blocks[row2][col2];
-        this.blocks[row2][col2] = temp;
+    swapBlocks(row1: number, col1: number, row2: number, col2: number, callback?: Function): void {
+        const block1 = this.blocks[row1][col1];
+        const block2 = this.blocks[row2][col2];
         
-        // Update positions
-        const block1Script = this.blocks[row1][col1]?.getComponent(Block);
-        const block2Script = this.blocks[row2][col2]?.getComponent(Block);
+        if (!block1 || !block2) {
+            console.error('[GridSystem] Cannot swap: block not found');
+            if (callback) callback();
+            return;
+        }
+
+        // Swap in array
+        this.blocks[row1][col1] = block2;
+        this.blocks[row2][col2] = block1;
         
-        if (block1Script) block1Script.setPosition(row1, col1);
-        if (block2Script) block2Script.setPosition(row2, col2);
+        // Update block scripts
+        const block1Script = block1.getComponent(Block);
+        const block2Script = block2.getComponent(Block);
+        
+        if (block1Script) block1Script.setPosition(row2, col2);
+        if (block2Script) block2Script.setPosition(row1, col1);
+        
+        // Animate swap
+        const pos1 = block1.getPosition();
+        const pos2 = block2.getPosition();
+        
+        import('cc').then(({ tween, Vec3 }) => {
+            let completed = 0;
+            const onComplete = () => {
+                completed++;
+                if (completed === 2 && callback) {
+                    callback();
+                }
+            };
+            
+            tween(block1)
+                .to(0.2, { position: new Vec3(pos2.x, pos2.y, 0) })
+                .call(onComplete)
+                .start();
+                
+            tween(block2)
+                .to(0.2, { position: new Vec3(pos1.x, pos1.y, 0) })
+                .call(onComplete)
+                .start();
+        });
+    }
+
+    /**
+     * Get block at position
+     */
+    getBlockAt(row: number, col: number): Block {
+        const node = this.blocks[row]?.[col];
+        return node?.getComponent(Block);
     }
 
     getProcessing(): boolean {

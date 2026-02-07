@@ -27,6 +27,7 @@ export class GameCore extends Component {
     private timeLeft: number = 0;
     private isGameRunning: boolean = false;
     private chainLevel: number = 0;
+    private selectedBlock: { row: number, col: number } = null;
 
     start() {
         console.log('[GameCore] Starting game...');
@@ -96,8 +97,45 @@ export class GameCore extends Component {
         
         this.startNewGame();
         
-        // Listen for block swap events
-        this.node.on('block-swapped', this.onBlockSwapped, this);
+        // Listen for block click events
+        this.node.on('block-clicked', this.onBlockClicked, this);
+    }
+
+    private onBlockClicked(event: any): void {
+        if (!this.isGameRunning || this.gridSystem.getProcessing()) {
+            return;
+        }
+
+        const { row, col, block } = event;
+        console.log(`[GameCore] Block clicked: [${row}, ${col}]`);
+
+        // First selection
+        if (!this.selectedBlock) {
+            this.selectedBlock = { row, col };
+            block.setSelected(true);
+            console.log(`[GameCore] Selected first block: [${row}, ${col}]`);
+            return;
+        }
+
+        // Second selection - check if adjacent
+        const dr = Math.abs(this.selectedBlock.row - row);
+        const dc = Math.abs(this.selectedBlock.col - col);
+        const isAdjacent = (dr === 1 && dc === 0) || (dr === 0 && dc === 1);
+
+        if (!isAdjacent) {
+            // Not adjacent, deselect first and select new
+            this.gridSystem.getBlockAt(this.selectedBlock.row, this.selectedBlock.col)?.setSelected(false);
+            this.selectedBlock = { row, col };
+            block.setSelected(true);
+            console.log(`[GameCore] Not adjacent, reselected: [${row}, ${col}]`);
+            return;
+        }
+
+        // Adjacent, try to swap
+        console.log(`[GameCore] Swapping [${this.selectedBlock.row}, ${this.selectedBlock.col}] <-> [${row}, ${col}]`);
+        this.gridSystem.getBlockAt(this.selectedBlock.row, this.selectedBlock.col)?.setSelected(false);
+        this.trySwap(this.selectedBlock.row, this.selectedBlock.col, row, col);
+        this.selectedBlock = null;
     }
 
     startNewGame(): void {
@@ -135,19 +173,28 @@ export class GameCore extends Component {
         }
         
         this.updateUI();
-        
-        // Auto check matches (will be replaced by player swap later)
-        if (!this.gridSystem.getProcessing()) {
-            this.checkMatches();
-        }
     }
 
-    private checkMatches(): void {
-        const matches = this.gridSystem.findAllMatches();
-        if (matches.length > 0) {
-            this.gridSystem.setProcessing(true);
-            this.processMatches(matches);
-        }
+    private trySwap(row1: number, col1: number, row2: number, col2: number): void {
+        this.gridSystem.setProcessing(true);
+        
+        // Swap blocks with animation
+        this.gridSystem.swapBlocks(row1, col1, row2, col2, () => {
+            // Check if there are matches after swap
+            const matches = this.gridSystem.findAllMatches();
+            
+            if (matches.length > 0) {
+                // Valid swap, process matches
+                console.log(`[GameCore] Valid swap! Found ${matches.length} matches`);
+                this.processMatches(matches);
+            } else {
+                // Invalid swap, swap back
+                console.log(`[GameCore] Invalid swap, swapping back`);
+                this.gridSystem.swapBlocks(row2, col2, row1, col1, () => {
+                    this.gridSystem.setProcessing(false);
+                });
+            }
+        });
     }
 
     private processMatches(matches: Node[][]): void {
@@ -157,37 +204,37 @@ export class GameCore extends Component {
         for (const match of matches) {
             const matchData: MatchData = {
                 blocks: match,
-                chainLevel: this.chainLevel
+                chainLevel: this.chainLevel,
+                count: match.length,
+                matchType: 'normal',
+                baseDamage: 0
             };
-            const damage = this.damageSystem.calculateDamage(matchData);
+            const damage = this.damageSystem.calculateMatchDamage(matchData);
             totalDamage += damage;
-            this.modifierSystem.applyModifiers(matchData);
         }
 
+        console.log(`[GameCore] Chain ${this.chainLevel}: ${totalDamage} damage`);
         this.enemySystem.takeDamage(totalDamage);
+        
         const allBlocks = matches.flat();
         this.gridSystem.removeBlocks(allBlocks);
 
         setTimeout(() => {
             this.gridSystem.dropBlocks(() => {
-                this.gridSystem.setProcessing(false);
-                this.chainLevel = 0;
-                if (this.enemySystem.isDead()) {
-                    this.onVictory();
+                // Check for chain matches
+                const chainMatches = this.gridSystem.findAllMatches();
+                if (chainMatches.length > 0) {
+                    console.log(`[GameCore] Chain continues! Found ${chainMatches.length} more matches`);
+                    this.processMatches(chainMatches);
+                } else {
+                    this.gridSystem.setProcessing(false);
+                    this.chainLevel = 0;
+                    if (this.enemySystem.isDead()) {
+                        this.onVictory();
+                    }
                 }
             });
         }, 300);
-    }
-
-    private onBlockSwapped(event: any): void {
-        if (!this.isGameRunning || this.gridSystem.getProcessing()) {
-            return;
-        }
-
-        const { fromRow, fromCol, toRow, toCol } = event;
-        console.log(`[GameCore] Block swapped: [${fromRow},${fromCol}] -> [${toRow},${toCol}]`);
-        
-        // TODO: Implement swap logic
     }
 
     private onVictory(): void {
