@@ -542,7 +542,9 @@ export class GridSystem extends Component {
     clearGrid(): void {
         console.log('[GridSystem] Clearing grid...');
         
+        // Destroy all blocks
         for (let row = 0; row < this.gridSize; row++) {
+            if (!this.blocks[row]) continue;
             for (let col = 0; col < this.gridSize; col++) {
                 const block = this.blocks[row][col];
                 if (block && block.isValid) {
@@ -551,7 +553,12 @@ export class GridSystem extends Component {
             }
         }
         
+        // Reset blocks array (don't clear it, just reset to empty arrays)
         this.blocks = [];
+        for (let row = 0; row < this.gridSize; row++) {
+            this.blocks[row] = [];
+        }
+        
         console.log('[GridSystem] Grid cleared');
     }
 }
