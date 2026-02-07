@@ -6,6 +6,7 @@ import { ModifierSystem, MatchData } from './ModifierSystem';
 import { ProgressionManager } from './ProgressionManager';
 import { ModifierSelectionUI } from './ModifierSelectionUI';
 import { EffectManager } from './EffectManager';
+import { CoinSystem } from './CoinSystem';
 const { ccclass, property } = _decorator;
 
 /**
@@ -27,6 +28,7 @@ export class GameCore extends Component {
     private progressionManager: ProgressionManager = null;
     private modifierSelectionUI: ModifierSelectionUI = null;
     private effectManager: EffectManager = null;
+    private coinSystem: CoinSystem = null;
     private timeLabel: Label = null;
     private goldLabel: Label = null;
     private stageLabel: Label = null;
@@ -67,6 +69,11 @@ export class GameCore extends Component {
             console.log('[GameCore] ProgressionManager node:', progressionNode?.name);
             this.progressionManager = progressionNode?.getComponent(ProgressionManager);
         }
+        if (!this.coinSystem) {
+            const coinNode = this.node.getChildByName('CoinSystem');
+            console.log('[GameCore] CoinSystem node:', coinNode?.name);
+            this.coinSystem = coinNode?.getComponent(CoinSystem);
+        }
         
         // Auto-find UI labels
         const uiNode = this.node.parent.getChildByName('UI');
@@ -101,7 +108,8 @@ export class GameCore extends Component {
             modifierSystem: !!this.modifierSystem,
             progressionManager: !!this.progressionManager,
             modifierSelectionUI: !!this.modifierSelectionUI,
-            effectManager: !!this.effectManager
+            effectManager: !!this.effectManager,
+            coinSystem: !!this.coinSystem
         });
         
         // Check if all required components are found
@@ -217,6 +225,11 @@ export class GameCore extends Component {
         this.totalMoves = 0;
         this.maxCombo = 0;
         
+        // Reset stage coins
+        if (this.coinSystem) {
+            this.coinSystem.resetStageCoins();
+        }
+        
         this.updateUI();
     }
 
@@ -307,6 +320,18 @@ export class GameCore extends Component {
             
             const damage = this.damageSystem.calculateMatchDamage(matchData);
             totalDamage += damage;
+            
+            // Award coins (1 coin per block)
+            if (this.coinSystem) {
+                let coinAmount = match.length;
+                
+                // Apply gold collector modifier
+                if (this.modifierSystem.hasModifier('gold_collector')) {
+                    coinAmount = Math.floor(coinAmount * 1.5);
+                }
+                
+                this.coinSystem.addCoins(coinAmount);
+            }
             
             // Show damage number
             if (this.effectManager && match.length > 0) {
@@ -497,7 +522,11 @@ export class GameCore extends Component {
             }
         }
         if (this.goldLabel) {
-            this.goldLabel.string = `金币: ${this.progressionManager.getTotalGold()}`;
+            if (this.coinSystem) {
+                this.goldLabel.string = `金币: ${this.coinSystem.getTotalCoins()}`;
+            } else {
+                this.goldLabel.string = `金币: ${this.progressionManager.getTotalGold()}`;
+            }
         }
         if (this.stageLabel) {
             this.stageLabel.string = `第${currentStage}关 (${levelConfig.colorCount}色)`;
