@@ -234,6 +234,9 @@ export class GameCore extends Component {
         
         const allBlocks = matches.flat();
         
+        // Trigger nearby match for adjacent blocks (for frozen blocks)
+        this.triggerNearbyMatch(allBlocks);
+        
         // Remove blocks with animation, then drop
         this.gridSystem.removeBlocks(allBlocks).then(() => {
             this.gridSystem.dropBlocks(() => {
@@ -258,6 +261,42 @@ export class GameCore extends Component {
                 }
             });
         });
+    }
+
+    /**
+     * Trigger nearby match for adjacent blocks (解冻冰冻方块)
+     */
+    private triggerNearbyMatch(matchedBlocks: Node[]): void {
+        const affectedPositions = new Set<string>();
+        
+        // Get all adjacent positions
+        for (const block of matchedBlocks) {
+            const blockScript = block.getComponent('Block');
+            if (!blockScript) continue;
+            
+            const pos = blockScript.getPosition();
+            const adjacents = [
+                { row: pos.row - 1, col: pos.col },
+                { row: pos.row + 1, col: pos.col },
+                { row: pos.row, col: pos.col - 1 },
+                { row: pos.row, col: pos.col + 1 }
+            ];
+            
+            for (const adj of adjacents) {
+                if (adj.row >= 0 && adj.row < 8 && adj.col >= 0 && adj.col < 8) {
+                    affectedPositions.add(`${adj.row},${adj.col}`);
+                }
+            }
+        }
+        
+        // Trigger onNearbyMatch for affected blocks
+        for (const posStr of affectedPositions) {
+            const [row, col] = posStr.split(',').map(Number);
+            const adjacentBlock = this.gridSystem.getBlockAt(row, col);
+            if (adjacentBlock) {
+                adjacentBlock.onNearbyMatch();
+            }
+        }
     }
 
     private onVictory(): void {

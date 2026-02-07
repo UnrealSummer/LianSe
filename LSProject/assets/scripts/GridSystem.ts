@@ -95,7 +95,30 @@ export class GridSystem extends Component {
         }
         
         this.removeInitialMatches();
-        console.log(`[GridSystem] Grid generated: ${this.gridSize}x${this.gridSize}, ${colorCount} colors`);
+        
+        // Apply obstacles
+        this.applyObstacles(obstacles);
+        
+        console.log(`[GridSystem] Grid generated: ${this.gridSize}x${this.gridSize}, ${colorCount} colors, ${obstacles.length} obstacles`);
+    }
+
+    /**
+     * Apply obstacles to grid
+     */
+    private applyObstacles(obstacles: any[]): void {
+        for (const obstacle of obstacles) {
+            const block = this.blocks[obstacle.row]?.[obstacle.col];
+            if (!block) continue;
+            
+            const blockScript = block.getComponent(Block);
+            if (!blockScript) continue;
+            
+            if (obstacle.type === 'frozen') {
+                blockScript.setFrozen(obstacle.level || 2);
+                console.log(`[GridSystem] Applied frozen obstacle at [${obstacle.row}, ${obstacle.col}]`);
+            }
+            // TODO: 添加其他障碍类型
+        }
     }
 
     /**
@@ -355,14 +378,21 @@ export class GridSystem extends Component {
             return;
         }
 
+        // Check if blocks can move
+        const block1Script = block1.getComponent(Block);
+        const block2Script = block2.getComponent(Block);
+        
+        if (!block1Script?.canMove() || !block2Script?.canMove()) {
+            console.log('[GridSystem] Cannot swap: block is frozen or immovable');
+            if (callback) callback();
+            return;
+        }
+
         // Swap in array
         this.blocks[row1][col1] = block2;
         this.blocks[row2][col2] = block1;
         
         // Update block scripts
-        const block1Script = block1.getComponent(Block);
-        const block2Script = block2.getComponent(Block);
-        
         if (block1Script) block1Script.setPosition(row2, col2);
         if (block2Script) block2Script.setPosition(row1, col1);
         
