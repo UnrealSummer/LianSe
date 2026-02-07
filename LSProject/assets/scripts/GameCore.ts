@@ -36,8 +36,6 @@ export class GameCore extends Component {
     private timeLeft: number = 0;
     private isGameRunning: boolean = false;
     private chainLevel: number = 0;
-    private chainTimeout: any = null;  // 连击超时计时器
-    private chainTimeLimit: number = 3;  // 连击时间限制（秒）
     private selectedBlock: { row: number, col: number } = null;
     private totalMoves: number = 0;
     private maxCombo: number = 0;
@@ -295,6 +293,9 @@ export class GameCore extends Component {
         
         this.totalMoves++; // Count move
         
+        // Reset chain level for new operation
+        this.resetChain();
+        
         // Swap blocks with animation
         this.gridSystem.swapBlocks(row1, col1, row2, col2, () => {
             // Check if there are matches after swap
@@ -316,12 +317,6 @@ export class GameCore extends Component {
 
     private processMatches(matches: Node[][]): void {
         this.chainLevel++;
-        
-        // 清除之前的超时计时器
-        if (this.chainTimeout) {
-            clearTimeout(this.chainTimeout);
-            this.chainTimeout = null;
-        }
         
         let totalDamage = 0;
         let allBlocks = matches.flat();
@@ -437,9 +432,16 @@ export class GameCore extends Component {
                     console.log(`[GameCore] Chain continues! Found ${chainMatches.length} more matches`);
                     this.processMatches(chainMatches);
                 } else {
-                    // Chain ended, start timeout
-                    console.log(`[GameCore] No more matches, waiting ${this.chainTimeLimit}s for chain timeout...`);
-                    this.startChainTimeout();
+                    // Chain ended for this operation
+                    if (this.chainLevel > 1) {
+                        console.log(`[GameCore] ⭐ Chain ended! Total combo: x${this.chainLevel}`);
+                        if (this.chainLevel > this.maxCombo) {
+                            this.maxCombo = this.chainLevel;
+                        }
+                    }
+                    
+                    // Reset chain for next operation
+                    this.chainLevel = 0;
                     this.gridSystem.setProcessing(false);
                     
                     if (this.enemySystem.isDead()) {
@@ -451,40 +453,12 @@ export class GameCore extends Component {
     }
 
     /**
-     * 开始连击超时计时
-     */
-    private startChainTimeout(): void {
-        // 清除之前的计时器
-        if (this.chainTimeout) {
-            clearTimeout(this.chainTimeout);
-        }
-        
-        // 设置新的超时计时器
-        this.chainTimeout = setTimeout(() => {
-            if (this.chainLevel > 1) {
-                console.log(`[GameCore] ⭐ Chain timeout! Total combo: x${this.chainLevel}`);
-                if (this.chainLevel > this.maxCombo) {
-                    this.maxCombo = this.chainLevel;
-                }
-            }
-            this.chainLevel = 0;
-            this.chainTimeout = null;
-        }, this.chainTimeLimit * 1000);
-    }
-
-    /**
      * 重置连击
      */
     private resetChain(): void {
-        if (this.chainTimeout) {
-            clearTimeout(this.chainTimeout);
-            this.chainTimeout = null;
+        if (this.chainLevel > 0) {
+            console.log(`[GameCore] Chain reset (was x${this.chainLevel})`);
         }
-        
-        if (this.chainLevel > 1) {
-            console.log(`[GameCore] Chain reset at x${this.chainLevel}`);
-        }
-        
         this.chainLevel = 0;
     }
 
