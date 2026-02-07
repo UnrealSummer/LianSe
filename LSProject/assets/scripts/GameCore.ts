@@ -235,6 +235,13 @@ export class GameCore extends Component {
         // Generate grid with progressive colors
         this.gridSystem.generateGrid(levelConfig.colorCount, levelConfig.obstacles);
         
+        // Apply rainbow blessing modifier (add rainbow block after grid generation)
+        if (this.modifierSystem.hasModifier('rainbow_blessing')) {
+            this.scheduleOnce(() => {
+                this.addRandomRainbowBlock();
+            }, 0.5);  // Wait for grid to settle
+        }
+        
         // Generate enemy
         const enemyData = this.progressionManager.getCurrentEnemy();
         this.enemySystem.initEnemy(enemyData);
@@ -512,6 +519,21 @@ export class GameCore extends Component {
             if (adjacentBlock) {
                 adjacentBlock.onNearbyMatch();
             }
+        }
+    }
+
+    /**
+     * 添加随机彩虹方块（彩虹祝福词条）
+     */
+    private addRandomRainbowBlock(): void {
+        // Get random position
+        const row = Math.floor(Math.random() * 8);
+        const col = Math.floor(Math.random() * 8);
+        
+        const block = this.gridSystem.getBlockAt(row, col);
+        if (block) {
+            block.setRainbow();
+            console.log(`[GameCore] 🌈 Rainbow Blessing: Added rainbow block at [${row}, ${col}]`);
         }
     }
 
