@@ -283,6 +283,7 @@ export class GameCore extends Component {
         this.chainLevel++;
         let totalDamage = 0;
         let allBlocks = matches.flat();
+        let hasCritical = false;
 
         // Check for rainbow blocks and add line/column clear
         const rainbowBlocks = allBlocks.filter(block => {
@@ -312,24 +313,37 @@ export class GameCore extends Component {
                 chainLevel: this.chainLevel,
                 count: match.length,
                 matchType: 'normal',
-                baseDamage: 0
+                baseDamage: 0,
+                isCritical: false
             };
             
             // Apply modifier onMatch hooks
             matchData = this.modifierSystem.triggerMatch(matchData);
             
             const damage = this.damageSystem.calculateMatchDamage(matchData);
-            totalDamage += damage;
             
-            // Show damage number
-            if (this.effectManager && match.length > 0) {
-                const firstBlock = match[0];
-                const pos = firstBlock.getPosition();
-                this.effectManager.showDamage(damage, pos, false);
+            // Check if critical
+            if (matchData.isCritical) {
+                hasCritical = true;
             }
+            
+            totalDamage += damage;
         }
 
-        console.log(`[GameCore] Chain ${this.chainLevel}: ${totalDamage} damage`);
+        console.log(`[GameCore] Chain ${this.chainLevel}: ${totalDamage} damage${hasCritical ? ' 💥 CRITICAL!' : ''}`);
+        
+        // Show damage number at enemy position
+        if (this.effectManager && totalDamage > 0 && this.enemySystem) {
+            const enemyPos = this.enemySystem.node.getPosition();
+            // Add random offset to avoid overlap
+            const offsetX = (Math.random() - 0.5) * 50;
+            const offsetY = (Math.random() - 0.5) * 30;
+            const damagePos = enemyPos.clone();
+            damagePos.x += offsetX;
+            damagePos.y += offsetY;
+            
+            this.effectManager.showDamage(totalDamage, damagePos, hasCritical);
+        }
         
         // Show chain combo
         if (this.chainLevel > 1) {

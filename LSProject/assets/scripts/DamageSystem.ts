@@ -23,6 +23,7 @@ export class DamageSystem extends Component {
         // 1. 基础伤害（根据消除数量）
         let baseDamage = this.getBaseDamage(matchData.count, matchData.matchType);
         matchData.baseDamage = baseDamage;
+        matchData.isCritical = false;
 
         // 2. 词条修改消除数据
         if (this.modifierSystem) {
@@ -42,9 +43,15 @@ export class DamageSystem extends Component {
 
         let damage = baseDamage * chainMultiplier;
 
-        // 4. 词条最终修改伤害
+        // 4. 词条最终修改伤害（包括暴击）
         if (this.modifierSystem) {
+            const originalDamage = damage;
             damage = this.modifierSystem.calculateDamage(damage);
+            
+            // 如果伤害翻倍，判定为暴击
+            if (damage >= originalDamage * 1.8) {
+                matchData.isCritical = true;
+            }
         }
 
         return Math.floor(damage);

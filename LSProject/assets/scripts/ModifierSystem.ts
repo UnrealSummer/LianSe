@@ -33,6 +33,7 @@ export interface MatchData {
     chainLevel: number;     // 连锁层数
     matchType: string;      // 消除类型
     baseDamage: number;     // 基础伤害
+    isCritical?: boolean;   // 是否暴击
 }
 
 /**
