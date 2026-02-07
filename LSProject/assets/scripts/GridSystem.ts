@@ -8,16 +8,16 @@ const { ccclass, property } = _decorator;
  */
 @ccclass('GridSystem')
 export class GridSystem extends Component {
-    @property(Prefab)
+    @property({ type: Prefab, tooltip: '方块预制体' })
     blockPrefab: Prefab = null;
 
-    @property
+    @property({ tooltip: '网格大小（8表示8×8）' })
     gridSize: number = 8;
     
     @property({ tooltip: '屏幕宽度占比（0-1），推荐0.9' })
     screenWidthRatio: number = 0.9;
     
-    @property({ tooltip: '屏幕高度占比（0-1），推荐0.5-0.6' })
+    @property({ tooltip: '屏幕高度占比（0-1），推荐0.45-0.55' })
     screenHeightRatio: number = 0.55;
     
     @property({ tooltip: '方块间隔比例（0-1），推荐0.15-0.25' })

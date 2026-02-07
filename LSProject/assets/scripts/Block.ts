@@ -35,6 +35,9 @@ export class Block extends Component {
     @property(Sprite)
     sprite: Sprite = null;
 
+    @property({ tooltip: '选中时的缩放倍数（推荐1.05-1.15）' })
+    selectedScale: number = 1.1;
+
     private colorType: ColorType;
     private row: number;
     private col: number;
@@ -89,7 +92,7 @@ export class Block extends Component {
         this.isSelected = selected;
         
         if (selected) {
-            this.node.setScale(1.1, 1.1, 1);  // 从1.15改成1.1
+            this.node.setScale(this.selectedScale, this.selectedScale, 1);
         } else {
             this.node.setScale(1, 1, 1);
         }

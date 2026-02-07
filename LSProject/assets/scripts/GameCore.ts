@@ -12,7 +12,7 @@ const { ccclass, property } = _decorator;
  */
 @ccclass('GameCore')
 export class GameCore extends Component {
-    @property
+    @property({ tooltip: '每关时间限制（秒）' })
     timeLimit: number = 60;
 
     private gridSystem: GridSystem = null;
