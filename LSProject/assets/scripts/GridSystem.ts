@@ -263,6 +263,12 @@ export class GridSystem extends Component {
         if (block1Script) block1Script.setPosition(row2, col2);
         if (block2Script) block2Script.setPosition(row1, col1);
         
+        // Reset scale before swap (in case block was selected)
+        const originalScale1 = block1.scale.clone();
+        const originalScale2 = block2.scale.clone();
+        block1.setScale(1, 1, 1);
+        block2.setScale(1, 1, 1);
+        
         // Animate swap
         const pos1 = block1.getPosition();
         const pos2 = block2.getPosition();
