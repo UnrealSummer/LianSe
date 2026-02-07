@@ -12,32 +12,17 @@ const { ccclass, property } = _decorator;
  */
 @ccclass('GameCore')
 export class GameCore extends Component {
-    @property(GridSystem)
-    gridSystem: GridSystem = null;
-
-    @property(EnemySystem)
-    enemySystem: EnemySystem = null;
-
-    @property(DamageSystem)
-    damageSystem: DamageSystem = null;
-
-    @property(ModifierSystem)
-    modifierSystem: ModifierSystem = null;
-
-    @property(ProgressionManager)
-    progressionManager: ProgressionManager = null;
-
-    @property(Label)
-    timeLabel: Label = null;
-
-    @property(Label)
-    goldLabel: Label = null;
-
-    @property(Label)
-    stageLabel: Label = null;
-
     @property
     timeLimit: number = 60;
+
+    private gridSystem: GridSystem = null;
+    private enemySystem: EnemySystem = null;
+    private damageSystem: DamageSystem = null;
+    private modifierSystem: ModifierSystem = null;
+    private progressionManager: ProgressionManager = null;
+    private timeLabel: Label = null;
+    private goldLabel: Label = null;
+    private stageLabel: Label = null;
 
     private timeLeft: number = 0;
     private isGameRunning: boolean = false;

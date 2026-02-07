@@ -13,19 +13,18 @@ export class GridSystem extends Component {
 
     @property
     gridSize: number = 8;
-
-    @property
-    blockSize: number = 60;
-
-    @property
-    spacing: number = 8;
     
     @property
     maxGridWidth: number = 600;
     
     @property
     maxGridHeight: number = 600;
+    
+    @property({ tooltip: '方块间隔比例（0-1），推荐0.15-0.25' })
+    spacingRatio: number = 0.2;
 
+    private blockSize: number = 60;
+    private spacing: number = 8;
     private blocks: Node[][] = [];
     private isProcessing: boolean = false;
 
@@ -37,18 +36,16 @@ export class GridSystem extends Component {
      * Calculate adaptive block size and spacing
      */
     private calculateAdaptiveSize(): void {
-        const spacingRatio = 0.18;
-        
         const availableWidth = this.maxGridWidth;
         const availableHeight = this.maxGridHeight;
         
-        const widthBlockSize = availableWidth / (this.gridSize + (this.gridSize - 1) * spacingRatio);
-        const heightBlockSize = availableHeight / (this.gridSize + (this.gridSize - 1) * spacingRatio);
+        const widthBlockSize = availableWidth / (this.gridSize + (this.gridSize - 1) * this.spacingRatio);
+        const heightBlockSize = availableHeight / (this.gridSize + (this.gridSize - 1) * this.spacingRatio);
         
         this.blockSize = Math.floor(Math.min(widthBlockSize, heightBlockSize));
-        this.spacing = Math.floor(this.blockSize * spacingRatio);
+        this.spacing = Math.floor(this.blockSize * this.spacingRatio);
         
-        console.log(`[GridSystem] Adaptive size: blockSize=${this.blockSize}, spacing=${this.spacing}`);
+        console.log(`[GridSystem] Adaptive size: blockSize=${this.blockSize}, spacing=${this.spacing}, ratio=${this.spacingRatio}`);
     }
 
     /**
@@ -68,6 +65,9 @@ export class GridSystem extends Component {
             for (let col = 0; col < this.gridSize; col++) {
                 const block = instantiate(this.blockPrefab);
                 block.setParent(this.node);
+                
+                // Set block size
+                block.setScale(this.blockSize / 60, this.blockSize / 60, 1);
                 
                 const x = startX + col * (this.blockSize + this.spacing);
                 const y = startY - row * (this.blockSize + this.spacing);
