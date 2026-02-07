@@ -535,4 +535,23 @@ export class GridSystem extends Component {
     setProcessing(value: boolean): void {
         this.isProcessing = value;
     }
+
+    /**
+     * Clear all blocks from grid
+     */
+    clearGrid(): void {
+        console.log('[GridSystem] Clearing grid...');
+        
+        for (let row = 0; row < this.gridSize; row++) {
+            for (let col = 0; col < this.gridSize; col++) {
+                const block = this.blocks[row][col];
+                if (block && block.isValid) {
+                    block.destroy();
+                }
+            }
+        }
+        
+        this.blocks = [];
+        console.log('[GridSystem] Grid cleared');
+    }
 }

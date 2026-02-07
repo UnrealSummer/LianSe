@@ -564,12 +564,15 @@ export class GameCore extends Component {
         this.modifierSystem.addModifier(modifier);
         console.log(`[GameCore] ✅ Selected: ${modifier.name}`);
         
+        // Immediately clear old grid
+        this.gridSystem.clearGrid();
+        
         // Next stage
         this.progressionManager.nextStage();
-        setTimeout(() => {
-            console.log('[GameCore] Starting next stage...');
-            this.startStage();
-        }, 1000);
+        
+        // Start new stage immediately
+        console.log('[GameCore] Starting next stage...');
+        this.startStage();
     }
 
     private onTimeUp(): void {
