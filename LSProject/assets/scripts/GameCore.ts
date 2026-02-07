@@ -8,6 +8,7 @@ import { ModifierSelectionUI } from './ModifierSelectionUI';
 import { EffectManager } from './EffectManager';
 import { CoinSystem } from './CoinSystem';
 import { GameOverUI } from './GameOverUI';
+import { AudioManager } from './AudioManager';
 const { ccclass, property } = _decorator;
 
 /**
@@ -31,6 +32,7 @@ export class GameCore extends Component {
     private effectManager: EffectManager = null;
     private coinSystem: CoinSystem = null;
     private gameOverUI: GameOverUI = null;
+    private audioManager: AudioManager = null;
     private timeLabel: Label = null;
     private goldLabel: Label = null;
     private stageLabel: Label = null;
@@ -109,6 +111,12 @@ export class GameCore extends Component {
             this.gameOverUI = gameOverUINode.getComponent(GameOverUI);
         }
         
+        // Auto-find AudioManager
+        const audioManagerNode = this.node.parent.getChildByName('AudioManager');
+        if (audioManagerNode) {
+            this.audioManager = audioManagerNode.getComponent(AudioManager);
+        }
+        
         console.log('[GameCore] Components found:', {
             gridSystem: !!this.gridSystem,
             enemySystem: !!this.enemySystem,
@@ -118,7 +126,8 @@ export class GameCore extends Component {
             modifierSelectionUI: !!this.modifierSelectionUI,
             effectManager: !!this.effectManager,
             coinSystem: !!this.coinSystem,
-            gameOverUI: !!this.gameOverUI
+            gameOverUI: !!this.gameOverUI,
+            audioManager: !!this.audioManager
         });
         
         // Check if all required components are found
@@ -398,6 +407,11 @@ export class GameCore extends Component {
 
         console.log(`[GameCore] Chain ${this.chainLevel}: ${totalDamage} damage${hasCritical ? ' 💥 CRITICAL!' : ''}`);
         
+        // Play match sound
+        if (this.audioManager) {
+            this.audioManager.playMatch();
+        }
+        
         // Show damage number at enemy position
         if (this.effectManager && totalDamage > 0 && this.enemySystem) {
             const enemyPos = this.enemySystem.node.getPosition();
@@ -415,6 +429,11 @@ export class GameCore extends Component {
         if (this.chainLevel > 1) {
             console.log(`[GameCore] 🔥 COMBO x${this.chainLevel}!`);
             
+            // Play combo sound
+            if (this.audioManager) {
+                this.audioManager.playCombo();
+            }
+            
             // Show combo effect
             if (this.effectManager && this.enemySystem) {
                 const enemyPos = this.enemySystem.node.getPosition();
@@ -424,6 +443,11 @@ export class GameCore extends Component {
         
         // Apply damage to enemy
         this.enemySystem.takeDamage(totalDamage);
+        
+        // Play attack sound
+        if (this.audioManager && totalDamage > 0) {
+            this.audioManager.playAttack();
+        }
         
         // Check if enemy died from this damage
         if (this.enemySystem.isDead()) {
@@ -588,6 +612,11 @@ export class GameCore extends Component {
         console.log('[GameCore] Victory! Stage completed!');
         console.log(`[GameCore] Stats: ${this.totalMoves} moves, max combo x${this.maxCombo}`);
         
+        // Play victory sound
+        if (this.audioManager) {
+            this.audioManager.playVictory();
+        }
+        
         // Big coin drop on kill
         let killReward = 0;
         if (this.coinSystem) {
@@ -693,6 +722,11 @@ export class GameCore extends Component {
     private onDefeat(): void {
         console.log('[GameCore] Defeat! Enemy survived!');
         console.log(`[GameCore] Enemy HP: ${this.enemySystem.getCurrentHp()} / ${this.enemySystem.getMaxHp()}`);
+        
+        // Play defeat sound
+        if (this.audioManager) {
+            this.audioManager.playDefeat();
+        }
         
         // Show game over UI if available
         if (this.gameOverUI) {
