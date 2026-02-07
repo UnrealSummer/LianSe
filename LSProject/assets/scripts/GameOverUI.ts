@@ -1,145 +1,141 @@
 import { _decorator, Component, Node, Label, Button } from 'cc';
-import { DataManager } from './DataManager';
 const { ccclass, property } = _decorator;
 
 /**
- * 游戏结束结算界面
+ * 游戏结束UI
  */
 @ccclass('GameOverUI')
 export class GameOverUI extends Component {
-    @property({ type: Node })
-    panel: Node = null; // 结算面板
-    
-    // 本次成绩
-    @property({ type: Label })
-    stageLabel: Label = null; // 关卡进度
-    
-    @property({ type: Label })
-    scoreLabel: Label = null; // 总分数
-    
-    @property({ type: Label })
-    goldLabel: Label = null; // 总金币
-    
-    // 历史最佳
-    @property({ type: Label })
-    bestStageLabel: Label = null; // 最高关卡
-    
-    @property({ type: Label })
-    bestScoreLabel: Label = null; // 最高分数
-    
-    // 新纪录提示
-    @property({ type: Node })
-    newRecordNode: Node = null; // "新纪录！"提示
-    
-    // 按钮
-    @property({ type: Button })
-    restartButton: Button = null; // 重新开始
-    
-    @property({ type: Button })
-    menuButton: Button = null; // 返回主菜单（可选）
-    
-    private onRestartCallback: (() => void) | null = null;
-    
+    @property(Node)
+    victoryPanel: Node = null;
+
+    @property(Node)
+    defeatPanel: Node = null;
+
+    @property(Label)
+    victoryStageLabel: Label = null;
+
+    @property(Label)
+    victoryStatsLabel: Label = null;
+
+    @property(Label)
+    victoryCoinLabel: Label = null;
+
+    @property(Label)
+    defeatStageLabel: Label = null;
+
+    @property(Label)
+    defeatStatsLabel: Label = null;
+
+    @property(Button)
+    victoryNextButton: Button = null;
+
+    @property(Button)
+    defeatRestartButton: Button = null;
+
+    private onNextCallback: () => void = null;
+    private onRestartCallback: () => void = null;
+
     start() {
+        // Hide by default
         this.hide();
-        
-        // 绑定按钮事件
-        if (this.restartButton) {
-            this.restartButton.node.on(Button.EventType.CLICK, this.onRestartClicked, this);
+
+        // Setup button events
+        if (this.victoryNextButton) {
+            this.victoryNextButton.node.on(Node.EventType.TOUCH_END, () => {
+                this.onNextClicked();
+            });
         }
-        
-        if (this.menuButton) {
-            this.menuButton.node.on(Button.EventType.CLICK, this.onMenuClicked, this);
+
+        if (this.defeatRestartButton) {
+            this.defeatRestartButton.node.on(Node.EventType.TOUCH_END, () => {
+                this.onRestartClicked();
+            });
         }
     }
-    
+
     /**
-     * 显示结算界面
-     * @param stage 本次关卡
-     * @param score 本次分数
-     * @param gold 本次金币
-     * @param onRestart 重新开始回调
+     * 显示胜利界面
      */
-    show(stage: number, score: number, gold: number, onRestart?: () => void): void {
-        this.onRestartCallback = onRestart || null;
-        
-        // 获取历史最佳
-        const dataManager = DataManager.getInstance();
-        const playerData = dataManager ? dataManager.getPlayerData() : null;
-        
-        // 显示本次成绩
-        if (this.stageLabel) {
-            this.stageLabel.string = `第 ${stage} 关`;
+    showVictory(stage: number, stats: { moves: number, maxCombo: number, coins: number }, onNext: () => void): void {
+        this.onNextCallback = onNext;
+
+        if (this.victoryStageLabel) {
+            this.victoryStageLabel.string = `第${stage}关 完成！`;
         }
-        
-        if (this.scoreLabel) {
-            this.scoreLabel.string = score.toString();
+
+        if (this.victoryStatsLabel) {
+            this.victoryStatsLabel.string = `移动次数: ${stats.moves}\n最大连击: x${stats.maxCombo}`;
         }
-        
-        if (this.goldLabel) {
-            this.goldLabel.string = gold.toString();
+
+        if (this.victoryCoinLabel) {
+            this.victoryCoinLabel.string = `获得金币: ${stats.coins}`;
         }
-        
-        // 显示历史最佳
-        if (playerData) {
-            if (this.bestStageLabel) {
-                this.bestStageLabel.string = `第 ${playerData.highestStage} 关`;
-            }
-            
-            if (this.bestScoreLabel) {
-                this.bestScoreLabel.string = playerData.highestScore.toString();
-            }
-            
-            // 检查是否新纪录
-            const isNewRecord = stage > playerData.highestStage || score > playerData.highestScore;
-            if (this.newRecordNode) {
-                this.newRecordNode.active = isNewRecord;
-            }
-            
-            if (isNewRecord) {
-                console.log('🎉 新纪录！');
-            }
+
+        if (this.victoryPanel) {
+            this.victoryPanel.active = true;
         }
-        
-        // 显示面板
-        if (this.panel) {
-            this.panel.active = true;
+
+        if (this.defeatPanel) {
+            this.defeatPanel.active = false;
         }
-        
-        console.log('[GameOverUI] 结算界面已显示');
+
+        this.node.active = true;
+        console.log('[GameOverUI] Showing victory');
     }
-    
+
     /**
-     * 隐藏结算界面
+     * 显示失败界面
+     */
+    showDefeat(stage: number, stats: { moves: number, maxCombo: number }, onRestart: () => void): void {
+        this.onRestartCallback = onRestart;
+
+        if (this.defeatStageLabel) {
+            this.defeatStageLabel.string = `第${stage}关 失败`;
+        }
+
+        if (this.defeatStatsLabel) {
+            this.defeatStatsLabel.string = `移动次数: ${stats.moves}\n最大连击: x${stats.maxCombo}`;
+        }
+
+        if (this.victoryPanel) {
+            this.victoryPanel.active = false;
+        }
+
+        if (this.defeatPanel) {
+            this.defeatPanel.active = true;
+        }
+
+        this.node.active = true;
+        console.log('[GameOverUI] Showing defeat');
+    }
+
+    /**
+     * 隐藏UI
      */
     hide(): void {
-        if (this.panel) {
-            this.panel.active = false;
-        }
-        
-        if (this.newRecordNode) {
-            this.newRecordNode.active = false;
+        this.node.active = false;
+    }
+
+    /**
+     * 下一关按钮点击
+     */
+    private onNextClicked(): void {
+        console.log('[GameOverUI] Next clicked');
+        this.hide();
+        if (this.onNextCallback) {
+            this.onNextCallback();
         }
     }
-    
+
     /**
      * 重新开始按钮点击
      */
     private onRestartClicked(): void {
-        console.log('[GameOverUI] 重新开始');
+        console.log('[GameOverUI] Restart clicked');
         this.hide();
-        
         if (this.onRestartCallback) {
             this.onRestartCallback();
         }
-    }
-    
-    /**
-     * 返回主菜单按钮点击
-     */
-    private onMenuClicked(): void {
-        console.log('[GameOverUI] 返回主菜单');
-        // TODO: 实现返回主菜单
-        this.hide();
     }
 }

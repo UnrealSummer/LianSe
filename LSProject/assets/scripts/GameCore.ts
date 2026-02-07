@@ -7,6 +7,7 @@ import { ProgressionManager } from './ProgressionManager';
 import { ModifierSelectionUI } from './ModifierSelectionUI';
 import { EffectManager } from './EffectManager';
 import { CoinSystem } from './CoinSystem';
+import { GameOverUI } from './GameOverUI';
 const { ccclass, property } = _decorator;
 
 /**
@@ -29,6 +30,7 @@ export class GameCore extends Component {
     private modifierSelectionUI: ModifierSelectionUI = null;
     private effectManager: EffectManager = null;
     private coinSystem: CoinSystem = null;
+    private gameOverUI: GameOverUI = null;
     private timeLabel: Label = null;
     private goldLabel: Label = null;
     private stageLabel: Label = null;
@@ -101,6 +103,12 @@ export class GameCore extends Component {
             this.effectManager = effectManagerNode.getComponent(EffectManager);
         }
         
+        // Auto-find GameOverUI
+        const gameOverUINode = this.node.parent.getChildByName('GameOverUI');
+        if (gameOverUINode) {
+            this.gameOverUI = gameOverUINode.getComponent(GameOverUI);
+        }
+        
         console.log('[GameCore] Components found:', {
             gridSystem: !!this.gridSystem,
             enemySystem: !!this.enemySystem,
@@ -109,7 +117,8 @@ export class GameCore extends Component {
             progressionManager: !!this.progressionManager,
             modifierSelectionUI: !!this.modifierSelectionUI,
             effectManager: !!this.effectManager,
-            coinSystem: !!this.coinSystem
+            coinSystem: !!this.coinSystem,
+            gameOverUI: !!this.gameOverUI
         });
         
         // Check if all required components are found
@@ -580,9 +589,10 @@ export class GameCore extends Component {
         console.log(`[GameCore] Stats: ${this.totalMoves} moves, max combo x${this.maxCombo}`);
         
         // Big coin drop on kill
+        let killReward = 0;
         if (this.coinSystem) {
             const currentStage = this.progressionManager.getCurrentStage();
-            let killReward = 50 + (currentStage * 10);  // 基础50 + 关卡*10
+            killReward = 50 + (currentStage * 10);  // 基础50 + 关卡*10
             
             // Bonus for time remaining
             const timeBonus = Math.floor(this.timeLeft * 2);
@@ -597,8 +607,25 @@ export class GameCore extends Component {
             console.log(`[GameCore] 💰💰💰 KILL REWARD: ${killReward} coins! (Time bonus: ${timeBonus})`);
         }
         
-        // Show modifier selection
-        this.showModifierSelection();
+        // Show game over UI if available
+        if (this.gameOverUI) {
+            const currentStage = this.progressionManager.getCurrentStage();
+            this.gameOverUI.showVictory(
+                currentStage,
+                {
+                    moves: this.totalMoves,
+                    maxCombo: this.maxCombo,
+                    coins: killReward
+                },
+                () => {
+                    // On next clicked
+                    this.showModifierSelection();
+                }
+            );
+        } else {
+            // Fallback: show modifier selection directly
+            this.showModifierSelection();
+        }
     }
 
     /**
@@ -667,12 +694,27 @@ export class GameCore extends Component {
         console.log('[GameCore] Defeat! Enemy survived!');
         console.log(`[GameCore] Enemy HP: ${this.enemySystem.getCurrentHp()} / ${this.enemySystem.getMaxHp()}`);
         
-        // TODO: Show game over UI
-        // For now, restart after delay
-        setTimeout(() => {
-            console.log('[GameCore] Restarting game...');
-            this.startNewGame();
-        }, 2000);
+        // Show game over UI if available
+        if (this.gameOverUI) {
+            const currentStage = this.progressionManager.getCurrentStage();
+            this.gameOverUI.showDefeat(
+                currentStage,
+                {
+                    moves: this.totalMoves,
+                    maxCombo: this.maxCombo
+                },
+                () => {
+                    // On restart clicked
+                    this.startNewGame();
+                }
+            );
+        } else {
+            // Fallback: restart after delay
+            setTimeout(() => {
+                console.log('[GameCore] Restarting game...');
+                this.startNewGame();
+            }, 2000);
+        }
     }
 
     private updateUI(): void {
