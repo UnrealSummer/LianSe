@@ -54,7 +54,12 @@ export class LevelGenerator extends Component {
             obstacles.push(...this.createFrozenObstacles(frozenCount));
         }
         
-        // TODO: 第11关开始：石头方块
+        // 第11关开始：石头方块
+        if (stage >= 11) {
+            const stoneCount = this.getStoneCount(stage);
+            obstacles.push(...this.createStoneObstacles(stoneCount));
+        }
+        
         // TODO: 第13关开始：锁链方块
         
         return obstacles;
@@ -71,6 +76,15 @@ export class LevelGenerator extends Component {
     }
 
     /**
+     * 获取石头方块数量
+     */
+    private getStoneCount(stage: number): number {
+        if (stage < 11) return 0;
+        if (stage < 16) return 2 + Math.floor((stage - 11) / 2);  // 11-15关：2-4个
+        return 3 + Math.floor((stage - 16) / 2);  // 16+关：3-5个
+    }
+
+    /**
      * 创建冰冻障碍
      */
     private createFrozenObstacles(count: number): ObstacleConfig[] {
@@ -83,6 +97,24 @@ export class LevelGenerator extends Component {
                 row: pos.row,
                 col: pos.col,
                 level: 2  // 需要解冻2次
+            });
+        }
+        
+        return obstacles;
+    }
+
+    /**
+     * 创建石头障碍
+     */
+    private createStoneObstacles(count: number): ObstacleConfig[] {
+        const obstacles: ObstacleConfig[] = [];
+        const positions = this.getRandomPositions(count);
+        
+        for (const pos of positions) {
+            obstacles.push({
+                type: 'stone',
+                row: pos.row,
+                col: pos.col
             });
         }
         

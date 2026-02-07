@@ -176,6 +176,21 @@ export class Block extends Component {
     }
 
     /**
+     * 设置为石头方块
+     */
+    setStone(): void {
+        this.blockType = BlockType.STONE;
+        
+        console.log(`[Block] Setting stone at [${this.row}, ${this.col}]`);
+        
+        // Change to gray color
+        if (this.sprite) {
+            this.sprite.color = new Color(100, 100, 100, 255);  // 深灰色
+            console.log(`[Block] Changed color to gray at [${this.row}, ${this.col}]`);
+        }
+    }
+
+    /**
      * 创建冰冻覆盖层
      */
     private createFrozenOverlay(): void {

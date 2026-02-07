@@ -116,6 +116,9 @@ export class GridSystem extends Component {
             if (obstacle.type === 'frozen') {
                 blockScript.setFrozen(obstacle.level || 2);
                 console.log(`[GridSystem] Applied frozen obstacle at [${obstacle.row}, ${obstacle.col}]`);
+            } else if (obstacle.type === 'stone') {
+                blockScript.setStone();
+                console.log(`[GridSystem] Applied stone obstacle at [${obstacle.row}, ${obstacle.col}]`);
             }
             // TODO: 添加其他障碍类型
         }
@@ -196,6 +199,9 @@ export class GridSystem extends Component {
 
         const blockScript = block.getComponent(Block);
         if (!blockScript) return [];
+        
+        // Stone blocks cannot match
+        if (!blockScript.canMatch()) return [];
 
         const color = blockScript.getColorType();
         const matches: Node[] = [block];
@@ -230,7 +236,12 @@ export class GridSystem extends Component {
             if (!block || !block.isValid) break;
 
             const blockScript = block.getComponent(Block);
-            if (!blockScript || blockScript.getColorType() !== color) break;
+            if (!blockScript) break;
+            
+            // Stone blocks cannot match
+            if (!blockScript.canMatch()) break;
+            
+            if (blockScript.getColorType() !== color) break;
 
             matches.push(block);
             r += dRow;
