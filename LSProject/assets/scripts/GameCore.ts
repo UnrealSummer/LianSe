@@ -239,14 +239,41 @@ export class GameCore extends Component {
 
     private onVictory(): void {
         this.isGameRunning = false;
-        console.log('[GameCore] Victory!');
+        console.log('[GameCore] Victory! Stage completed!');
+        
+        // Show victory message
+        console.log(`[GameCore] Stage ${this.progressionManager.getCurrentStage()} cleared!`);
+        
+        // Next stage after delay
         this.progressionManager.nextStage();
-        setTimeout(() => this.startStage(), 1000);
+        setTimeout(() => {
+            console.log('[GameCore] Starting next stage...');
+            this.startStage();
+        }, 2000);
     }
 
     private onTimeUp(): void {
         this.isGameRunning = false;
-        console.log('[GameCore] Time up!');
+        console.log('[GameCore] Time up! Game Over!');
+        
+        // Check if enemy is dead (victory) or alive (defeat)
+        if (this.enemySystem.isDead()) {
+            this.onVictory();
+        } else {
+            this.onDefeat();
+        }
+    }
+
+    private onDefeat(): void {
+        console.log('[GameCore] Defeat! Enemy survived!');
+        console.log(`[GameCore] Enemy HP: ${this.enemySystem.getCurrentHp()} / ${this.enemySystem.getMaxHp()}`);
+        
+        // TODO: Show game over UI
+        // For now, restart after delay
+        setTimeout(() => {
+            console.log('[GameCore] Restarting game...');
+            this.startNewGame();
+        }, 2000);
     }
 
     private updateUI(): void {

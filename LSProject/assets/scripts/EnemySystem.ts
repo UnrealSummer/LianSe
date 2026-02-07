@@ -33,6 +33,8 @@ export class EnemySystem extends Component {
      * 初始化敌人
      */
     initEnemy(data: EnemyData): void {
+        this.reset(); // Reset first
+        
         this.enemyData = data;
         this.maxHp = data.maxHp;
         this.currentHp = data.maxHp;
