@@ -216,27 +216,128 @@ export class GridSystem extends Component {
     }
 
     /**
-     * Remove blocks
+     * Remove blocks with animation
      */
-    removeBlocks(blocks: Node[]): void {
+    removeBlocks(blocks: Node[]): Promise<void> {
+        const removeAnimations: Promise<void>[] = [];
+        
         blocks.forEach(block => {
             const blockScript = block.getComponent(Block);
             if (blockScript) {
                 const pos = blockScript.getPosition();
                 this.blocks[pos.row][pos.col] = null;
-                block.destroy();
+                
+                // Animate removal
+                const promise = new Promise<void>((resolve) => {
+                    import('cc').then(({ tween, Vec3 }) => {
+                        tween(block)
+                            .to(0.2, { scale: new Vec3(0, 0, 1) }, { easing: 'backIn' })
+                            .call(() => {
+                                block.destroy();
+                                resolve();
+                            })
+                            .start();
+                    });
+                });
+                removeAnimations.push(promise);
             }
         });
+        
+        return Promise.all(removeAnimations).then(() => {});
     }
 
     /**
-     * Drop blocks
+     * Drop blocks and fill empty spaces
      */
     dropBlocks(callback: Function): void {
-        // TODO: Implement drop logic
-        setTimeout(() => {
+        let hasDropped = false;
+        const dropAnimations: Promise<void>[] = [];
+
+        // Drop existing blocks
+        for (let col = 0; col < this.gridSize; col++) {
+            let emptyRow = this.gridSize - 1;
+            
+            for (let row = this.gridSize - 1; row >= 0; row--) {
+                if (this.blocks[row][col] !== null) {
+                    if (row !== emptyRow) {
+                        // Move block down
+                        const block = this.blocks[row][col];
+                        this.blocks[emptyRow][col] = block;
+                        this.blocks[row][col] = null;
+                        
+                        const blockScript = block.getComponent(Block);
+                        if (blockScript) {
+                            blockScript.setPosition(emptyRow, col);
+                        }
+                        
+                        // Animate drop
+                        const targetY = this.calculateBlockY(emptyRow);
+                        dropAnimations.push(this.animateDrop(block, targetY));
+                        hasDropped = true;
+                    }
+                    emptyRow--;
+                }
+            }
+        }
+
+        // Fill empty spaces with new blocks
+        for (let col = 0; col < this.gridSize; col++) {
+            for (let row = 0; row < this.gridSize; row++) {
+                if (this.blocks[row][col] === null) {
+                    const block = instantiate(this.blockPrefab);
+                    block.setParent(this.node);
+                    
+                    const baseScale = this.blockSize / 60;
+                    block.setScale(baseScale, baseScale, 1);
+                    
+                    const x = this.calculateBlockX(col);
+                    const startY = this.calculateBlockY(-1); // Start above grid
+                    const targetY = this.calculateBlockY(row);
+                    block.setPosition(new Vec3(x, startY, 0));
+                    
+                    const blockScript = block.getComponent(Block);
+                    if (blockScript) {
+                        const color = Math.floor(Math.random() * 3); // TODO: Use colorCount
+                        blockScript.init(row, col, color);
+                    }
+                    
+                    this.blocks[row][col] = block;
+                    dropAnimations.push(this.animateDrop(block, targetY));
+                    hasDropped = true;
+                }
+            }
+        }
+
+        // Wait for all animations to complete
+        if (hasDropped) {
+            Promise.all(dropAnimations).then(() => {
+                callback();
+            });
+        } else {
             callback();
-        }, 500);
+        }
+    }
+
+    private calculateBlockX(col: number): number {
+        return -((this.gridSize - 1) * (this.blockSize + this.spacing)) / 2 + 
+               col * (this.blockSize + this.spacing);
+    }
+
+    private calculateBlockY(row: number): number {
+        return ((this.gridSize - 1) * (this.blockSize + this.spacing)) / 2 - 
+               row * (this.blockSize + this.spacing);
+    }
+
+    private animateDrop(block: Node, targetY: number): Promise<void> {
+        return new Promise((resolve) => {
+            import('cc').then(({ tween, Vec3 }) => {
+                const currentPos = block.getPosition();
+                tween(block)
+                    .to(0.3, { position: new Vec3(currentPos.x, targetY, 0) }, { easing: 'cubicOut' })
+                    .call(() => resolve())
+                    .start();
+            });
+        });
     }
 
     /**

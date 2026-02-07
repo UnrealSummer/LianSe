@@ -217,9 +217,9 @@ export class GameCore extends Component {
         this.enemySystem.takeDamage(totalDamage);
         
         const allBlocks = matches.flat();
-        this.gridSystem.removeBlocks(allBlocks);
-
-        setTimeout(() => {
+        
+        // Remove blocks with animation, then drop
+        this.gridSystem.removeBlocks(allBlocks).then(() => {
             this.gridSystem.dropBlocks(() => {
                 // Check for chain matches
                 const chainMatches = this.gridSystem.findAllMatches();
@@ -234,7 +234,7 @@ export class GameCore extends Component {
                     }
                 }
             });
-        }, 300);
+        });
     }
 
     private onVictory(): void {
