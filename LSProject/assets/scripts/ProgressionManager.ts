@@ -61,6 +61,14 @@ export class ProgressionManager extends Component {
     }
 
     /**
+     * 设置关卡（GM用）
+     */
+    setStage(stage: number): void {
+        this.currentStage = stage;
+        console.log(`[Progression] GM: Set stage to ${this.currentStage}`);
+    }
+
+    /**
      * 重置进度
      */
     reset(): void {

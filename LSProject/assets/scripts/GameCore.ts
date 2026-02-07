@@ -14,6 +14,9 @@ const { ccclass, property } = _decorator;
 export class GameCore extends Component {
     @property({ tooltip: '每关时间限制（秒）' })
     timeLimit: number = 60;
+    
+    @property({ tooltip: 'GM：起始关卡（1=正常，6=测试冰冻，11=测试石头）' })
+    gmStartStage: number = 1;
 
     private gridSystem: GridSystem = null;
     private enemySystem: EnemySystem = null;
@@ -143,6 +146,13 @@ export class GameCore extends Component {
     startNewGame(): void {
         console.log('[GameCore] New game started');
         this.progressionManager.reset();
+        
+        // GM: Set start stage
+        if (this.gmStartStage > 1) {
+            console.log(`[GameCore] GM: Starting from stage ${this.gmStartStage}`);
+            this.progressionManager.setStage(this.gmStartStage);
+        }
+        
         this.modifierSystem.clearAll();
         this.startStage();
     }
