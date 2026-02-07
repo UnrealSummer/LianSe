@@ -1,4 +1,4 @@
-import { _decorator, Component, Label } from 'cc';
+import { _decorator, Component, Label, Node } from 'cc';
 import { GridSystem } from './GridSystem';
 import { EnemySystem } from './EnemySystem';
 import { DamageSystem } from './DamageSystem';
@@ -7,7 +7,8 @@ import { ProgressionManager } from './ProgressionManager';
 const { ccclass, property } = _decorator;
 
 /**
- * 游戏核心控制器 - ACB架构
+ * Game Core Controller
+ * Main game logic controller
  */
 @ccclass('GameCore')
 export class GameCore extends Component {
@@ -36,175 +37,131 @@ export class GameCore extends Component {
     stageLabel: Label = null;
 
     @property
-    timeLimit: number = 60; // 60秒时间限制
+    timeLimit: number = 60;
 
     private timeLeft: number = 0;
     private isGameRunning: boolean = false;
     private chainLevel: number = 0;
 
     start() {
+        console.log('[GameCore] Starting game...');
         this.startNewGame();
+        
+        // Listen for block swap events
+        this.node.on('block-swapped', this.onBlockSwapped, this);
     }
 
-    /**
-     * 开始新游戏
-     */
     startNewGame(): void {
+        console.log('[GameCore] New game started');
         this.progressionManager.reset();
         this.modifierSystem.clearAll();
         this.startStage();
     }
 
-    /**
-     * 开始关卡
-     */
     startStage(): void {
-        // 生成网格
-        this.gridSystem.generateGrid();
-
-        // 生成敌人
+        const currentStage = this.progressionManager.getCurrentStage();
+        console.log(`[GameCore] Starting stage ${currentStage}`);
+        
+        // Generate grid (basic 3 colors for now)
+        this.gridSystem.generateGrid(3, []);
+        
+        // Generate enemy
         const enemyData = this.progressionManager.getCurrentEnemy();
         this.enemySystem.initEnemy(enemyData);
-
-        // 重置时间
+        
+        // Reset time
         this.timeLeft = this.timeLimit;
         this.isGameRunning = true;
-
-        // 更新UI
+        
         this.updateUI();
-
-        console.log(`[GameCore] Stage ${this.progressionManager.getCurrentStage()} started`);
     }
 
     update(dt: number) {
         if (!this.isGameRunning) return;
-
-        // 倒计时
+        
         this.timeLeft -= dt;
         if (this.timeLeft <= 0) {
             this.timeLeft = 0;
             this.onTimeUp();
         }
-
+        
         this.updateUI();
-
-        // 自动检测消除
+        
+        // Auto check matches (will be replaced by player swap later)
         if (!this.gridSystem.getProcessing()) {
             this.checkMatches();
         }
     }
 
-    /**
-     * 检测并处理消除
-     */
     private checkMatches(): void {
         const matches = this.gridSystem.findAllMatches();
-        
         if (matches.length > 0) {
             this.gridSystem.setProcessing(true);
             this.processMatches(matches);
         }
     }
 
-    /**
-     * 处理消除
-     */
-    private processMatches(matches: any[][]): void {
-        matches.forEach(matchGroup => {
-            // 构建消除数据
+    private processMatches(matches: Node[][]): void {
+        this.chainLevel++;
+        let totalDamage = 0;
+
+        for (const match of matches) {
             const matchData: MatchData = {
-                count: matchGroup.length,
-                color: 0, // TODO: 获取实际颜色
-                chainLevel: this.chainLevel,
-                matchType: 'line',
-                baseDamage: 0
+                blocks: match,
+                chainLevel: this.chainLevel
             };
+            const damage = this.damageSystem.calculateDamage(matchData);
+            totalDamage += damage;
+            this.modifierSystem.applyModifiers(matchData);
+        }
 
-            // 计算伤害
-            const damage = this.damageSystem.calculateMatchDamage(matchData);
+        this.enemySystem.takeDamage(totalDamage);
+        const allBlocks = matches.flat();
+        this.gridSystem.removeBlocks(allBlocks);
 
-            // 造成伤害
-            this.enemySystem.takeDamage(damage);
-            this.damageSystem.dealDamage(damage, this.enemySystem);
-
-            // 检查击杀
-            if (!this.enemySystem.isAlive()) {
-                this.onEnemyDefeated();
-            }
-
-            // 消除方块
-            this.gridSystem.removeBlocks(matchGroup);
-
-            console.log(`[Match] ${matchData.count} blocks, ${damage} damage`);
-        });
-
-        // 处理掉落
-        this.scheduleOnce(() => {
-            this.gridSystem.handleGravity();
-            
-            // 增加连锁层数
-            this.chainLevel++;
-            
-            // 继续检测
-            this.scheduleOnce(() => {
+        setTimeout(() => {
+            this.gridSystem.dropBlocks(() => {
                 this.gridSystem.setProcessing(false);
-                this.chainLevel = 0; // 重置连锁
-            }, 0.5);
-        }, 0.3);
+                this.chainLevel = 0;
+                if (this.enemySystem.isDead()) {
+                    this.onVictory();
+                }
+            });
+        }, 300);
     }
 
-    /**
-     * 敌人被击败
-     */
-    private onEnemyDefeated(): void {
-        this.isGameRunning = false;
-        this.damageSystem.triggerKill(this.enemySystem);
+    private onBlockSwapped(event: any): void {
+        if (!this.isGameRunning || this.gridSystem.getProcessing()) {
+            return;
+        }
 
-        console.log(`[GameCore] Enemy defeated!`);
-
-        // 显示词条选择
-        this.scheduleOnce(() => {
-            this.showModifierSelection();
-        }, 1.0);
-    }
-
-    /**
-     * 显示词条选择
-     */
-    private showModifierSelection(): void {
-        console.log(`[GameCore] Show modifier selection`);
-        // TODO: 显示词条选择UI
+        const { fromRow, fromCol, toRow, toCol } = event;
+        console.log(`[GameCore] Block swapped: [${fromRow},${fromCol}] -> [${toRow},${toCol}]`);
         
-        // 临时：直接进入下一关
-        this.scheduleOnce(() => {
-            this.progressionManager.nextStage();
-            this.startStage();
-        }, 2.0);
+        // TODO: Implement swap logic
     }
 
-    /**
-     * 时间耗尽
-     */
+    private onVictory(): void {
+        this.isGameRunning = false;
+        console.log('[GameCore] Victory!');
+        this.progressionManager.nextStage();
+        setTimeout(() => this.startStage(), 1000);
+    }
+
     private onTimeUp(): void {
         this.isGameRunning = false;
-        console.log(`[GameCore] Time up! Game Over`);
-        // TODO: 显示失败界面
+        console.log('[GameCore] Time up!');
     }
 
-    /**
-     * 更新UI
-     */
     private updateUI(): void {
         if (this.timeLabel) {
-            this.timeLabel.string = `时间: ${Math.ceil(this.timeLeft)}s`;
+            this.timeLabel.string = `Time: ${Math.ceil(this.timeLeft)}s`;
         }
-
         if (this.goldLabel) {
-            this.goldLabel.string = `金币: ${this.progressionManager.getTotalGold()}`;
+            this.goldLabel.string = `Gold: 0`;
         }
-
         if (this.stageLabel) {
-            this.stageLabel.string = `关卡: ${this.progressionManager.getCurrentStage()}`;
+            this.stageLabel.string = `Stage: ${this.progressionManager.getCurrentStage()}`;
         }
     }
 }

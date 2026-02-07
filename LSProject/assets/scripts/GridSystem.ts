@@ -3,7 +3,8 @@ import { Block, ColorType } from './Block';
 const { ccclass, property } = _decorator;
 
 /**
- * 网格系统 - 8×8传统三消
+ * Grid System
+ * Manages 8x8 grid and match-3 logic
  */
 @ccclass('GridSystem')
 export class GridSystem extends Component {
@@ -18,18 +19,45 @@ export class GridSystem extends Component {
 
     @property
     spacing: number = 8;
+    
+    @property
+    maxGridWidth: number = 600;
+    
+    @property
+    maxGridHeight: number = 600;
 
     private blocks: Node[][] = [];
     private isProcessing: boolean = false;
 
     start() {
-        // 不自动生成，等GameCore调用
+        this.calculateAdaptiveSize();
+    }
+    
+    /**
+     * Calculate adaptive block size and spacing
+     */
+    private calculateAdaptiveSize(): void {
+        const spacingRatio = 0.18;
+        
+        const availableWidth = this.maxGridWidth;
+        const availableHeight = this.maxGridHeight;
+        
+        const widthBlockSize = availableWidth / (this.gridSize + (this.gridSize - 1) * spacingRatio);
+        const heightBlockSize = availableHeight / (this.gridSize + (this.gridSize - 1) * spacingRatio);
+        
+        this.blockSize = Math.floor(Math.min(widthBlockSize, heightBlockSize));
+        this.spacing = Math.floor(this.blockSize * spacingRatio);
+        
+        console.log(`[GridSystem] Adaptive size: blockSize=${this.blockSize}, spacing=${this.spacing}`);
     }
 
     /**
-     * 生成网格
+     * Generate grid
+     * @param colorCount Number of colors to use
+     * @param obstacles Obstacle configurations (empty for now)
      */
-    generateGrid(): void {
+    generateGrid(colorCount: number, obstacles: any[]): void {
+        this.calculateAdaptiveSize();
         this.clearGrid();
         
         const startX = -((this.gridSize - 1) * (this.blockSize + this.spacing)) / 2;
@@ -47,8 +75,7 @@ export class GridSystem extends Component {
 
                 const blockScript = block.getComponent(Block);
                 if (blockScript) {
-                    // 只生成三原色（传统消除）
-                    const color = Math.floor(Math.random() * 3); // 0,1,2
+                    const color = Math.floor(Math.random() * colorCount);
                     blockScript.init(row, col, color);
                 }
 
@@ -56,12 +83,12 @@ export class GridSystem extends Component {
             }
         }
         
-        // 确保初始没有可消除的
         this.removeInitialMatches();
+        console.log(`[GridSystem] Grid generated: ${this.gridSize}x${this.gridSize}, ${colorCount} colors`);
     }
 
     /**
-     * 移除初始可消除的组合
+     * Remove initial matches
      */
     private removeInitialMatches(): void {
         let hasMatches = true;
@@ -75,7 +102,6 @@ export class GridSystem extends Component {
                 for (let col = 0; col < this.gridSize; col++) {
                     const matches = this.findMatchesAt(row, col);
                     if (matches.length >= 3) {
-                        // 重新随机这个方块的颜色
                         const block = this.blocks[row][col];
                         const blockScript = block?.getComponent(Block);
                         if (blockScript) {
@@ -91,7 +117,15 @@ export class GridSystem extends Component {
     }
 
     /**
-     * 检测所有可消除的方块
+     * Clear grid
+     */
+    private clearGrid(): void {
+        this.node.removeAllChildren();
+        this.blocks = [];
+    }
+
+    /**
+     * Find all matches
      */
     findAllMatches(): Node[][] {
         const allMatches: Node[][] = [];
@@ -120,7 +154,7 @@ export class GridSystem extends Component {
     }
 
     /**
-     * 查找指定位置的匹配
+     * Find matches at position
      */
     private findMatchesAt(row: number, col: number): Node[] {
         const block = this.blocks[row]?.[col];
@@ -132,15 +166,12 @@ export class GridSystem extends Component {
         const color = blockScript.getColorType();
         const matches: Node[] = [block];
 
-        // 横向检测
         const horizontal = this.findMatchesInDirection(row, col, color, 0, 1)
             .concat(this.findMatchesInDirection(row, col, color, 0, -1));
         
-        // 纵向检测
         const vertical = this.findMatchesInDirection(row, col, color, 1, 0)
             .concat(this.findMatchesInDirection(row, col, color, -1, 0));
 
-        // 取最长的匹配
         if (horizontal.length >= 2) {
             matches.push(...horizontal);
         }
@@ -148,12 +179,11 @@ export class GridSystem extends Component {
             matches.push(...vertical);
         }
 
-        // 去重
         return Array.from(new Set(matches));
     }
 
     /**
-     * 在指定方向查找匹配
+     * Find matches in direction
      */
     private findMatchesInDirection(row: number, col: number, color: ColorType, 
                                    dRow: number, dCol: number): Node[] {
@@ -177,7 +207,7 @@ export class GridSystem extends Component {
     }
 
     /**
-     * 消除方块
+     * Remove blocks
      */
     removeBlocks(blocks: Node[]): void {
         blocks.forEach(block => {
@@ -185,93 +215,42 @@ export class GridSystem extends Component {
             if (blockScript) {
                 const pos = blockScript.getPosition();
                 this.blocks[pos.row][pos.col] = null;
-                blockScript.disappear();
+                block.destroy();
             }
         });
     }
 
     /**
-     * 处理掉落
+     * Drop blocks
      */
-    handleGravity(): void {
-        for (let col = 0; col < this.gridSize; col++) {
-            let emptyRow = this.gridSize - 1;
-            
-            // 从下往上扫描
-            for (let row = this.gridSize - 1; row >= 0; row--) {
-                if (this.blocks[row][col] && this.blocks[row][col].isValid) {
-                    if (row !== emptyRow) {
-                        // 移动方块
-                        this.blocks[emptyRow][col] = this.blocks[row][col];
-                        this.blocks[row][col] = null;
-                        
-                        const blockScript = this.blocks[emptyRow][col].getComponent(Block);
-                        if (blockScript) {
-                            blockScript.updateRowCol(emptyRow, col);
-                            blockScript.playDropAnimation(emptyRow, col);
-                        }
-                    }
-                    emptyRow--;
-                }
-            }
-            
-            // 填充空位
-            for (let row = emptyRow; row >= 0; row--) {
-                this.generateNewBlock(row, col);
-            }
-        }
+    dropBlocks(callback: Function): void {
+        // TODO: Implement drop logic
+        setTimeout(() => {
+            callback();
+        }, 500);
     }
 
     /**
-     * 生成新方块
+     * Swap blocks
      */
-    generateNewBlock(row: number, col: number): void {
-        const block = instantiate(this.blockPrefab);
-        block.setParent(this.node);
+    swapBlocks(row1: number, col1: number, row2: number, col2: number): void {
+        const temp = this.blocks[row1][col1];
+        this.blocks[row1][col1] = this.blocks[row2][col2];
+        this.blocks[row2][col2] = temp;
         
-        const startX = -((this.gridSize - 1) * (this.blockSize + this.spacing)) / 2;
-        const startY = ((this.gridSize - 1) * (this.blockSize + this.spacing)) / 2;
+        // Update positions
+        const block1Script = this.blocks[row1][col1]?.getComponent(Block);
+        const block2Script = this.blocks[row2][col2]?.getComponent(Block);
         
-        const x = startX + col * (this.blockSize + this.spacing);
-        const spawnY = startY + (this.blockSize + this.spacing) * 2;
-        block.setPosition(new Vec3(x, spawnY, 0));
-
-        const blockScript = block.getComponent(Block);
-        if (blockScript) {
-            const color = Math.floor(Math.random() * 3);
-            blockScript.init(row, col, color);
-            blockScript.playDropAnimation(row, col);
-        }
-
-        this.blocks[row][col] = block;
+        if (block1Script) block1Script.setPosition(row1, col1);
+        if (block2Script) block2Script.setPosition(row2, col2);
     }
 
-    /**
-     * 清空网格
-     */
-    clearGrid(): void {
-        this.node.removeAllChildren();
-        this.blocks = [];
-    }
-
-    /**
-     * 获取方块
-     */
-    getBlock(row: number, col: number): Node {
-        return this.blocks[row]?.[col];
-    }
-
-    /**
-     * 设置处理状态
-     */
-    setProcessing(processing: boolean): void {
-        this.isProcessing = processing;
-    }
-
-    /**
-     * 是否正在处理
-     */
     getProcessing(): boolean {
         return this.isProcessing;
+    }
+
+    setProcessing(value: boolean): void {
+        this.isProcessing = value;
     }
 }
