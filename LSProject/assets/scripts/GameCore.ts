@@ -752,25 +752,8 @@ export class GameCore extends Component {
             }
         }
         
-        // Show game over UI if available
-        if (this.gameOverUI) {
-            const currentStage = this.progressionManager.getCurrentStage();
-            this.gameOverUI.showVictory(
-                currentStage,
-                {
-                    moves: this.totalMoves,
-                    maxCombo: this.maxCombo,
-                    coins: killReward
-                },
-                () => {
-                    // On next clicked
-                    this.showModifierSelection();
-                }
-            );
-        } else {
-            // Fallback: show modifier selection directly
-            this.showModifierSelection();
-        }
+        // GameFlowController will handle showing victory UI
+        // No need to show it here anymore
     }
 
     /**
@@ -851,27 +834,8 @@ export class GameCore extends Component {
             this.audioManager.playDefeat();
         }
         
-        // Show game over UI if available
-        if (this.gameOverUI) {
-            const currentStage = this.progressionManager.getCurrentStage();
-            this.gameOverUI.showDefeat(
-                currentStage,
-                {
-                    moves: this.totalMoves,
-                    maxCombo: this.maxCombo
-                },
-                () => {
-                    // On restart clicked
-                    this.startNewGame();
-                }
-            );
-        } else {
-            // Fallback: restart after delay
-            setTimeout(() => {
-                console.log('[GameCore] Restarting game...');
-                this.startNewGame();
-            }, 2000);
-        }
+        // GameFlowController will handle showing defeat UI
+        // No need to show it here anymore
     }
 
     private updateUI(): void {
