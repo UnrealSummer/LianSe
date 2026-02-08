@@ -40,6 +40,7 @@ export class GameCore extends Component {
     private audioManager: AudioManager = null;
     private pauseUI: PauseUI = null;
     private dataManager: DataManager = null;
+    private gameUI: any = null;  // GameUI reference
     private timeLabel: Label = null;
     private goldLabel: Label = null;
     private stageLabel: Label = null;
@@ -90,6 +91,12 @@ export class GameCore extends Component {
         // Auto-find UI labels
         const uiNode = this.node.parent.getChildByName('UI');
         if (uiNode) {
+            // Try to get GameUI component
+            this.gameUI = uiNode.getComponent('GameUI');
+            if (this.gameUI) {
+                console.log('[GameCore] Found GameUI component');
+            }
+            
             if (!this.timeLabel) {
                 this.timeLabel = uiNode.getChildByName('TimeLabel')?.getComponent(Label);
             }
@@ -857,16 +864,19 @@ export class GameCore extends Component {
         const currentStage = this.progressionManager.getCurrentStage();
         const levelConfig = this.progressionManager.getCurrentLevelConfig();
         
-        if (this.timeLabel) {
-            const timeColor = this.timeLeft <= 10 ? 'red' : 'white';
+        // Update time via GameUI if available
+        if (this.gameUI && this.gameUI.updateTime) {
+            this.gameUI.updateTime(this.timeLeft);
+        } else if (this.timeLabel) {
+            // Fallback to direct label update
             this.timeLabel.string = `时间: ${Math.ceil(this.timeLeft)}s`;
-            // Warning color when time is low
             if (this.timeLeft <= 10) {
                 this.timeLabel.node.setScale(1.2, 1.2, 1);
             } else {
                 this.timeLabel.node.setScale(1, 1, 1);
             }
         }
+        
         if (this.goldLabel) {
             if (this.coinSystem) {
                 this.goldLabel.string = `金币: ${this.coinSystem.getTotalCoins()}`;
