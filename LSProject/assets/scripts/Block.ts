@@ -1,4 +1,4 @@
-import { _decorator, Component, Sprite, Color, EventTouch, Node, Vec3, UITransform } from 'cc';
+import { _decorator, Component, Sprite, Color, EventTouch, Node, Vec3, UITransform, resources, SpriteFrame } from 'cc';
 const { ccclass, property } = _decorator;
 
 /**
@@ -89,9 +89,37 @@ export class Block extends Component {
      * Update color
      */
     updateColor() {
-        if (this.sprite) {
+        if (!this.sprite) return;
+        
+        // 彩虹方块保持白色
+        if (this.colorType === ColorType.RAINBOW) {
             this.sprite.color = COLOR_MAP[this.colorType];
+            return;
         }
+        
+        // 加载对应颜色的方块图片
+        const colorNames = ['red', 'yellow', 'blue', 'orange', 'purple', 'green'];
+        const colorName = colorNames[this.colorType];
+        
+        if (!colorName) {
+            console.warn(`[Block] Unknown color type: ${this.colorType}`);
+            return;
+        }
+        
+        // 加载图片资源
+        resources.load(`textures/blocks/${colorName}/spriteFrame`, SpriteFrame, (err, spriteFrame) => {
+            if (err) {
+                console.error(`[Block] Failed to load ${colorName}:`, err);
+                // 失败时使用纯色作为备用
+                this.sprite.color = COLOR_MAP[this.colorType];
+                return;
+            }
+            
+            // 设置图片
+            this.sprite.spriteFrame = spriteFrame;
+            // 重置颜色为白色，让图片原色显示
+            this.sprite.color = Color.WHITE;
+        });
     }
 
     /**
