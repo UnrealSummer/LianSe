@@ -107,7 +107,10 @@ export class Block extends Component {
      * Update color
      */
     updateColor() {
-        if (!this.sprite) return;
+        if (!this.sprite) {
+            console.error('[Block] updateColor: sprite is null!');
+            return;
+        }
         
         // 彩虹方块保持白色
         if (this.colorType === ColorType.RAINBOW) {
@@ -143,9 +146,11 @@ export class Block extends Component {
         if (spriteFrame) {
             this.sprite.spriteFrame = spriteFrame;
             this.sprite.color = Color.WHITE; // 显示原色
+            console.log(`[Block] Using sprite for color ${this.colorType}`);
         } else {
             this.sprite.spriteFrame = null;
             this.sprite.color = COLOR_MAP[this.colorType];
+            console.log(`[Block] Using solid color for color ${this.colorType}`);
         }
     }
 
