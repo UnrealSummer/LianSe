@@ -3293,6 +3293,9 @@
     "levelLabel": {
       "__id__": 34
     },
+    "timeLabel": {
+      "__id__": 41
+    },
     "settingsButton": {
       "__id__": 85
     },
@@ -5999,7 +6002,6 @@
     "__type__": "152d7rJ4hNNhoZK9BSIeKMU",
     "_name": "",
     "_objFlags": 0,
-    "__editorExtras__": {},
     "node": {
       "__id__": 8
     },
