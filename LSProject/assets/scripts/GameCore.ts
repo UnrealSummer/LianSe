@@ -513,7 +513,7 @@ export class GameCore extends Component {
         }
         
         // Check if enemy died from this damage
-        if (this.enemySystem.isDead()) {
+        if (!this.enemySystem.isAlive()) {
             console.log('[GameCore] 💀 Enemy defeated! Stopping chain...');
             
             // Record max combo
@@ -814,7 +814,7 @@ export class GameCore extends Component {
         console.log('[GameCore] Time up! Game Over!');
         
         // Check if enemy is dead (victory) or alive (defeat)
-        if (this.enemySystem.isDead()) {
+        if (!this.enemySystem.isAlive()) {
             this.onVictory();
         } else {
             this.onDefeat();
