@@ -1,4 +1,5 @@
 import { _decorator, Component, Node, Label, Sprite, Button } from 'cc';
+import { GameFlowController, GameState } from './GameFlowController';
 const { ccclass, property } = _decorator;
 
 /**
@@ -166,8 +167,12 @@ export class GameUI extends Component {
      */
     onPauseClick() {
         console.log('[GameUI] Pause clicked');
-        // TODO: 暂停游戏
-        this.node.emit('pause-clicked');
+        
+        // 切换到暂停状态
+        const flowController = GameFlowController.instance;
+        if (flowController) {
+            flowController.changeState(GameState.PAUSED);
+        }
     }
 
     /**
