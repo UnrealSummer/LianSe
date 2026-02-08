@@ -51,6 +51,7 @@ export class GameCore extends Component {
     private audioManager: AudioManager = null;
     private pauseUI: PauseUI = null;
     private dataManager: DataManager = null;
+    private gameUI: any = null;  // GameUI引用
 
     private timeLeft: number = 0;
     private isGameRunning: boolean = false;
@@ -98,8 +99,12 @@ export class GameCore extends Component {
         // Auto-find UI labels
         const uiNode = this.node.parent.getChildByName('UI');
         if (uiNode) {
+            // 尝试获取GameUI组件
+            this.gameUI = uiNode.getComponent('GameUI');
+            
             if (!this.timeLabel) {
                 this.timeLabel = uiNode.getChildByName('TimeLabel')?.getComponent(Label);
+            }
             }
             if (!this.goldLabel) {
                 this.goldLabel = uiNode.getChildByName('GoldLabel')?.getComponent(Label);
@@ -865,16 +870,19 @@ export class GameCore extends Component {
         const currentStage = this.progressionManager.getCurrentStage();
         const levelConfig = this.progressionManager.getCurrentLevelConfig();
         
-        if (this.timeLabel) {
-            const timeColor = this.timeLeft <= 10 ? 'red' : 'white';
+        // 优先使用GameUI
+        if (this.gameUI && this.gameUI.updateTime) {
+            this.gameUI.updateTime(this.timeLeft);
+        } else if (this.timeLabel) {
+            // 备用方案
             this.timeLabel.string = `时间: ${Math.ceil(this.timeLeft)}s`;
-            // Warning color when time is low
             if (this.timeLeft <= 10) {
                 this.timeLabel.node.setScale(1.2, 1.2, 1);
             } else {
                 this.timeLabel.node.setScale(1, 1, 1);
             }
         }
+        
         if (this.goldLabel) {
             if (this.coinSystem) {
                 this.goldLabel.string = `金币: ${this.coinSystem.getTotalCoins()}`;

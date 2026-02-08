@@ -15,6 +15,9 @@ export class GameUI extends Component {
     @property(Label)
     levelLabel: Label = null;
 
+    @property(Label)
+    timeLabel: Label = null;
+
     @property(Button)
     settingsButton: Button = null;
 
@@ -116,6 +119,25 @@ export class GameUI extends Component {
         this.currentLevel = level;
         if (this.levelLabel) {
             this.levelLabel.string = `关卡 ${level}`;
+        }
+    }
+
+    /**
+     * 更新时间显示
+     */
+    updateTime(timeLeft: number) {
+        if (this.timeLabel) {
+            this.timeLabel.string = `时间: ${Math.ceil(timeLeft)}s`;
+            
+            // 时间警告效果（剩余10秒）
+            if (timeLeft <= 10) {
+                this.timeLabel.node.setScale(1.2, 1.2, 1);
+                // 可以添加颜色变化
+                // this.timeLabel.color = new Color(255, 0, 0);
+            } else {
+                this.timeLabel.node.setScale(1, 1, 1);
+                // this.timeLabel.color = new Color(255, 255, 255);
+            }
         }
     }
 
