@@ -741,7 +741,7 @@
   },
   {
     "__type__": "cc.Node",
-    "_name": "GameUI",
+    "_name": "UI",
     "_objFlags": 0,
     "__editorExtras__": {},
     "_parent": {
@@ -1588,7 +1588,7 @@
     "_prefab": null,
     "_lpos": {
       "__type__": "cc.Vec3",
-      "x": 76.703125,
+      "x": 62.46875,
       "y": 0,
       "z": 0
     },
@@ -1627,7 +1627,7 @@
     "__prefab": null,
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 85.40625,
+      "width": 56.9375,
       "height": 60.480000000000004
     },
     "_anchorPoint": {
@@ -1660,8 +1660,8 @@
     "_string": "60S",
     "_horizontalAlign": 1,
     "_verticalAlign": 1,
-    "_actualFontSize": 48,
-    "_fontSize": 48,
+    "_actualFontSize": 32,
+    "_fontSize": 32,
     "_fontFamily": "Arial",
     "_lineHeight": 48,
     "_overflow": 0,
@@ -6002,6 +6002,7 @@
     "__type__": "152d7rJ4hNNhoZK9BSIeKMU",
     "_name": "",
     "_objFlags": 0,
+    "__editorExtras__": {},
     "node": {
       "__id__": 8
     },
@@ -6010,9 +6011,6 @@
     "timeLimit": 60,
     "gmStartStage": 1,
     "gmGravityDirection": -1,
-    "timeLabel": null,
-    "goldLabel": null,
-    "stageLabel": null,
     "_id": "01qqRe591FaoRm5Z46CQlG"
   },
   {
