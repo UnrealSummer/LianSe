@@ -176,6 +176,13 @@ export class GameCore extends Component {
         this.node.on('block-clicked', this.onBlockClicked, this);
         this.node.on('block-swipe', this.onBlockSwipe, this);
         
+        // Listen for GameFlowController events
+        const flowController = this.node.parent?.getChildByName('GameFlowController');
+        if (flowController) {
+            flowController.on('show-modifier-selection', this.showModifierSelection, this);
+            console.log('[GameCore] Listening to GameFlowController events');
+        }
+        
         // Listen for enemy skill events
         if (this.enemySystem) {
             this.enemySystem.node.on('enemy-freeze-blocks', this.onEnemyFreezeBlocks, this);
