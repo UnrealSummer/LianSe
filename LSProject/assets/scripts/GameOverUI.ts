@@ -54,7 +54,7 @@ export class GameOverUI extends Component {
     private onRetryCallback: Function = null;
     private onMenuCallback: Function = null;
 
-    start() {
+    onLoad() {
         this.initPanels();
         this.bindEvents();
         
