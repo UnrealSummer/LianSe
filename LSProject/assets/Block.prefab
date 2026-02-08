@@ -152,7 +152,7 @@
     },
     "selectedScale": 1.1,
     "redSprite": {
-      "__uuid__": "2ccd2aea-683e-447c-beff-eb207558afd5@f9941",
+      "__uuid__": "3a0c3544-8792-422a-b732-ca24e7725394@f9941",
       "__expectedType__": "cc.SpriteFrame"
     },
     "yellowSprite": {
@@ -190,7 +190,6 @@
       "__id__": 0
     },
     "fileId": "f3pidUy7JB54IPp8zcwJxi",
-    "instance": null,
-    "targetOverrides": null
+    "instance": null
   }
 ]
