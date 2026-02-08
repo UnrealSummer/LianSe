@@ -277,6 +277,9 @@ export class GameFlowController extends Component {
     /**
      * 游戏失败
      */
+    /**
+     * 游戏失败
+     */
     private onGameLose() {
         console.log('[GameFlowController] Game lose');
         
@@ -300,19 +303,6 @@ export class GameFlowController extends Component {
             stage: this.currentStage,
             score: this.score,
             coins: this.coins
-        });
-    }
-        // 显示失败面板
-        if (this.gameOverPanel) {
-            this.gameOverPanel.active = true;
-            // TODO: 设置为失败状态
-        }
-
-        // 通知其他系统游戏失败
-        this.node.emit('game-lose', {
-            level: this.currentLevel,
-            stage: this.currentStage,
-            score: this.score
         });
     }
 
