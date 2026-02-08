@@ -328,8 +328,6 @@ export class GameCore extends Component {
         }
         
         // Generate enemy (使用新的敌人系统)
-        const currentStage = this.progressionManager.getCurrentStage();
-        const levelConfig = this.progressionManager.getCurrentLevelConfig();
         this.enemySystem.initEnemyForStage(currentStage, levelConfig.enemyHp);
         
         // Reset time (use level config + modifiers)
