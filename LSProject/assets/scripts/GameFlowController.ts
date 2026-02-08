@@ -250,29 +250,18 @@ export class GameFlowController extends Component {
         const reward = 100 + (this.currentStage * 20);
         this.coins += reward;
         
-        // 先激活GameOverPanel
-        if (this.gameOverPanel) {
-            this.gameOverPanel.active = true;
-        }
-        
-        // 然后显示胜利面板
-        if (this.gameOverUI && this.gameOverUI.showVictory) {
-            this.gameOverUI.showVictory({
-                score: this.score,
-                coins: this.coins,
-                maxCombo: this.maxCombo,
-                reward: reward,
-                stage: this.currentStage
-            });
-        }
-
         // 通知其他系统游戏胜利
         this.node.emit('game-win', {
             level: this.currentLevel,
             stage: this.currentStage,
             score: this.score,
-            coins: this.coins
+            coins: this.coins,
+            reward: reward
         });
+        
+        // 直接进入词条选择，不显示胜利界面
+        console.log('[GameFlowController] Entering modifier selection...');
+        this.changeState(GameState.MODIFIER_SELECT);
     }
 
     /**
