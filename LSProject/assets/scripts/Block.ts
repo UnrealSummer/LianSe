@@ -48,8 +48,23 @@ export class Block extends Component {
     @property({ tooltip: '选中时的缩放倍数（推荐1.05-1.15）' })
     selectedScale: number = 1.1;
 
-    @property({ type: [SpriteFrame], tooltip: '方块图片资源（按顺序：红、黄、蓝、橙、紫、绿）' })
-    blockSprites: SpriteFrame[] = [];
+    @property(SpriteFrame)
+    redSprite: SpriteFrame = null;
+    
+    @property(SpriteFrame)
+    yellowSprite: SpriteFrame = null;
+    
+    @property(SpriteFrame)
+    blueSprite: SpriteFrame = null;
+    
+    @property(SpriteFrame)
+    orangeSprite: SpriteFrame = null;
+    
+    @property(SpriteFrame)
+    purpleSprite: SpriteFrame = null;
+    
+    @property(SpriteFrame)
+    greenSprite: SpriteFrame = null;
 
     private colorType: ColorType;
     private blockType: BlockType = BlockType.NORMAL;
@@ -101,12 +116,34 @@ export class Block extends Component {
             return;
         }
         
-        // 如果有预设的图片资源，使用图片
-        if (this.blockSprites && this.blockSprites.length > this.colorType && this.blockSprites[this.colorType]) {
-            this.sprite.spriteFrame = this.blockSprites[this.colorType];
+        // 根据颜色类型选择对应的图片
+        let spriteFrame: SpriteFrame = null;
+        switch (this.colorType) {
+            case ColorType.RED:
+                spriteFrame = this.redSprite;
+                break;
+            case ColorType.YELLOW:
+                spriteFrame = this.yellowSprite;
+                break;
+            case ColorType.BLUE:
+                spriteFrame = this.blueSprite;
+                break;
+            case ColorType.ORANGE:
+                spriteFrame = this.orangeSprite;
+                break;
+            case ColorType.PURPLE:
+                spriteFrame = this.purpleSprite;
+                break;
+            case ColorType.GREEN:
+                spriteFrame = this.greenSprite;
+                break;
+        }
+        
+        // 如果有图片，使用图片；否则使用纯色
+        if (spriteFrame) {
+            this.sprite.spriteFrame = spriteFrame;
             this.sprite.color = Color.WHITE; // 显示原色
         } else {
-            // 否则使用纯色
             this.sprite.spriteFrame = null;
             this.sprite.color = COLOR_MAP[this.colorType];
         }
