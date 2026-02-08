@@ -129,6 +129,11 @@ export class GameOverUI extends Component {
         // 显示胜利面板
         if (this.victoryPanel) {
             this.victoryPanel.active = true;
+            console.log('[GameOverUI] VictoryPanel activated:', this.victoryPanel.active);
+            console.log('[GameOverUI] VictoryPanel position:', this.victoryPanel.position);
+            console.log('[GameOverUI] VictoryPanel scale:', this.victoryPanel.scale);
+        } else {
+            console.warn('[GameOverUI] VictoryPanel is null!');
         }
     }
 
