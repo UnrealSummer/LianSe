@@ -1,136 +1,115 @@
-import { _decorator, Component, Node, Button, Label, director } from 'cc';
-import { DataManager } from './DataManager';
+import { _decorator, Component, Node, Button, director, sys } from 'cc';
 const { ccclass, property } = _decorator;
 
 /**
- * 主菜单界面
+ * 主菜单UI管理器
  */
 @ccclass('MainMenuUI')
 export class MainMenuUI extends Component {
-    @property({ type: Label })
-    titleLabel: Label = null; // 游戏标题
-    
-    @property({ type: Label })
-    bestStageLabel: Label = null; // 最高关卡
-    
-    @property({ type: Label })
-    bestScoreLabel: Label = null; // 最高分数
-    
-    @property({ type: Label })
-    totalGamesLabel: Label = null; // 总游戏次数
-    
-    @property({ type: Button })
-    startButton: Button = null; // 开始游戏
-    
-    @property({ type: Button })
-    settingsButton: Button = null; // 设置
-    
-    @property({ type: Button })
-    quitButton: Button = null; // 退出游戏（可选）
-    
-    @property({ type: Node })
-    settingsPanel: Node = null; // 设置面板（可选）
-    
+    @property(Button)
+    startButton: Button = null;
+
+    @property(Button)
+    settingsButton: Button = null;
+
+    @property(Button)
+    exitButton: Button = null;
+
+    @property(Node)
+    titleNode: Node = null;
+
     start() {
-        // 显示历史最佳
-        this.showHistory();
-        
-        // 绑定按钮事件
-        if (this.startButton) {
-            this.startButton.node.on(Button.EventType.CLICK, this.onStartClicked, this);
-        }
-        
-        if (this.settingsButton) {
-            this.settingsButton.node.on(Button.EventType.CLICK, this.onSettingsClicked, this);
-        }
-        
-        if (this.quitButton) {
-            this.quitButton.node.on(Button.EventType.CLICK, this.onQuitClicked, this);
-        }
+        this.initUI();
+        this.bindEvents();
+        console.log('[MainMenuUI] Main menu initialized');
     }
-    
+
     /**
-     * 显示历史记录
+     * 初始化UI
      */
-    private showHistory(): void {
-        const dataManager = DataManager.getInstance();
-        if (!dataManager) {
-            console.warn('[MainMenuUI] DataManager 未找到');
-            return;
-        }
-        
-        const data = dataManager.getPlayerData();
-        
-        // 显示标题
-        if (this.titleLabel) {
-            this.titleLabel.string = '炼色';
-        }
-        
-        // 显示最高关卡
-        if (this.bestStageLabel) {
-            if (data.highestStage > 0) {
-                this.bestStageLabel.string = `最高关卡: 第 ${data.highestStage} 关`;
-            } else {
-                this.bestStageLabel.string = '最高关卡: --';
-            }
-        }
-        
-        // 显示最高分数
-        if (this.bestScoreLabel) {
-            if (data.highestScore > 0) {
-                this.bestScoreLabel.string = `最高分数: ${data.highestScore}`;
-            } else {
-                this.bestScoreLabel.string = '最高分数: --';
-            }
-        }
-        
-        // 显示总游戏次数
-        if (this.totalGamesLabel) {
-            this.totalGamesLabel.string = `游戏次数: ${data.totalGames}`;
-        }
-        
-        console.log('[MainMenuUI] 历史记录已显示');
+    initUI() {
+        // 可以在这里添加动画效果
+        // 比如标题淡入、按钮弹出等
     }
-    
+
+    /**
+     * 绑定按钮事件
+     */
+    bindEvents() {
+        if (this.startButton) {
+            this.startButton.node.on(Button.EventType.CLICK, this.onStartGame, this);
+        }
+
+        if (this.settingsButton) {
+            this.settingsButton.node.on(Button.EventType.CLICK, this.onSettings, this);
+        }
+
+        if (this.exitButton) {
+            this.exitButton.node.on(Button.EventType.CLICK, this.onExit, this);
+        }
+    }
+
     /**
      * 开始游戏
      */
-    private onStartClicked(): void {
-        console.log('[MainMenuUI] 开始游戏');
+    onStartGame() {
+        console.log('[MainMenuUI] Start game clicked');
         
-        // 加载游戏场景
-        director.loadScene('Game', (err) => {
+        // 播放点击音效
+        // AudioManager.instance?.playSound('button_click');
+        
+        // 切换到游戏场景
+        director.loadScene('Main', (err) => {
             if (err) {
-                console.error('[MainMenuUI] 加载游戏场景失败:', err);
+                console.error('[MainMenuUI] Failed to load Main scene:', err);
             } else {
-                console.log('[MainMenuUI] 游戏场景已加载');
+                console.log('[MainMenuUI] Main scene loaded');
             }
         });
     }
-    
+
     /**
-     * 设置
+     * 打开设置
      */
-    private onSettingsClicked(): void {
-        console.log('[MainMenuUI] 打开设置');
+    onSettings() {
+        console.log('[MainMenuUI] Settings clicked');
         
-        // 显示设置面板
-        if (this.settingsPanel) {
-            this.settingsPanel.active = true;
-        }
+        // TODO: 打开设置界面
+        // 可以是弹出面板或切换场景
+        
+        // 临时提示
+        console.log('[MainMenuUI] Settings not implemented yet');
     }
-    
+
     /**
      * 退出游戏
      */
-    private onQuitClicked(): void {
-        console.log('[MainMenuUI] 退出游戏');
+    onExit() {
+        console.log('[MainMenuUI] Exit clicked');
         
-        // 在浏览器中无法真正退出，只能关闭窗口
-        // 在原生平台可以调用 game.end()
-        if (confirm('确定要退出游戏吗？')) {
-            // game.end(); // 原生平台
-            window.close(); // 浏览器
+        // 在浏览器中无法真正退出，只能关闭标签页
+        // 在原生平台可以退出
+        if (sys.isNative) {
+            director.end();
+        } else {
+            console.log('[MainMenuUI] Cannot exit in browser');
+            // 可以显示提示："请关闭浏览器标签页"
         }
+    }
+
+    /**
+     * 显示关于信息
+     */
+    showAbout() {
+        console.log('[MainMenuUI] About clicked');
+        // TODO: 显示关于信息
+    }
+
+    /**
+     * 显示教程
+     */
+    showTutorial() {
+        console.log('[MainMenuUI] Tutorial clicked');
+        // TODO: 显示教程
     }
 }
