@@ -151,6 +151,30 @@
       "__id__": 4
     },
     "selectedScale": 1.1,
+    "redSprite": {
+      "__uuid__": "2ccd2aea-683e-447c-beff-eb207558afd5@f9941",
+      "__expectedType__": "cc.SpriteFrame"
+    },
+    "yellowSprite": {
+      "__uuid__": "380910ed-3ae1-4c0a-a740-64b3276ea429@f9941",
+      "__expectedType__": "cc.SpriteFrame"
+    },
+    "blueSprite": {
+      "__uuid__": "59bae9bb-c03a-4bbc-9c4c-03e8035b2b7d@f9941",
+      "__expectedType__": "cc.SpriteFrame"
+    },
+    "orangeSprite": {
+      "__uuid__": "fa075b04-ad8f-409c-b271-9d64e0007f95@f9941",
+      "__expectedType__": "cc.SpriteFrame"
+    },
+    "purpleSprite": {
+      "__uuid__": "ee33dcc5-6cbc-4562-a5ba-879ca2c51d93@f9941",
+      "__expectedType__": "cc.SpriteFrame"
+    },
+    "greenSprite": {
+      "__uuid__": "b39dc018-55af-4d0a-a420-c49b83a9545d@f9941",
+      "__expectedType__": "cc.SpriteFrame"
+    },
     "_id": ""
   },
   {
