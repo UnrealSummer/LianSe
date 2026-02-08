@@ -708,6 +708,13 @@ export class GameCore extends Component {
         console.log('[GameCore] Victory! Stage completed!');
         console.log(`[GameCore] Stats: ${this.totalMoves} moves, max combo x${this.maxCombo}`);
         
+        // Notify GameFlowController
+        const flowController = this.node.parent?.getChildByName('GameFlowController')?.getComponent('GameFlowController');
+        if (flowController) {
+            flowController.changeState('win');
+            flowController.updateMaxCombo(this.maxCombo);
+        }
+        
         // Play victory sound
         if (this.audioManager) {
             this.audioManager.playVictory();
@@ -831,6 +838,13 @@ export class GameCore extends Component {
     private onDefeat(): void {
         console.log('[GameCore] Defeat! Enemy survived!');
         console.log(`[GameCore] Enemy HP: ${this.enemySystem.getCurrentHp()} / ${this.enemySystem.getMaxHp()}`);
+        
+        // Notify GameFlowController
+        const flowController = this.node.parent?.getChildByName('GameFlowController')?.getComponent('GameFlowController');
+        if (flowController) {
+            flowController.changeState('lose');
+            flowController.updateMaxCombo(this.maxCombo);
+        }
         
         // Play defeat sound
         if (this.audioManager) {
