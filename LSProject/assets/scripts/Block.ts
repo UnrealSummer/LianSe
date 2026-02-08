@@ -1,4 +1,4 @@
-import { _decorator, Component, Sprite, Color, EventTouch, Node, Vec3, UITransform, resources, SpriteFrame } from 'cc';
+import { _decorator, Component, Sprite, Color, EventTouch, Node, Vec3, UITransform, SpriteFrame } from 'cc';
 const { ccclass, property } = _decorator;
 
 /**
@@ -48,6 +48,9 @@ export class Block extends Component {
     @property({ tooltip: '选中时的缩放倍数（推荐1.05-1.15）' })
     selectedScale: number = 1.1;
 
+    @property({ type: [SpriteFrame], tooltip: '方块图片资源（按顺序：红、黄、蓝、橙、紫、绿）' })
+    blockSprites: SpriteFrame[] = [];
+
     private colorType: ColorType;
     private blockType: BlockType = BlockType.NORMAL;
     private frozenLevel: number = 0;  // 冰冻层数（0=未冰冻）
@@ -94,32 +97,19 @@ export class Block extends Component {
         // 彩虹方块保持白色
         if (this.colorType === ColorType.RAINBOW) {
             this.sprite.color = COLOR_MAP[this.colorType];
+            this.sprite.spriteFrame = null;
             return;
         }
         
-        // 加载对应颜色的方块图片
-        const colorNames = ['red', 'yellow', 'blue', 'orange', 'purple', 'green'];
-        const colorName = colorNames[this.colorType];
-        
-        if (!colorName) {
-            console.warn(`[Block] Unknown color type: ${this.colorType}`);
-            return;
+        // 如果有预设的图片资源，使用图片
+        if (this.blockSprites && this.blockSprites.length > this.colorType && this.blockSprites[this.colorType]) {
+            this.sprite.spriteFrame = this.blockSprites[this.colorType];
+            this.sprite.color = Color.WHITE; // 显示原色
+        } else {
+            // 否则使用纯色
+            this.sprite.spriteFrame = null;
+            this.sprite.color = COLOR_MAP[this.colorType];
         }
-        
-        // 加载图片资源 - 正确的路径格式
-        resources.load(`textures/blocks/${colorName}`, SpriteFrame, (err, spriteFrame) => {
-            if (err) {
-                console.error(`[Block] Failed to load ${colorName}:`, err);
-                // 失败时使用纯色作为备用
-                this.sprite.color = COLOR_MAP[this.colorType];
-                return;
-            }
-            
-            // 设置图片
-            this.sprite.spriteFrame = spriteFrame;
-            // 重置颜色为白色，让图片原色显示
-            this.sprite.color = Color.WHITE;
-        });
     }
 
     /**
