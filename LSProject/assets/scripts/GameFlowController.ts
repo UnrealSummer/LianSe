@@ -459,6 +459,16 @@ export class GameFlowController extends Component {
     }
 
     /**
+     * 返回主菜单
+     */
+    private returnToMenu() {
+        console.log('[GameFlowController] Returning to main menu');
+        this.changeState(GameState.MENU);
+        // TODO: 加载主菜单场景
+        // director.loadScene('MainMenu');
+    }
+
+    /**
      * 更新最高连击
      */
     public updateMaxCombo(combo: number) {
