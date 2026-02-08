@@ -28,6 +28,16 @@ export class GameCore extends Component {
     @property({ tooltip: 'GM：重力方向（-1=自动 0=下 1=上 2=左 3=右）' })
     gmGravityDirection: number = -1;
 
+    // UI引用
+    @property({ tooltip: '时间显示Label' })
+    timeLabel: Label = null;
+
+    @property({ tooltip: '金币显示Label' })
+    goldLabel: Label = null;
+
+    @property({ tooltip: '关卡显示Label' })
+    stageLabel: Label = null;
+
     private gridSystem: GridSystem = null;
     private enemySystem: EnemySystem = null;
     private damageSystem: DamageSystem = null;
@@ -40,9 +50,6 @@ export class GameCore extends Component {
     private audioManager: AudioManager = null;
     private pauseUI: PauseUI = null;
     private dataManager: DataManager = null;
-    private timeLabel: Label = null;
-    private goldLabel: Label = null;
-    private stageLabel: Label = null;
 
     private timeLeft: number = 0;
     private isGameRunning: boolean = false;
