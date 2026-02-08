@@ -138,6 +138,15 @@ export class GameOverUI extends Component {
             console.log('[GameOverUI] VictoryPanel activated:', this.victoryPanel.active);
             console.log('[GameOverUI] VictoryPanel position:', this.victoryPanel.position);
             console.log('[GameOverUI] VictoryPanel scale:', this.victoryPanel.scale);
+            console.log('[GameOverUI] VictoryPanel parent:', this.victoryPanel.parent?.name);
+            console.log('[GameOverUI] VictoryPanel siblingIndex:', this.victoryPanel.getSiblingIndex());
+            
+            // Check if parent node is active
+            console.log('[GameOverUI] Parent node (this.node) active:', this.node.active);
+            
+            // Try to bring to front
+            this.node.setSiblingIndex(999);
+            console.log('[GameOverUI] Moved parent to front, new index:', this.node.getSiblingIndex());
         } else {
             console.warn('[GameOverUI] VictoryPanel is null!');
         }
