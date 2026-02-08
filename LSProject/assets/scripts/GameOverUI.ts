@@ -57,6 +57,12 @@ export class GameOverUI extends Component {
     start() {
         this.initPanels();
         this.bindEvents();
+        
+        // Debug: Check node hierarchy
+        console.log('[GameOverUI] Node name:', this.node.name);
+        console.log('[GameOverUI] Node active:', this.node.active);
+        console.log('[GameOverUI] Parent:', this.node.parent?.name);
+        console.log('[GameOverUI] Sibling count:', this.node.parent?.children.length);
     }
 
     /**
