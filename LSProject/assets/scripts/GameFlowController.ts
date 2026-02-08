@@ -33,12 +33,14 @@ export class GameFlowController extends Component {
 
     private currentState: GameState = GameState.MENU;
     private previousState: GameState = GameState.MENU;
+    private gameOverUI: any = null;  // GameOverUI component
 
     // 游戏数据
     private currentLevel: number = 1;
     private currentStage: number = 1;
     private score: number = 0;
     private coins: number = 0;
+    private maxCombo: number = 0;
 
     /**
      * 单例
@@ -60,6 +62,7 @@ export class GameFlowController extends Component {
 
     start() {
         this.initPanels();
+        this.initGameOverUI();
         this.registerKeyboardEvents();
         console.log('[GameFlowController] Initialized');
     }
@@ -86,6 +89,23 @@ export class GameFlowController extends Component {
         }
         if (this.modifierSelectPanel) {
             this.modifierSelectPanel.active = false;
+        }
+    }
+
+    /**
+     * 初始化GameOverUI
+     */
+    private initGameOverUI() {
+        if (this.gameOverPanel) {
+            this.gameOverUI = this.gameOverPanel.getComponent('GameOverUI');
+            if (this.gameOverUI) {
+                this.gameOverUI.setCallbacks({
+                    onContinue: this.onVictoryContinue.bind(this),
+                    onRetry: this.onDefeatRetry.bind(this),
+                    onMenu: this.returnToMenu.bind(this)
+                });
+                console.log('[GameFlowController] GameOverUI initialized');
+            }
         }
     }
 
@@ -226,10 +246,23 @@ export class GameFlowController extends Component {
     private onGameWin() {
         console.log('[GameFlowController] Game win!');
         
+        // 计算奖励
+        const reward = 100 + (this.currentStage * 20);
+        this.coins += reward;
+        
         // 显示胜利面板
+        if (this.gameOverUI && this.gameOverUI.showVictory) {
+            this.gameOverUI.showVictory({
+                score: this.score,
+                coins: this.coins,
+                maxCombo: this.maxCombo,
+                reward: reward,
+                stage: this.currentStage
+            });
+        }
+        
         if (this.gameOverPanel) {
             this.gameOverPanel.active = true;
-            // TODO: 设置为胜利状态
         }
 
         // 通知其他系统游戏胜利
@@ -247,6 +280,28 @@ export class GameFlowController extends Component {
     private onGameLose() {
         console.log('[GameFlowController] Game lose');
         
+        // 显示失败面板
+        if (this.gameOverUI && this.gameOverUI.showDefeat) {
+            this.gameOverUI.showDefeat({
+                score: this.score,
+                coins: this.coins,
+                maxCombo: this.maxCombo,
+                stage: this.currentStage
+            });
+        }
+        
+        if (this.gameOverPanel) {
+            this.gameOverPanel.active = true;
+        }
+
+        // 通知其他系统游戏失败
+        this.node.emit('game-lose', {
+            level: this.currentLevel,
+            stage: this.currentStage,
+            score: this.score,
+            coins: this.coins
+        });
+    }
         // 显示失败面板
         if (this.gameOverPanel) {
             this.gameOverPanel.active = true;
@@ -396,4 +451,30 @@ export class GameFlowController extends Component {
     public isGameOver(): boolean {
         return this.currentState === GameState.WIN || this.currentState === GameState.LOSE;
     }
+
+    /**
+     * 胜利后继续（选择词条）
+     */
+    private onVictoryContinue() {
+        console.log('[GameFlowController] Victory continue - selecting modifier');
+        this.changeState(GameState.MODIFIER_SELECT);
+    }
+
+    /**
+     * 失败后重试
+     */
+    private onDefeatRetry() {
+        console.log('[GameFlowController] Defeat retry - restarting game');
+        this.restartGame();
+    }
+
+    /**
+     * 更新最高连击
+     */
+    public updateMaxCombo(combo: number) {
+        if (combo > this.maxCombo) {
+            this.maxCombo = combo;
+        }
+    }
 }
+
