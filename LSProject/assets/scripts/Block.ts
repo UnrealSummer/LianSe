@@ -106,8 +106,8 @@ export class Block extends Component {
             return;
         }
         
-        // 加载图片资源
-        resources.load(`textures/blocks/${colorName}/spriteFrame`, SpriteFrame, (err, spriteFrame) => {
+        // 加载图片资源 - 正确的路径格式
+        resources.load(`textures/blocks/${colorName}`, SpriteFrame, (err, spriteFrame) => {
             if (err) {
                 console.error(`[Block] Failed to load ${colorName}:`, err);
                 // 失败时使用纯色作为备用
