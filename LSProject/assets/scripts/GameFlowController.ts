@@ -250,7 +250,12 @@ export class GameFlowController extends Component {
         const reward = 100 + (this.currentStage * 20);
         this.coins += reward;
         
-        // 显示胜利面板
+        // 先激活GameOverPanel
+        if (this.gameOverPanel) {
+            this.gameOverPanel.active = true;
+        }
+        
+        // 然后显示胜利面板
         if (this.gameOverUI && this.gameOverUI.showVictory) {
             this.gameOverUI.showVictory({
                 score: this.score,
@@ -259,10 +264,6 @@ export class GameFlowController extends Component {
                 reward: reward,
                 stage: this.currentStage
             });
-        }
-        
-        if (this.gameOverPanel) {
-            this.gameOverPanel.active = true;
         }
 
         // 通知其他系统游戏胜利
@@ -283,7 +284,12 @@ export class GameFlowController extends Component {
     private onGameLose() {
         console.log('[GameFlowController] Game lose');
         
-        // 显示失败面板
+        // 先激活GameOverPanel
+        if (this.gameOverPanel) {
+            this.gameOverPanel.active = true;
+        }
+        
+        // 然后显示失败面板
         if (this.gameOverUI && this.gameOverUI.showDefeat) {
             this.gameOverUI.showDefeat({
                 score: this.score,
@@ -291,10 +297,6 @@ export class GameFlowController extends Component {
                 maxCombo: this.maxCombo,
                 stage: this.currentStage
             });
-        }
-        
-        if (this.gameOverPanel) {
-            this.gameOverPanel.active = true;
         }
 
         // 通知其他系统游戏失败
