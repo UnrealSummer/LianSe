@@ -1,4 +1,4 @@
-import { _decorator, Component, Node } from 'cc';
+import { _decorator, Component, Node, input, Input, KeyCode, EventKeyboard } from 'cc';
 const { ccclass, property } = _decorator;
 
 /**
@@ -60,6 +60,7 @@ export class GameFlowController extends Component {
 
     start() {
         this.initPanels();
+        this.registerKeyboardEvents();
         console.log('[GameFlowController] Initialized');
     }
 
@@ -67,6 +68,9 @@ export class GameFlowController extends Component {
         if (GameFlowController._instance === this) {
             GameFlowController._instance = null;
         }
+        
+        // 移除键盘监听
+        input.off(Input.EventType.KEY_DOWN, this.onKeyDown, this);
     }
 
     /**
@@ -82,6 +86,30 @@ export class GameFlowController extends Component {
         }
         if (this.modifierSelectPanel) {
             this.modifierSelectPanel.active = false;
+        }
+    }
+
+    /**
+     * 注册键盘事件
+     */
+    private registerKeyboardEvents() {
+        input.on(Input.EventType.KEY_DOWN, this.onKeyDown, this);
+        console.log('[GameFlowController] Keyboard events registered (ESC to pause)');
+    }
+
+    /**
+     * 键盘按下事件
+     */
+    private onKeyDown(event: EventKeyboard) {
+        switch (event.keyCode) {
+            case KeyCode.ESCAPE:
+                // ESC键切换暂停
+                if (this.currentState === GameState.PLAYING) {
+                    this.changeState(GameState.PAUSED);
+                } else if (this.currentState === GameState.PAUSED) {
+                    this.resumeGame();
+                }
+                break;
         }
     }
 
