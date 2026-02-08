@@ -1,0 +1,17 @@
+﻿=== 生成游戏资源 ===
+
+1. 生成方块...
+python : Traceback (most recent call last):
+所在位置 行:1 字符: 23
++ cd E:\Project\LianSe; python generate_all_resources.py 2>&1 | Out-Fil ...
++                       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (Traceback (most recent call last)::String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+  File "E:\Project\LianSe\generate_all_resources.py", line 207, in <module>
+    generate_all_resources()
+    ~~~~~~~~~~~~~~~~~~~~~~^^
+  File "E:\Project\LianSe\generate_all_resources.py", line 166, in generate_all_resources
+    print(f"  \u2713 {name}.png")
+    ~~~~~^^^^^^^^^^^^^^^^^^^
+UnicodeEncodeError: 'gbk' codec can't encode character '\u2713' in position 2: illegal multibyte sequence

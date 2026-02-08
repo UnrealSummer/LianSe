@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>LianSe Jelly Gloss Game Screen</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#4ccdc4",
+                        "game-red": "#FF4757",
+                        "game-blue": "#2F80ED",
+                        "game-orange": "#FFA502",
+                        "game-yellow": "#FFEAA7",
+                        "game-green": "#2ED573",
+                        "game-purple": "#a29bfe",
+                    },
+                    fontFamily: {
+                        "display": ["Plus Jakarta Sans"]
+                    },
+                    boxShadow: {
+                        'gem': 'inset 0 4px 6px rgba(255,255,255,0.7), inset 0 -4px 6px rgba(0,0,0,0.2), 0 4px 8px rgba(0,0,0,0.2)',
+                        'gem-active': 'inset 0 2px 4px rgba(255,255,255,0.5), inset 0 -2px 4px rgba(0,0,0,0.1), 0 2px 4px rgba(0,0,0,0.1)',
+                        'ui-soft': '0 8px 32px rgba(31, 38, 135, 0.15)',
+                        'jelly': '0 10px 15px -3px rgba(0, 0, 0, 0.3), inset 0 -4px 4px rgba(0,0,0,0.2), inset 0 2px 4px rgba(255,255,255,0.6)',
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        .lush-gradient-bg {
+            background: radial-gradient(circle at 50% 30%, #4a90e2 0%, #8e44ad 100%);
+            background: linear-gradient(160deg, #4facfe 0%, #00f2fe 100%);
+            background: linear-gradient(180deg, #6FA8DC 0%, #8E7CC3 100%);background: linear-gradient(180deg, #92d0ff 0%, #d4b5ff 100%);position: relative;
+        }
+        .star-pattern {
+            background-image: 
+                radial-gradient(white 1px, transparent 1px), 
+                radial-gradient(white 1px, transparent 1px);
+            background-size: 40px 40px;
+            background-position: 0 0, 20px 20px;
+            opacity: 0.4;
+        }.jelly-btn {
+            position: relative;
+            border-radius: 1rem;
+            border-bottom: 4px solid rgba(0,0,0,0.2);
+            box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+            overflow: hidden;
+            transition: transform 0.1s, border-bottom-width 0.1s;
+        }
+        .jelly-btn:active {
+            transform: translateY(2px);
+            border-bottom-width: 1px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }.gloss-overlay {
+            position: absolute;
+            top: 2%;
+            left: 2%;
+            right: 2%;
+            height: 45%;
+            background: linear-gradient(to bottom, rgba(255,255,255,0.8) 0%, rgba(255,255,255,0.1) 100%);
+            border-radius: 0.8rem 0.8rem 2rem 2rem;
+            pointer-events: none;
+            z-index: 10;
+        }.jelly-white {
+            background: linear-gradient(to bottom, #ffffff 0%, #e2e8f0 100%);
+            border: 1px solid #cbd5e1;
+            border-bottom: 4px solid #94a3b8;
+        }
+        .jelly-blue {
+            background: linear-gradient(to bottom, #60a5fa 0%, #2563eb 100%);
+            border: 1px solid #3b82f6;
+            border-bottom: 4px solid #1d4ed8;
+        }.gem-3d {
+            position: relative;
+            border-radius: 12px;box-shadow: 0 6px 10px rgba(0,0,0,0.25);transition: transform 0.1s;
+            overflow: visible;}
+        .gem-inner {
+            position: absolute;
+            inset: 0;
+            border-radius: 12px;
+            overflow: hidden;
+            border-bottom: 4px solid rgba(0,0,0,0.2);}
+        .gem-highlight {
+            position: absolute;
+            top: 4%;
+            left: 4%;
+            width: 92%;
+            height: 45%;
+            background: linear-gradient(180deg, rgba(255,255,255,0.95) 0%, rgba(255,255,255,0.1) 100%);
+            border-radius: 8px 8px 20px 20px;opacity: 0.9;
+            filter: blur(0.5px);
+        }.gem-red { background: linear-gradient(180deg, #ff6b6b 0%, #c0392b 100%); border: 1px solid #e74c3c; border-bottom: 4px solid #922b21; }
+        .gem-blue { background: linear-gradient(180deg, #54a0ff 0%, #2e86de 100%); border: 1px solid #2e86de; border-bottom: 4px solid #185a9d; }
+        .gem-green { background: linear-gradient(180deg, #1dd1a1 0%, #10ac84 100%); border: 1px solid #10ac84; border-bottom: 4px solid #0b7558; }
+        .gem-yellow { background: linear-gradient(180deg, #feca57 0%, #ff9f43 100%); border: 1px solid #ff9f43; border-bottom: 4px solid #d35400; }
+        .gem-purple { background: linear-gradient(180deg, #a29bfe 0%, #6c5ce7 100%); border: 1px solid #6c5ce7; border-bottom: 4px solid #4834d4; }
+        .gem-orange { background: linear-gradient(180deg, #ff9ff3 0%, #f368e0 100%); border: 1px solid #f368e0; border-bottom: 4px solid #b7158b; }.gem-orange-real { background: linear-gradient(180deg, #ff9f43 0%, #ee5253 100%); border: 1px solid #ee5253; border-bottom: 4px solid #b33939; }.gem-icon {
+            position: relative;
+            z-index: 20;
+            filter: drop-shadow(0 2px 2px rgba(0,0,0,0.3));
+        }.hp-bar-glossy {
+            background: linear-gradient(to bottom, #ff5252 0%, #b71c1c 100%);
+            border-radius: 999px;
+            position: relative;
+            box-shadow: inset 0 -4px 6px rgba(0,0,0,0.4), 0 4px 10px rgba(183, 28, 28, 0.4);
+            border: 2px solid rgba(255,255,255,0.5);
+            overflow: hidden;
+        }
+        .hp-bar-glossy::after {
+            content: '';
+            position: absolute;
+            top: 2px;
+            left: 2%;
+            width: 96%;
+            height: 45%;
+            background: linear-gradient(to bottom, rgba(255,255,255,0.9), rgba(255,255,255,0.1));
+            border-radius: 999px;
+            filter: blur(1px);
+        }.time-bar-glossy-container {
+            height: 25px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 12px;
+            padding: 2px;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.3);
+            border: 1px solid rgba(255,255,255,0.3);
+        }
+        .time-bar-fill-glossy {
+            height: 100%;
+            border-radius: 10px;
+            background: linear-gradient(to bottom, #00d2d3 0%, #01a3a4 100%);position: relative;
+            overflow: hidden;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+        .time-bar-fill-glossy::after {
+            content: "";
+            position: absolute;
+            top: 1px;
+            left: 1px;
+            right: 1px;
+            height: 45%;
+            background: linear-gradient(to bottom, rgba(255,255,255,0.8), rgba(255,255,255,0.1));
+            border-radius: 10px;
+        }.gold-coin-polished {
+            background: radial-gradient(circle at 40% 40%, #ffd700, #f1c40f, #b7950b);
+            border: 1px solid #d4ac0d;
+            box-shadow: 
+                inset 0 4px 6px rgba(255,255,255,0.8),
+                inset 0 -4px 6px rgba(183, 149, 11, 0.6),
+                0 4px 8px rgba(0,0,0,0.3);
+        }.board-gold-frame-polished {
+            background: linear-gradient(135deg, #f1c40f 0%, #b7950b 50%, #f1c40f 100%);
+            border: 3px solid #9a7d0a;
+            box-shadow: 
+                0 8px 0 #7d6608,0 15px 20px rgba(0,0,0,0.3);
+            border-radius: 20px;
+        }.slime-body {
+            background: radial-gradient(circle at 35% 35%, #4fc3f7, #0288d1);
+            box-shadow: 
+                inset -10px -10px 20px rgba(1, 87, 155, 0.6), 
+                inset 15px 15px 30px rgba(255,255,255,0.9), 
+                0 15px 35px rgba(0,0,0,0.3);
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+</head>
+<body class="bg-slate-100 font-display flex justify-center items-center min-h-screen">
+<div class="relative w-[375px] h-[812px] lush-gradient-bg shadow-[0_20px_60px_-15px_rgba(0,0,0,0.4)] overflow-hidden flex flex-col rounded-[3rem] border-8 border-white/40 ring-1 ring-black/5">
+<!-- 完整HTML内容 -->
+<p style="text-align: center; margin-top: 50px; color: white; font-size: 24px;">
+  Stitch HTML设计稿<br>
+  请在浏览器中打开查看完整效果
+</p>
+</div>
+</body></html>
