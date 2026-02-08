@@ -308,8 +308,15 @@ export class GameFlowController extends Component {
             this.modifierSelectPanel.active = true;
         }
 
-        // 通知其他系统显示词条选择
+        // 通知GameCore显示词条选择（临时方案）
+        // TODO: 将词条选择逻辑完全移到GameFlowController
         this.node.emit('modifier-select-start');
+        
+        // 临时：直接进入下一关（跳过词条选择）
+        console.log('[GameFlowController] Skipping modifier selection for now...');
+        setTimeout(() => {
+            this.onModifierSelected();
+        }, 1000);
     }
 
     /**
