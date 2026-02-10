@@ -1,4 +1,4 @@
-import { _decorator, Component, Node, Label, ScrollView, Prefab, instantiate, Color } from 'cc';
+import { _decorator, Component, Node, Label, ScrollView, Prefab, instantiate, Color, Button } from 'cc';
 import { LeaderboardManager, LeaderboardEntry } from './LeaderboardManager';
 import { UserManager } from './UserManager';
 const { ccclass, property } = _decorator;
@@ -32,11 +32,53 @@ export class LeaderboardUI extends Component {
     @property(Node)
     emptyNode: Node = null;
 
+    @property(Button)
+    closeButton: Button = null;
+
+    @property(Button)
+    refreshButton: Button = null;
+
     private leaderboardData: LeaderboardEntry[] = [];
     private myOpenId: string = '';
 
     start() {
         this.hideLeaderboard();
+        this.bindButtons();
+    }
+
+    /**
+     * 绑定按钮事件
+     */
+    private bindButtons(): void {
+        // 如果没有通过属性设置，尝试自动查找
+        if (!this.closeButton && this.leaderboardPanel) {
+            const closeNode = this.leaderboardPanel.getChildByName('CloseButton');
+            if (closeNode) {
+                this.closeButton = closeNode.getComponent(Button);
+            }
+        }
+
+        if (!this.refreshButton && this.leaderboardPanel) {
+            const refreshNode = this.leaderboardPanel.getChildByName('RefreshButton');
+            if (refreshNode) {
+                this.refreshButton = refreshNode.getComponent(Button);
+            }
+        }
+
+        // 绑定事件
+        if (this.closeButton) {
+            this.closeButton.node.on(Button.EventType.CLICK, this.onCloseButtonClick, this);
+            console.log('[LeaderboardUI] Close button bound');
+        } else {
+            console.warn('[LeaderboardUI] Close button not found');
+        }
+
+        if (this.refreshButton) {
+            this.refreshButton.node.on(Button.EventType.CLICK, this.onRefreshButtonClick, this);
+            console.log('[LeaderboardUI] Refresh button bound');
+        } else {
+            console.warn('[LeaderboardUI] Refresh button not found');
+        }
     }
 
     /**
