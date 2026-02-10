@@ -1,4 +1,5 @@
 import { _decorator, Component, Node, Button, director, sys } from 'cc';
+import { LeaderboardUI } from './LeaderboardUI';
 const { ccclass, property } = _decorator;
 
 /**
@@ -10,6 +11,9 @@ export class MainMenuUI extends Component {
     startButton: Button = null;
 
     @property(Button)
+    leaderboardButton: Button = null;
+
+    @property(Button)
     settingsButton: Button = null;
 
     @property(Button)
@@ -17,6 +21,9 @@ export class MainMenuUI extends Component {
 
     @property(Node)
     titleNode: Node = null;
+
+    @property(LeaderboardUI)
+    leaderboardUI: LeaderboardUI = null;
 
     start() {
         this.initUI();
@@ -38,6 +45,10 @@ export class MainMenuUI extends Component {
     bindEvents() {
         if (this.startButton) {
             this.startButton.node.on(Button.EventType.CLICK, this.onStartGame, this);
+        }
+
+        if (this.leaderboardButton) {
+            this.leaderboardButton.node.on(Button.EventType.CLICK, this.onLeaderboard, this);
         }
 
         if (this.settingsButton) {
@@ -66,6 +77,19 @@ export class MainMenuUI extends Component {
                 console.log('[MainMenuUI] Main scene loaded');
             }
         });
+    }
+
+    /**
+     * 打开排行榜
+     */
+    onLeaderboard() {
+        console.log('[MainMenuUI] Leaderboard clicked');
+        
+        if (this.leaderboardUI) {
+            this.leaderboardUI.showLeaderboard();
+        } else {
+            console.error('[MainMenuUI] LeaderboardUI not set');
+        }
     }
 
     /**
