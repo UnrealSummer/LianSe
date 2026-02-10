@@ -11,6 +11,7 @@ import { GameOverUI } from './GameOverUI';
 import { AudioManager } from './AudioManager';
 import { PauseUI } from './PauseUI';
 import { DataManager } from './DataManager';
+import { LeaderboardManager } from './LeaderboardManager';
 const { ccclass, property } = _decorator;
 
 /**
@@ -735,6 +736,9 @@ export class GameCore extends Component {
             this.dataManager.updateMaxCombo(this.maxCombo);
         }
         
+        // Upload score to leaderboard
+        this.uploadScoreToLeaderboard();
+        
         // Big coin drop on kill
         let killReward = 0;
         if (this.coinSystem) {
@@ -982,5 +986,26 @@ export class GameCore extends Component {
         // For now, just restart the game
         // TODO: Create main menu scene
         this.startNewGame();
+    }
+
+    /**
+     * 上传分数到排行榜
+     */
+    private uploadScoreToLeaderboard(): void {
+        const leaderboardManager = LeaderboardManager.getInstance();
+        if (!leaderboardManager) {
+            console.warn('[GameCore] LeaderboardManager not found');
+            return;
+        }
+
+        const currentStage = this.progressionManager.getCurrentStage();
+        const totalCoins = this.coinSystem ? this.coinSystem.getCoins() : 0;
+        const score = currentStage * 1000 + totalCoins + this.maxCombo * 100;
+
+        leaderboardManager.uploadScore(score, currentStage, this.maxCombo).then(success => {
+            if (success) {
+                console.log('[GameCore] Score uploaded:', score);
+            }
+        });
     }
 }
