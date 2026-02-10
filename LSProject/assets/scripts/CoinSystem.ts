@@ -20,10 +20,22 @@ export class CoinSystem extends Component {
             console.log(`[CoinSystem] Loaded ${this.totalCoins} coins from save`);
         }
         
-        // Find GameUI
+        // Find GameUI - try multiple ways
         this.gameUI = this.node.parent?.getComponentInChildren(GameUI);
         if (!this.gameUI) {
-            console.warn('[CoinSystem] GameUI not found');
+            // Try finding in Canvas
+            const canvas = this.node.scene.getChildByName('Canvas');
+            if (canvas) {
+                this.gameUI = canvas.getComponentInChildren(GameUI);
+            }
+        }
+        
+        if (!this.gameUI) {
+            console.error('[CoinSystem] GameUI not found! UI will not update.');
+        } else {
+            console.log('[CoinSystem] GameUI found, will update UI');
+            // 初始化显示
+            this.gameUI.updateCoins(this.totalCoins);
         }
         
         console.log('[CoinSystem] Initialized');
@@ -39,7 +51,10 @@ export class CoinSystem extends Component {
         
         // 更新UI
         if (this.gameUI) {
+            console.log(`[CoinSystem] Updating UI to ${this.totalCoins} coins`);
             this.gameUI.updateCoins(this.totalCoins);
+        } else {
+            console.warn('[CoinSystem] Cannot update UI - GameUI not found');
         }
     }
 

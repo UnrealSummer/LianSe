@@ -23,11 +23,20 @@ export class ProgressionManager extends Component {
             this.levelGenerator = new LevelGenerator();
         }
         
-        // Find GameUI
+        // Find GameUI - try multiple ways
         this.gameUI = this.node.parent?.getComponentInChildren(GameUI);
         if (!this.gameUI) {
-            console.warn('[ProgressionManager] GameUI not found');
+            // Try finding in Canvas
+            const canvas = this.node.scene.getChildByName('Canvas');
+            if (canvas) {
+                this.gameUI = canvas.getComponentInChildren(GameUI);
+            }
+        }
+        
+        if (!this.gameUI) {
+            console.error('[ProgressionManager] GameUI not found! UI will not update.');
         } else {
+            console.log('[ProgressionManager] GameUI found, will update UI');
             // 初始化关卡显示
             this.updateLevelUI();
         }
@@ -86,7 +95,10 @@ export class ProgressionManager extends Component {
      */
     private updateLevelUI(): void {
         if (this.gameUI) {
+            console.log(`[ProgressionManager] Updating UI to stage ${this.currentStage}`);
             this.gameUI.updateLevel(this.currentStage.toString());
+        } else {
+            console.warn('[ProgressionManager] Cannot update UI - GameUI not found');
         }
     }
 
