@@ -57,6 +57,16 @@ export class UserManager extends Component {
             const openid = await this.getOpenId(loginRes.code);
             console.log('[UserManager] OpenID:', openid);
 
+            if (!openid) {
+                console.error('[UserManager] OpenID is undefined, using test user');
+                this.userInfo = {
+                    openid: 'test_user_' + Date.now(),
+                    nickname: '测试玩家',
+                    avatarUrl: ''
+                };
+                return true;
+            }
+
             this.userInfo = {
                 openid: openid,
                 nickname: '玩家' + openid.substring(0, 6),
