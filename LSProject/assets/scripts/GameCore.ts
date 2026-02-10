@@ -999,7 +999,7 @@ export class GameCore extends Component {
         }
 
         const currentStage = this.progressionManager.getCurrentStage();
-        const totalCoins = this.coinSystem ? this.coinSystem.getCoins() : 0;
+        const totalCoins = this.coinSystem ? this.coinSystem.getTotalCoins() : 0;
         const score = currentStage * 1000 + totalCoins + this.maxCombo * 100;
 
         leaderboardManager.uploadScore(score, currentStage, this.maxCombo).then(success => {
