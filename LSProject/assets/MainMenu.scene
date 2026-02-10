@@ -1823,6 +1823,12 @@
     "emptyNode": {
       "__id__": 92
     },
+    "closeButton": {
+      "__id__": 81
+    },
+    "refreshButton": {
+      "__id__": 88
+    },
     "_id": "b9xwDVSGdPC4xJ5GlxFWVr"
   },
   {
@@ -1917,7 +1923,7 @@
     "_lpos": {
       "__type__": "cc.Vec3",
       "x": 0,
-      "y": 0,
+      "y": 280.627,
       "z": 0
     },
     "_lrot": {
@@ -1955,7 +1961,7 @@
     "__prefab": null,
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 60,
+      "width": 120,
       "height": 50.4
     },
     "_anchorPoint": {
@@ -1981,15 +1987,15 @@
     "_color": {
       "__type__": "cc.Color",
       "r": 255,
-      "g": 255,
-      "b": 255,
+      "g": 236,
+      "b": 12,
       "a": 255
     },
     "_string": "排行榜",
     "_horizontalAlign": 1,
     "_verticalAlign": 1,
-    "_actualFontSize": 20,
-    "_fontSize": 20,
+    "_actualFontSize": 40,
+    "_fontSize": 40,
     "_fontFamily": "Arial",
     "_lineHeight": 40,
     "_overflow": 0,
@@ -1998,7 +2004,7 @@
     "_isSystemFontUsed": true,
     "_spacingX": 0,
     "_isItalic": false,
-    "_isBold": false,
+    "_isBold": true,
     "_isUnderline": false,
     "_underlineHeight": 2,
     "_cacheMode": 0,
@@ -2882,7 +2888,7 @@
     "_prefab": null,
     "_lpos": {
       "__type__": "cc.Vec3",
-      "x": 161.621,
+      "x": 237.423,
       "y": -279.769,
       "z": 0
     },
@@ -2999,7 +3005,7 @@
       "b": 0,
       "a": 255
     },
-    "_string": "button",
+    "_string": "关闭",
     "_horizontalAlign": 1,
     "_verticalAlign": 1,
     "_actualFontSize": 20,
@@ -3288,7 +3294,7 @@
       "b": 0,
       "a": 255
     },
-    "_string": "button",
+    "_string": "刷新",
     "_horizontalAlign": 1,
     "_verticalAlign": 1,
     "_actualFontSize": 20,
@@ -3601,7 +3607,7 @@
     "__prefab": null,
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 42.255859375,
+      "width": 54.462890625,
       "height": 50.4
     },
     "_anchorPoint": {
@@ -3626,12 +3632,12 @@
     "_dstBlendFactor": 4,
     "_color": {
       "__type__": "cc.Color",
-      "r": 255,
-      "g": 255,
-      "b": 255,
+      "r": 5,
+      "g": 5,
+      "b": 5,
       "a": 255
     },
-    "_string": "label",
+    "_string": "empty",
     "_horizontalAlign": 1,
     "_verticalAlign": 1,
     "_actualFontSize": 20,
