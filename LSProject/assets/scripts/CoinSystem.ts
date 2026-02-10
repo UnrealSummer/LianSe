@@ -1,5 +1,6 @@
 import { _decorator, Component } from 'cc';
 import { DataManager } from './DataManager';
+import { GameUI } from './GameUI';
 const { ccclass } = _decorator;
 
 /**
@@ -9,6 +10,7 @@ const { ccclass } = _decorator;
 export class CoinSystem extends Component {
     private totalCoins: number = 0;
     private stageCoins: number = 0;
+    private gameUI: GameUI = null;
 
     start() {
         // Load coins from DataManager
@@ -16,6 +18,12 @@ export class CoinSystem extends Component {
         if (dataManager) {
             this.totalCoins = dataManager.getTotalCoins();
             console.log(`[CoinSystem] Loaded ${this.totalCoins} coins from save`);
+        }
+        
+        // Find GameUI
+        this.gameUI = this.node.parent?.getComponentInChildren(GameUI);
+        if (!this.gameUI) {
+            console.warn('[CoinSystem] GameUI not found');
         }
         
         console.log('[CoinSystem] Initialized');
@@ -28,6 +36,11 @@ export class CoinSystem extends Component {
         this.totalCoins += amount;
         this.stageCoins += amount;
         console.log(`[CoinSystem] +${amount} coins (Total: ${this.totalCoins})`);
+        
+        // 更新UI
+        if (this.gameUI) {
+            this.gameUI.updateCoins(this.totalCoins);
+        }
     }
 
     /**
@@ -37,6 +50,12 @@ export class CoinSystem extends Component {
         if (this.totalCoins >= amount) {
             this.totalCoins -= amount;
             console.log(`[CoinSystem] -${amount} coins (Total: ${this.totalCoins})`);
+            
+            // 更新UI
+            if (this.gameUI) {
+                this.gameUI.updateCoins(this.totalCoins);
+            }
+            
             return true;
         }
         console.warn(`[CoinSystem] Not enough coins! Need ${amount}, have ${this.totalCoins}`);

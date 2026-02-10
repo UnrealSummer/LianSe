@@ -1,6 +1,7 @@
 import { _decorator, Component, Node } from 'cc';
 import { EnemyData } from './EnemySystem';
 import { LevelGenerator, LevelConfig } from './LevelGenerator';
+import { GameUI } from './GameUI';
 const { ccclass } = _decorator;
 
 /**
@@ -12,6 +13,7 @@ export class ProgressionManager extends Component {
     private totalGold: number = 0;
     private totalScore: number = 0;
     private levelGenerator: LevelGenerator = null;
+    private gameUI: GameUI = null;
 
     start() {
         // Auto-find LevelGenerator
@@ -19,6 +21,15 @@ export class ProgressionManager extends Component {
         if (!this.levelGenerator) {
             console.warn('[ProgressionManager] LevelGenerator not found, creating one');
             this.levelGenerator = new LevelGenerator();
+        }
+        
+        // Find GameUI
+        this.gameUI = this.node.parent?.getComponentInChildren(GameUI);
+        if (!this.gameUI) {
+            console.warn('[ProgressionManager] GameUI not found');
+        } else {
+            // 初始化关卡显示
+            this.updateLevelUI();
         }
     }
 
@@ -58,6 +69,7 @@ export class ProgressionManager extends Component {
     nextStage(): void {
         this.currentStage++;
         console.log(`[Progression] Stage ${this.currentStage}`);
+        this.updateLevelUI();
     }
 
     /**
@@ -66,6 +78,16 @@ export class ProgressionManager extends Component {
     setStage(stage: number): void {
         this.currentStage = stage;
         console.log(`[Progression] GM: Set stage to ${this.currentStage}`);
+        this.updateLevelUI();
+    }
+
+    /**
+     * 更新关卡UI显示
+     */
+    private updateLevelUI(): void {
+        if (this.gameUI) {
+            this.gameUI.updateLevel(this.currentStage.toString());
+        }
     }
 
     /**
