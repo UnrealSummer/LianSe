@@ -1,6 +1,6 @@
 import { _decorator, Component } from 'cc';
 import { GameCore } from './GameCore';
-import { ModifierPool, getRandomModifiers } from './Modifiers';
+import { getAllModifiers, getRandomModifiers } from './Modifiers';
 const { ccclass, property } = _decorator;
 
 /**
