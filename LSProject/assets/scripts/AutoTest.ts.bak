@@ -1,4 +1,4 @@
-import { _decorator, Component, Node } from 'cc';
+﻿import { _decorator, Component, Node } from 'cc';
 import { GridSystem } from './GridSystem';
 import { EnemySystem } from './EnemySystem';
 import { DamageSystem } from './DamageSystem';
@@ -9,8 +9,7 @@ import { getAllModifiers } from './Modifiers';
 const { ccclass, property } = _decorator;
 
 /**
- * 自动化测试组�?
- * 用于测试游戏核心功能
+ * 鑷姩鍖栨祴璇曠粍浠? * 鐢ㄤ簬娴嬭瘯娓告垙鏍稿績鍔熻兘
  */
 @ccclass('AutoTest')
 export class AutoTest extends Component {
@@ -32,97 +31,91 @@ export class AutoTest extends Component {
 
     start() {
         console.log('='.repeat(60));
-        console.log('🧪 自动化测试开�?);
+        console.log('馃И 鑷姩鍖栨祴璇曞紑濮?);
         console.log('='.repeat(60));
         
         this.runAllTests();
     }
 
     /**
-     * 运行所有测�?
-     */
+     * 杩愯鎵€鏈夋祴璇?     */
     private runAllTests(): void {
-        // 1. 基础组件测试
+        // 1. 鍩虹缁勪欢娴嬭瘯
         this.testComponents();
         
-        // 2. 敌人系统测试
+        // 2. 鏁屼汉绯荤粺娴嬭瘯
         this.testEnemySystem();
         
-        // 3. 伤害系统测试
+        // 3. 浼ゅ绯荤粺娴嬭瘯
         this.testDamageSystem();
         
-        // 4. 词条系统测试
+        // 4. 璇嶆潯绯荤粺娴嬭瘯
         this.testModifierSystem();
         
-        // 5. 数据管理测试
+        // 5. 鏁版嵁绠＄悊娴嬭瘯
         this.testDataManager();
         
-        // 6. 网格系统测试
+        // 6. 缃戞牸绯荤粺娴嬭瘯
         this.testGridSystem();
         
-        // 输出测试结果
+        // 杈撳嚭娴嬭瘯缁撴灉
         this.printTestResults();
     }
 
     /**
-     * 测试基础组件
+     * 娴嬭瘯鍩虹缁勪欢
      */
     private testComponents(): void {
-        console.log('\n📦 测试1：基础组件');
+        console.log('\n馃摝 娴嬭瘯1锛氬熀纭€缁勪欢');
         
-        this.test('GridSystem 存在', () => {
+        this.test('GridSystem 瀛樺湪', () => {
             return this.gridSystem !== null;
         });
         
-        this.test('EnemySystem 存在', () => {
+        this.test('EnemySystem 瀛樺湪', () => {
             return this.enemySystem !== null;
         });
         
-        this.test('DamageSystem 存在', () => {
+        this.test('DamageSystem 瀛樺湪', () => {
             return this.damageSystem !== null;
         });
         
-        this.test('ModifierSystem 存在', () => {
+        this.test('ModifierSystem 瀛樺湪', () => {
             return this.modifierSystem !== null;
         });
     }
 
     /**
-     * 测试敌人系统
+     * 娴嬭瘯鏁屼汉绯荤粺
      */
     private testEnemySystem(): void {
-        console.log('\n⚔️ 测试2：敌人系�?);
+        console.log('\n鈿旓笍 娴嬭瘯2锛氭晫浜虹郴缁?);
         
-        // 测试�?关敌�?
-        this.test('�?关敌人血量为50', () => {
+        // 娴嬭瘯绗?鍏虫晫浜?        this.test('绗?鍏虫晫浜鸿閲忎负50', () => {
             const enemy = getEnemyInfo(1);
-            console.log(`  �?�? ${enemy.name}, ${enemy.hp}血`);
+            console.log(`  绗?鍏? ${enemy.name}, ${enemy.hp}琛€`);
             return enemy.hp === 50;
         });
         
-        // 测试�?关敌�?
-        this.test('�?关敌人血量为130', () => {
+        // 娴嬭瘯绗?鍏虫晫浜?        this.test('绗?鍏虫晫浜鸿閲忎负130', () => {
             const enemy = getEnemyInfo(5);
-            console.log(`  �?�? ${enemy.name}, ${enemy.hp}血`);
+            console.log(`  绗?鍏? ${enemy.name}, ${enemy.hp}琛€`);
             return enemy.hp === 130;
         });
         
-        // 测试�?关敌人（强敌�?
-        this.test('�?关敌人血量为155', () => {
+        // 娴嬭瘯绗?鍏虫晫浜猴紙寮烘晫锛?        this.test('绗?鍏虫晫浜鸿閲忎负155', () => {
             const enemy = getEnemyInfo(6);
-            console.log(`  �?�? ${enemy.name}, ${enemy.hp}血`);
+            console.log(`  绗?鍏? ${enemy.name}, ${enemy.hp}琛€`);
             return enemy.hp === 155;
         });
         
-        // 测试�?1关敌人（精英�?
-        this.test('�?1关敌人血量为280', () => {
+        // 娴嬭瘯绗?1鍏虫晫浜猴紙绮捐嫳锛?        this.test('绗?1鍏虫晫浜鸿閲忎负280', () => {
             const enemy = getEnemyInfo(11);
-            console.log(`  �?1�? ${enemy.name}, ${enemy.hp}血`);
+            console.log(`  绗?1鍏? ${enemy.name}, ${enemy.hp}琛€`);
             return enemy.hp === 280;
         });
         
-        // 测试血量增�?
-        this.test('血量增长平滑（无跳跃）', () => {
+        // 娴嬭瘯琛€閲忓闀?        this.test('琛€閲忓闀垮钩婊戯紙鏃犺烦璺冿級', () => {
             const stages = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
             let prevHp = 0;
             let maxGrowth = 0;
@@ -136,98 +129,97 @@ export class AutoTest extends Component {
                 prevHp = enemy.hp;
             }
             
-            console.log(`  最大增�? ${maxGrowth}`);
-            return maxGrowth <= 25; // 增长不超�?5
+            console.log(`  鏈€澶у闀? ${maxGrowth}`);
+            return maxGrowth <= 25; // 澧為暱涓嶈秴杩?5
         });
     }
 
     /**
-     * 测试伤害系统
+     * 娴嬭瘯浼ゅ绯荤粺
      */
     private testDamageSystem(): void {
-        console.log('\n💥 测试3：伤害系�?);
+        console.log('\n馃挜 娴嬭瘯3锛氫激瀹崇郴缁?);
         
-        // 测试基础伤害
-        this.test('3个方块基础伤害�?0', () => {
+        // 娴嬭瘯鍩虹浼ゅ
+        this.test('3涓柟鍧楀熀纭€浼ゅ涓?0', () => {
             const damage = this.damageSystem.calculateBaseDamage(3);
-            console.log(`  3个方�? ${damage}伤害`);
+            console.log(`  3涓柟鍧? ${damage}浼ゅ`);
             return damage === 10;
         });
         
-        this.test('4个方块基础伤害�?5', () => {
+        this.test('4涓柟鍧楀熀纭€浼ゅ涓?5', () => {
             const damage = this.damageSystem.calculateBaseDamage(4);
-            console.log(`  4个方�? ${damage}伤害`);
+            console.log(`  4涓柟鍧? ${damage}浼ゅ`);
             return damage === 15;
         });
         
-        this.test('5个方块基础伤害�?0', () => {
+        this.test('5涓柟鍧楀熀纭€浼ゅ涓?0', () => {
             const damage = this.damageSystem.calculateBaseDamage(5);
-            console.log(`  5个方�? ${damage}伤害`);
+            console.log(`  5涓柟鍧? ${damage}浼ゅ`);
             return damage === 20;
         });
         
-        this.test('6个方块基础伤害�?5', () => {
+        this.test('6涓柟鍧楀熀纭€浼ゅ涓?5', () => {
             const damage = this.damageSystem.calculateBaseDamage(6);
-            console.log(`  6个方�? ${damage}伤害`);
+            console.log(`  6涓柟鍧? ${damage}浼ゅ`);
             return damage === 25;
         });
         
-        // 测试连锁倍率
-        this.test('连锁1层倍率�?.3', () => {
+        // 娴嬭瘯杩為攣鍊嶇巼
+        this.test('杩為攣1灞傚€嶇巼涓?.3', () => {
             const multiplier = this.damageSystem.getChainMultiplier(1);
-            console.log(`  连锁1�? ×${multiplier.toFixed(2)}`);
+            console.log(`  杩為攣1灞? 脳${multiplier.toFixed(2)}`);
             return Math.abs(multiplier - 1.3) < 0.01;
         });
         
-        this.test('连锁2层倍率�?.69', () => {
+        this.test('杩為攣2灞傚€嶇巼涓?.69', () => {
             const multiplier = this.damageSystem.getChainMultiplier(2);
-            console.log(`  连锁2�? ×${multiplier.toFixed(2)}`);
+            console.log(`  杩為攣2灞? 脳${multiplier.toFixed(2)}`);
             return Math.abs(multiplier - 1.69) < 0.01;
         });
     }
 
     /**
-     * 测试词条系统
+     * 娴嬭瘯璇嶆潯绯荤粺
      */
     private testModifierSystem(): void {
-        console.log('\n🎲 测试4：词条系�?);
+        console.log('\n馃幉 娴嬭瘯4锛氳瘝鏉＄郴缁?);
         
-        // 测试词条�?
-        this.test('词条池包�?7个词�?, () => {
-            console.log(`  词条总数: ${getAllModifiers().length}`);
-            return getAllModifiers().length === 17;
+        // 娴嬭瘯璇嶆潯姹?        this.test('璇嶆潯姹犲寘鍚?7涓瘝鏉?, () => {
+            console.log(`  璇嶆潯鎬绘暟: ${ModifierPool.length}`);
+            return ModifierPool.length === 17;
         });
         
-        // 测试稀有度分布
-        this.test('Common词条5�?, () => {
-            const count = getAllModifiers().filter(m => m.rarity === 'common').length;
-            console.log(`  Common: ${count}个`);
+        // 娴嬭瘯绋€鏈夊害鍒嗗竷
+        this.test('Common璇嶆潯5涓?, () => {
+            const count = ModifierPool.filter(m => m.rarity === 'common').length;
+            console.log(`  Common: ${count}涓猔);
             return count === 5;
         });
         
-        this.test('Rare词条6�?, () => {
-            const count = getAllModifiers().filter(m => m.rarity === 'rare').length;
-            console.log(`  Rare: ${count}个`);
+        this.test('Rare璇嶆潯6涓?, () => {
+            const count = ModifierPool.filter(m => m.rarity === 'rare').length;
+            console.log(`  Rare: ${count}涓猔);
             return count === 6;
         });
         
-        this.test('Epic词条6�?, () => {
-            const count = getAllModifiers().filter(m => m.rarity === 'epic').length;
-            console.log(`  Epic: ${count}个`);
+        this.test('Epic璇嶆潯6涓?, () => {
+            const count = ModifierPool.filter(m => m.rarity === 'epic').length;
+            console.log(`  Epic: ${count}涓猔);
             return count === 6;
         });
         
-        // 测试词条效果
-        this.test('稳扎稳打词条存在', () => {
-            const modifier = getAllModifiers().find(m => m.id === 'steady');
+        // 娴嬭瘯璇嶆潯鏁堟灉
+        this.test('绋虫墡绋虫墦璇嶆潯瀛樺湪', () => {
+            const modifier = ModifierPool.find(m => m.id === 'steady');
             if (modifier) {
                 console.log(`  ${modifier.name}: ${modifier.description}`);
             }
             return modifier !== undefined;
         });
         
-        this.test('暴击词条存在', () => {
-            const modifier = getAllModifiers().find(m => m.id === 'critical');
+        this.test('鏆村嚮璇嶆潯瀛樺湪', () => {
+            const modifier = ModifierPool.find(m => m.id === 'critical');
             if (modifier) {
                 console.log(`  ${modifier.name}: ${modifier.description}`);
             }
@@ -236,77 +228,77 @@ export class AutoTest extends Component {
     }
 
     /**
-     * 测试数据管理
+     * 娴嬭瘯鏁版嵁绠＄悊
      */
     private testDataManager(): void {
-        console.log('\n💾 测试5：数据管�?);
+        console.log('\n馃捑 娴嬭瘯5锛氭暟鎹鐞?);
         
-        // 测试数据保存
-        this.test('保存最高关�?, () => {
+        // 娴嬭瘯鏁版嵁淇濆瓨
+        this.test('淇濆瓨鏈€楂樺叧鍗?, () => {
             DataManager.getInstance().saveHighestStage(10);
             const stage = DataManager.getInstance().getHighestStage();
-            console.log(`  最高关�? ${stage}`);
+            console.log(`  鏈€楂樺叧鍗? ${stage}`);
             return stage === 10;
         });
         
-        this.test('保存最高分�?, () => {
+        this.test('淇濆瓨鏈€楂樺垎鏁?, () => {
             DataManager.getInstance().saveHighestScore(5000);
             const score = DataManager.getInstance().getHighestScore();
-            console.log(`  最高分�? ${score}`);
+            console.log(`  鏈€楂樺垎鏁? ${score}`);
             return score === 5000;
         });
         
-        this.test('增加游戏次数', () => {
+        this.test('澧炲姞娓告垙娆℃暟', () => {
             const before = DataManager.getInstance().getGameCount();
             DataManager.getInstance().incrementGameCount();
             const after = DataManager.getInstance().getGameCount();
-            console.log(`  游戏次数: ${before} �?${after}`);
+            console.log(`  娓告垙娆℃暟: ${before} 鈫?${after}`);
             return after === before + 1;
         });
         
-        this.test('保存累计金币', () => {
+        this.test('淇濆瓨绱閲戝竵', () => {
             DataManager.getInstance().addTotalGold(100);
             const gold = DataManager.getInstance().getTotalGold();
-            console.log(`  累计金币: ${gold}`);
+            console.log(`  绱閲戝竵: ${gold}`);
             return gold >= 100;
         });
         
-        // 测试数据清空
-        this.test('清空数据', () => {
+        // 娴嬭瘯鏁版嵁娓呯┖
+        this.test('娓呯┖鏁版嵁', () => {
             DataManager.getInstance().clearAllData();
             const stage = DataManager.getInstance().getHighestStage();
             const score = DataManager.getInstance().getHighestScore();
-            console.log(`  清空�? 关卡${stage}, 分数${score}`);
+            console.log(`  娓呯┖鍚? 鍏冲崱${stage}, 鍒嗘暟${score}`);
             return stage === 0 && score === 0;
         });
     }
 
     /**
-     * 测试网格系统
+     * 娴嬭瘯缃戞牸绯荤粺
      */
     private testGridSystem(): void {
-        console.log('\n🎮 测试6：网格系�?);
+        console.log('\n馃幃 娴嬭瘯6锛氱綉鏍肩郴缁?);
         
         if (!this.gridSystem) {
-            console.log('  ⚠️ GridSystem 未配置，跳过测试');
+            console.log('  鈿狅笍 GridSystem 鏈厤缃紝璺宠繃娴嬭瘯');
             return;
         }
         
-        this.test('网格大小�?×8', () => {
+        this.test('缃戞牸澶у皬涓?脳8', () => {
             const size = this.gridSystem.gridSize;
-            console.log(`  网格大小: ${size}×${size}`);
+            console.log(`  缃戞牸澶у皬: ${size}脳${size}`);
             return size === 8;
         });
         
-        this.test('方块类型数量�?', () => {
+        this.test('鏂瑰潡绫诲瀷鏁伴噺涓?', () => {
             const types = this.gridSystem.blockTypes;
-            console.log(`  方块类型: ${types}种`);
+            console.log(`  鏂瑰潡绫诲瀷: ${types}绉峘);
             return types === 5;
         });
     }
 
     /**
-     * 执行单个测试
+     * 鎵ц鍗曚釜娴嬭瘯
      */
     private test(name: string, testFunc: () => boolean): void {
         this.totalTests++;
@@ -316,46 +308,45 @@ export class AutoTest extends Component {
             
             if (result) {
                 this.passedTests++;
-                console.log(`  �?${name}`);
-                this.testResults.push({ name, passed: true, message: '通过' });
+                console.log(`  鉁?${name}`);
+                this.testResults.push({ name, passed: true, message: '閫氳繃' });
             } else {
-                console.log(`  �?${name}`);
-                this.testResults.push({ name, passed: false, message: '失败' });
+                console.log(`  鉂?${name}`);
+                this.testResults.push({ name, passed: false, message: '澶辫触' });
             }
         } catch (error) {
-            console.log(`  �?${name} - 错误: ${error.message}`);
+            console.log(`  鉂?${name} - 閿欒: ${error.message}`);
             this.testResults.push({ name, passed: false, message: error.message });
         }
     }
 
     /**
-     * 输出测试结果
+     * 杈撳嚭娴嬭瘯缁撴灉
      */
     private printTestResults(): void {
         console.log('\n' + '='.repeat(60));
-        console.log('📊 测试结果汇�?);
+        console.log('馃搳 娴嬭瘯缁撴灉姹囨€?);
         console.log('='.repeat(60));
         
-        console.log(`\n总测试数: ${this.totalTests}`);
-        console.log(`通过: ${this.passedTests}`);
-        console.log(`失败: ${this.totalTests - this.passedTests}`);
-        console.log(`通过�? ${((this.passedTests / this.totalTests) * 100).toFixed(1)}%`);
+        console.log(`\n鎬绘祴璇曟暟: ${this.totalTests}`);
+        console.log(`閫氳繃: ${this.passedTests}`);
+        console.log(`澶辫触: ${this.totalTests - this.passedTests}`);
+        console.log(`閫氳繃鐜? ${((this.passedTests / this.totalTests) * 100).toFixed(1)}%`);
         
-        // 失败的测�?
-        const failedTests = this.testResults.filter(t => !t.passed);
+        // 澶辫触鐨勬祴璇?        const failedTests = this.testResults.filter(t => !t.passed);
         if (failedTests.length > 0) {
-            console.log('\n�?失败的测�?');
+            console.log('\n鉂?澶辫触鐨勬祴璇?');
             failedTests.forEach(t => {
                 console.log(`  - ${t.name}: ${t.message}`);
             });
         }
         
-        // 总结
+        // 鎬荤粨
         console.log('\n' + '='.repeat(60));
         if (this.passedTests === this.totalTests) {
-            console.log('🎉 所有测试通过�?);
+            console.log('馃帀 鎵€鏈夋祴璇曢€氳繃锛?);
         } else {
-            console.log('⚠️ 有测试失败，请检查代�?);
+            console.log('鈿狅笍 鏈夋祴璇曞け璐ワ紝璇锋鏌ヤ唬鐮?);
         }
         console.log('='.repeat(60));
     }
