@@ -736,8 +736,8 @@ export class GameCore extends Component {
             this.dataManager.updateMaxCombo(this.maxCombo);
         }
         
-        // Upload score to leaderboard
-        this.uploadScoreToLeaderboard();
+        // Upload score to leaderboard (commented out for now)
+        // this.uploadScoreToLeaderboard();
         
         // Big coin drop on kill
         let killReward = 0;
