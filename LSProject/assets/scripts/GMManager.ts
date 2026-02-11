@@ -24,9 +24,16 @@ export class GMManager extends Component {
         
         console.log('[GMManager] GM system initialized');
         console.log('[GMManager] Press G to open GM console');
+        console.log('[GMManager] Or call GMManager.getInstance().showGMConsole() in console');
         
         // 监听键盘输入
         this.setupKeyboardListener();
+        
+        // 暴露到全局，方便在控制台调用
+        if (typeof window !== 'undefined') {
+            (window as any).openGM = () => this.showGMConsole();
+            console.log('[GMManager] You can also type: openGM() in browser console');
+        }
     }
 
     static getInstance(): GMManager {
