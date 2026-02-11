@@ -28,7 +28,7 @@ export class GMManager extends Component {
         }
         
         console.log('[GMManager] GM system initialized');
-        console.log('[GMManager] Press ~ to open GM console');
+        console.log('[GMManager] Press G to open GM console');
     }
 
     static getInstance(): GMManager {
@@ -42,8 +42,8 @@ export class GMManager extends Component {
         if (typeof window === 'undefined') return;
         
         window.addEventListener('keydown', (event: KeyboardEvent) => {
-            // 按 ~ 键打开GM控制台
-            if (event.key === '`' || event.key === '~') {
+            // 按 G 键打开GM控制台
+            if (event.key === 'g' || event.key === 'G') {
                 this.showGMConsole();
             }
         });
