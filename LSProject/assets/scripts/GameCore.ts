@@ -12,6 +12,7 @@ import { AudioManager } from './AudioManager';
 import { PauseUI } from './PauseUI';
 import { DataManager } from './DataManager';
 import { LeaderboardManager } from './LeaderboardManager';
+import { getEnemyInfo } from './EnemyData';
 const { ccclass, property } = _decorator;
 
 /**
@@ -176,6 +177,11 @@ export class GameCore extends Component {
         // Listen for block events
         this.node.on('block-clicked', this.onBlockClicked, this);
         this.node.on('block-swipe', this.onBlockSwipe, this);
+        
+        // Listen for enemy ability events
+        if (this.enemySystem) {
+            this.enemySystem.node.on('enemy-ability-trigger', this.onEnemyAbilityTrigger, this);
+        }
         
         // Listen for GameFlowController events
         const flowController = this.node.parent?.getChildByName('GameFlowController');
@@ -342,8 +348,15 @@ export class GameCore extends Component {
             }, 0.5);  // Wait for grid to settle
         }
         
-        // Generate enemy (使用新的敌人系统)
-        this.enemySystem.initEnemyForStage(currentStage, levelConfig.enemyHp);
+        // Generate enemy (使用新的敌人数据系统)
+        const enemyInfo = getEnemyInfo(currentStage);
+        this.enemySystem.initEnemyForStage(currentStage, enemyInfo.hp);
+        this.enemySystem.setEnemyData(enemyInfo.enemy);  // 设置敌人数据
+        
+        console.log(`[GameCore] Enemy: ${enemyInfo.name}, HP: ${enemyInfo.hp}`);
+        if (enemyInfo.enemy.ability) {
+            console.log(`[GameCore] Enemy ability: ${enemyInfo.enemy.ability.type}`);
+        }
         
         // Reset time (use level config + modifiers)
         let timeLimit = levelConfig.timeLimit;
@@ -595,6 +608,11 @@ export class GameCore extends Component {
                     // Reset chain for next operation
                     this.chainLevel = 0;
                     this.gridSystem.setProcessing(false);
+                    
+                    // Trigger enemy ability after player's turn
+                    if (this.enemySystem) {
+                        this.enemySystem.triggerEnemyAbility();
+                    }
                     
                     // Check for valid moves after chain ends
                     this.scheduleOnce(() => {
@@ -1007,5 +1025,47 @@ export class GameCore extends Component {
                 console.log('[GameCore] Score uploaded:', score);
             }
         });
+    }
+
+    /**
+     * 处理敌人能力触发
+     */
+    private onEnemyAbilityTrigger(event: any): void {
+        const { type, param1, param2 } = event;
+        
+        console.log(`[GameCore] Enemy ability triggered: ${type}`);
+        
+        switch (type) {
+            case 'color_change':
+                this.handleColorChangeAbility(param1, param2);
+                break;
+            // 未来可以添加更多能力
+            default:
+                console.warn(`[GameCore] Unknown ability type: ${type}`);
+        }
+    }
+
+    /**
+     * 处理改变方块颜色能力（混沌画师）
+     */
+    private handleColorChangeAbility(minCount: number, maxCount: number): void {
+        if (!this.gridSystem) return;
+        
+        // 随机改变1-2个方块的颜色
+        const count = minCount + Math.floor(Math.random() * (maxCount - minCount + 1));
+        
+        console.log(`[GameCore] 🎨 Chaos Painter: Changing ${count} block colors`);
+        
+        for (let i = 0; i < count; i++) {
+            // 随机选择一个方块
+            const row = Math.floor(Math.random() * this.gridSystem.getRows());
+            const col = Math.floor(Math.random() * this.gridSystem.getCols());
+            
+            // 随机选择一个新颜色（0-4）
+            const newColor = Math.floor(Math.random() * 5);
+            
+            // 改变方块颜色
+            this.gridSystem.changeBlockColor(row, col, newColor);
+        }
     }
 }

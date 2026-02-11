@@ -965,4 +965,29 @@ export class GridSystem extends Component {
         
         console.log('[GridSystem] Grid cleared');
     }
+
+    /**
+     * 改变指定方块的颜色（敌人能力）
+     */
+    changeBlockColor(row: number, col: number, newColor: number): void {
+        if (row < 0 || row >= this.gridSize || col < 0 || col >= this.gridSize) {
+            return;
+        }
+
+        const block = this.blocks[row][col];
+        if (!block) return;
+
+        const blockScript = block.getComponent(Block);
+        if (!blockScript) return;
+
+        // 不改变特殊方块（石头、彩虹）
+        if (blockScript.isStone() || blockScript.isRainbow()) {
+            return;
+        }
+
+        // 改变颜色
+        blockScript.setColor(newColor);
+        console.log(`[GridSystem] Changed block [${row},${col}] to color ${newColor}`);
+    }
 }
+

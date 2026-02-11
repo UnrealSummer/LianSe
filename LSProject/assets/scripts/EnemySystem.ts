@@ -1,9 +1,10 @@
 import { _decorator, Component, Node, Sprite, Label, tween, Vec3, Color } from 'cc';
 import { EnemyType, EnemyConfig, ENEMY_CONFIGS, getEnemyTypeForStage } from './EnemyTypes';
+import { EnemyData, EnemyAbilityType } from './EnemyData';
 const { ccclass, property } = _decorator;
 
 /**
- * 敌人系统（支持多种敌人类型）
+ * 敌人系统（支持多种敌人类型和特殊能力）
  */
 @ccclass('EnemySystem')
 export class EnemySystem extends Component {
@@ -26,6 +27,8 @@ export class EnemySystem extends Component {
     private maxHp: number = 0;
     private enemyType: EnemyType = EnemyType.NORMAL;
     private enemyConfig: EnemyConfig = null;
+    private enemyData: EnemyData = null;  // 新增：敌人数据
+    private abilityTurnCounter: number = 0;  // 新增：能力触发计数器
     private armor: number = 0;
     private stolenTime: number = 0;
     private regenerateTimer: number = 0;
@@ -65,6 +68,45 @@ export class EnemySystem extends Component {
         
         this.updateUI();
         console.log(`[Enemy] Spawned: ${this.enemyConfig.name} (HP: ${this.maxHp}, Type: ${type})`);
+    }
+
+    /**
+     * 设置敌人数据（新系统）
+     */
+    setEnemyData(enemyData: EnemyData): void {
+        this.enemyData = enemyData;
+        this.abilityTurnCounter = 0;
+        
+        if (enemyData.ability) {
+            console.log(`[Enemy] ${enemyData.name} has ability: ${enemyData.ability.type}`);
+        }
+    }
+
+    /**
+     * 每回合触发敌人能力
+     */
+    triggerEnemyAbility(): void {
+        if (!this.enemyData || !this.enemyData.ability) {
+            return;
+        }
+
+        this.abilityTurnCounter++;
+        
+        const ability = this.enemyData.ability;
+        
+        // 检查是否到达触发间隔
+        if (this.abilityTurnCounter % ability.triggerInterval !== 0) {
+            return;
+        }
+
+        console.log(`[Enemy] Triggering ability: ${ability.type}`);
+        
+        // 触发对应的能力
+        this.node.emit('enemy-ability-trigger', {
+            type: ability.type,
+            param1: ability.param1,
+            param2: ability.param2
+        });
     }
 
     /**

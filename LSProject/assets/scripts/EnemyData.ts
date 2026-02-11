@@ -2,20 +2,44 @@
  * 敌人数据配置
  */
 
-export interface EnemyData {
-    id: string;
-    name: string;
-    baseHp: number; // 基础血量
-    hpGrowth: number; // 每关血量增长
+/**
+ * 敌人特殊能力类型
+ */
+export enum EnemyAbilityType {
+    NONE = 'none',                    // 无特殊能力
+    COLOR_CHANGE = 'color_change',    // 改变方块颜色（混沌画师）
+    FORCE_CLEAR = 'force_clear',      // 强制消除（雷电法师）
+    BLOCK_HIDE = 'block_hide',        // 遮挡方块（迷雾幽灵）
+    FREEZE_BLOCK = 'freeze_block',    // 冻结方块（冰霜巨人）
+    RESTRICT_SWAP = 'restrict_swap',  // 限制交换（蛛网编织者）
 }
 
 /**
- * 敌人池（平衡调整版 v2）
+ * 敌人特殊能力配置
+ */
+export interface EnemyAbility {
+    type: EnemyAbilityType;
+    triggerInterval: number;  // 触发间隔（回合数）
+    param1?: number;          // 参数1（如：改变方块数量）
+    param2?: number;          // 参数2（如：最大数量）
+}
+
+export interface EnemyData {
+    id: string;
+    name: string;
+    baseHp: number;           // 基础血量
+    hpGrowth: number;         // 每关血量增长
+    ability?: EnemyAbility;   // 特殊能力
+    description?: string;     // 描述
+}
+
+/**
+ * 敌人池（平衡调整版 v3 - 添加特殊能力）
  * 
  * 调整策略：
- * - 1-5关：50 + (stage-1) * 20 = 50, 70, 90, 110, 130
- * - 6-10关：155 + (stage-6) * 25 = 155, 180, 205, 230, 255
- * - 11+关：280 + (stage-11) * 25 = 280, 305, 330, 355, 380...
+ * - 1-5关：普通敌人
+ * - 6-10关：强力敌人 + 混沌画师
+ * - 11+关：精英敌人
  */
 export const EnemyPool: EnemyData[] = [
     // 1. 普通敌人（1-5关）
@@ -23,7 +47,8 @@ export const EnemyPool: EnemyData[] = [
         id: 'enemy_weak',
         name: '敌人',
         baseHp: 50,
-        hpGrowth: 20
+        hpGrowth: 20,
+        description: '普通的敌人'
     },
     
     // 2. 强力敌人（6-10关）
@@ -31,7 +56,8 @@ export const EnemyPool: EnemyData[] = [
         id: 'enemy_normal',
         name: '强敌',
         baseHp: 155,
-        hpGrowth: 25
+        hpGrowth: 25,
+        description: '更强大的敌人'
     },
     
     // 3. 精英敌人（11关以上）
@@ -39,7 +65,23 @@ export const EnemyPool: EnemyData[] = [
         id: 'enemy_elite',
         name: '精英',
         baseHp: 280,
-        hpGrowth: 25
+        hpGrowth: 25,
+        description: '精英级别的敌人'
+    },
+    
+    // 4. 混沌画师（6-14关）
+    {
+        id: 'chaos_painter',
+        name: '混沌画师',
+        baseHp: 45,
+        hpGrowth: 20,
+        ability: {
+            type: EnemyAbilityType.COLOR_CHANGE,
+            triggerInterval: 1,  // 每回合触发
+            param1: 1,           // 最少改变1个方块
+            param2: 2            // 最多改变2个方块
+        },
+        description: '每回合随机改变1-2个方块的颜色'
     }
 ];
 
@@ -47,6 +89,15 @@ export const EnemyPool: EnemyData[] = [
  * 根据关卡获取敌人
  */
 export function getEnemyByStage(stage: number): EnemyData {
+    // 6-14关有30%概率遇到混沌画师
+    if (stage >= 6 && stage <= 14) {
+        const random = Math.random();
+        if (random < 0.3) {
+            return EnemyPool[3]; // 混沌画师
+        }
+    }
+    
+    // 正常敌人选择
     if (stage <= 5) {
         return EnemyPool[0]; // 普通敌人
     } else if (stage <= 10) {
@@ -72,6 +123,9 @@ export function calculateEnemyHp(enemyData: EnemyData, stage: number): number {
     } else if (enemyData.id === 'enemy_elite') {
         // 11+关：从第11关开始
         stageOffset = stage - 11;
+    } else if (enemyData.id === 'chaos_painter') {
+        // 混沌画师：从第6关开始
+        stageOffset = stage - 6;
     }
     
     return enemyData.baseHp + stageOffset * enemyData.hpGrowth;
@@ -80,12 +134,13 @@ export function calculateEnemyHp(enemyData: EnemyData, stage: number): number {
 /**
  * 获取敌人完整信息
  */
-export function getEnemyInfo(stage: number): { name: string; hp: number } {
+export function getEnemyInfo(stage: number): { name: string; hp: number; enemy: EnemyData } {
     const enemyData = getEnemyByStage(stage);
     const hp = calculateEnemyHp(enemyData, stage);
     
     return {
         name: `${enemyData.name} Lv.${stage}`,
-        hp: hp
+        hp: hp,
+        enemy: enemyData
     };
 }
