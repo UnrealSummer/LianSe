@@ -22,13 +22,11 @@ export class GMManager extends Component {
         }
         GMManager.instance = this;
         
-        // 监听键盘输入（仅在开发环境）
-        if (sys.isBrowser) {
-            this.setupKeyboardListener();
-        }
-        
         console.log('[GMManager] GM system initialized');
         console.log('[GMManager] Press G to open GM console');
+        
+        // 监听键盘输入
+        this.setupKeyboardListener();
     }
 
     static getInstance(): GMManager {
@@ -39,14 +37,25 @@ export class GMManager extends Component {
      * 设置键盘监听
      */
     private setupKeyboardListener(): void {
-        if (typeof window === 'undefined') return;
-        
-        window.addEventListener('keydown', (event: KeyboardEvent) => {
-            // 按 G 键打开GM控制台
-            if (event.key === 'g' || event.key === 'G') {
-                this.showGMConsole();
-            }
-        });
+        // 在浏览器环境中监听键盘
+        if (typeof window !== 'undefined') {
+            console.log('[GMManager] Setting up keyboard listener...');
+            
+            window.addEventListener('keydown', (event: KeyboardEvent) => {
+                console.log('[GMManager] Key pressed:', event.key);
+                
+                // 按 G 键打开GM控制台
+                if (event.key === 'g' || event.key === 'G') {
+                    event.preventDefault();
+                    console.log('[GMManager] Opening GM console...');
+                    this.showGMConsole();
+                }
+            });
+            
+            console.log('[GMManager] Keyboard listener ready!');
+        } else {
+            console.warn('[GMManager] Not in browser environment, keyboard disabled');
+        }
     }
 
     /**
