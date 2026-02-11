@@ -13,6 +13,7 @@ import { PauseUI } from './PauseUI';
 import { DataManager } from './DataManager';
 import { LeaderboardManager } from './LeaderboardManager';
 import { getEnemyInfo } from './EnemyData';
+import { GMManager } from './GMManager';
 const { ccclass, property } = _decorator;
 
 /**
@@ -348,10 +349,18 @@ export class GameCore extends Component {
             }, 0.5);  // Wait for grid to settle
         }
         
-        // Generate enemy (使用新的敌人数据系统)
-        const enemyInfo = getEnemyInfo(currentStage);
+        // Generate enemy (使用新的敌人数据系统 + GM支持)
+        const gmManager = GMManager.getInstance();
+        const forceEnemyId = gmManager?.getForceEnemyId();
+        
+        const enemyInfo = getEnemyInfo(currentStage, forceEnemyId);
         this.enemySystem.initEnemyForStage(currentStage, enemyInfo.hp);
         this.enemySystem.setEnemyData(enemyInfo.enemy);  // 设置敌人数据
+        
+        // 清除GM强制敌人（用完一次）
+        if (forceEnemyId && gmManager) {
+            gmManager.clearForceEnemyId();
+        }
         
         console.log(`[GameCore] Enemy: ${enemyInfo.name}, HP: ${enemyInfo.hp}`);
         if (enemyInfo.enemy.ability) {
@@ -360,6 +369,12 @@ export class GameCore extends Component {
         
         // Reset time (use level config + modifiers)
         let timeLimit = levelConfig.timeLimit;
+        
+        // GM: Unlimited time
+        if (gmManager?.isUnlimitedTime()) {
+            timeLimit = 9999;
+            console.log('[GameCore] GM: Unlimited time enabled');
+        }
         
         // Apply time extension modifier
         if (this.modifierSystem.hasModifier('time_extension')) {
@@ -533,7 +548,15 @@ export class GameCore extends Component {
         }
         
         // Apply damage to enemy
-        this.enemySystem.takeDamage(totalDamage);
+        // GM: God mode - multiply damage
+        const gmManager = GMManager.getInstance();
+        let finalDamage = totalDamage;
+        if (gmManager?.isGodMode()) {
+            finalDamage *= 10;  // 10倍伤害
+            console.log(`[GameCore] GM: God mode damage x10 = ${finalDamage}`);
+        }
+        
+        this.enemySystem.takeDamage(finalDamage);
         
         // Play attack sound
         if (this.audioManager && totalDamage > 0) {

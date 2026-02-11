@@ -88,7 +88,16 @@ export const EnemyPool: EnemyData[] = [
 /**
  * 根据关卡获取敌人
  */
-export function getEnemyByStage(stage: number): EnemyData {
+export function getEnemyByStage(stage: number, forceEnemyId?: string): EnemyData {
+    // GM强制指定敌人
+    if (forceEnemyId) {
+        const forcedEnemy = EnemyPool.find(e => e.id === forceEnemyId);
+        if (forcedEnemy) {
+            console.log(`[EnemyData] GM: Forced enemy ${forceEnemyId}`);
+            return forcedEnemy;
+        }
+    }
+    
     // 6-14关有30%概率遇到混沌画师
     if (stage >= 6 && stage <= 14) {
         const random = Math.random();
@@ -134,8 +143,8 @@ export function calculateEnemyHp(enemyData: EnemyData, stage: number): number {
 /**
  * 获取敌人完整信息
  */
-export function getEnemyInfo(stage: number): { name: string; hp: number; enemy: EnemyData } {
-    const enemyData = getEnemyByStage(stage);
+export function getEnemyInfo(stage: number, forceEnemyId?: string): { name: string; hp: number; enemy: EnemyData } {
+    const enemyData = getEnemyByStage(stage, forceEnemyId);
     const hp = calculateEnemyHp(enemyData, stage);
     
     return {
