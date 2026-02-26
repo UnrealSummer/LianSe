@@ -1,0 +1,90 @@
+{
+  "source_image": "main_menu_ui.png",
+  "description": "炼色主菜单UI切图配置 - 750x1334竖屏布局",
+  "elements": [
+    {
+      "name": "bg_main_menu",
+      "description": "主菜单背景（完整）",
+      "x": 0,
+      "y": 0,
+      "width": 750,
+      "height": 1334,
+      "auto_trim": false,
+      "remove_bg": false
+    },
+    {
+      "name": "title_game",
+      "description": "游戏标题 - 技能消消消",
+      "x": 200,
+      "y": 80,
+      "width": 350,
+      "height": 120,
+      "auto_trim": true,
+      "remove_bg": false
+    },
+    {
+      "name": "btn_start_game",
+      "description": "开始游戏按钮",
+      "x": 175,
+      "y": 260,
+      "width": 400,
+      "height": 100,
+      "auto_trim": true,
+      "remove_bg": false,
+      "nine_patch": {
+        "left": 50,
+        "top": 30,
+        "right": 50,
+        "bottom": 30
+      }
+    },
+    {
+      "name": "btn_leaderboard",
+      "description": "排行榜按钮",
+      "x": 175,
+      "y": 380,
+      "width": 400,
+      "height": 100,
+      "auto_trim": true,
+      "remove_bg": false,
+      "nine_patch": {
+        "left": 50,
+        "top": 30,
+        "right": 50,
+        "bottom": 30
+      }
+    },
+    {
+      "name": "btn_settings",
+      "description": "设置按钮",
+      "x": 175,
+      "y": 500,
+      "width": 400,
+      "height": 100,
+      "auto_trim": true,
+      "remove_bg": false,
+      "nine_patch": {
+        "left": 50,
+        "top": 30,
+        "right": 50,
+        "bottom": 30
+      }
+    },
+    {
+      "name": "btn_exit",
+      "description": "退出按钮",
+      "x": 175,
+      "y": 620,
+      "width": 400,
+      "height": 100,
+      "auto_trim": true,
+      "remove_bg": false,
+      "nine_patch": {
+        "left": 50,
+        "top": 30,
+        "right": 50,
+        "bottom": 30
+      }
+    }
+  ]
+}

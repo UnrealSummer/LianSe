@@ -14,6 +14,8 @@ import { DataManager } from './DataManager';
 import { LeaderboardManager } from './LeaderboardManager';
 import { getEnemyInfo } from './EnemyData';
 import { GMManager } from './GMManager';
+import { TopBar } from './TopBar';
+import { ComboManager } from './ComboManager';
 const { ccclass, property } = _decorator;
 
 /**
@@ -410,6 +412,12 @@ export class GameCore extends Component {
         }
         
         this.updateUI();
+        
+        // Update TopBar
+        const topBar = TopBar.getInstance();
+        if (topBar) {
+            topBar.updateTime(this.timeLeft);
+        }
     }
 
     private trySwap(row1: number, col1: number, row2: number, col2: number): void {
@@ -451,6 +459,12 @@ export class GameCore extends Component {
 
     private processMatches(matches: Node[][]): void {
         this.chainLevel++;
+        
+        // Add combo
+        const comboManager = ComboManager.getInstance();
+        if (comboManager) {
+            comboManager.addCombo();
+        }
         
         let totalDamage = 0;
         let allBlocks = matches.flat();

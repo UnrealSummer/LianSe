@@ -1,0 +1,100 @@
+{
+  "source_image": "main menu.png",
+  "description": "炼色主菜单UI切图配置 - 1024x1536",
+  "elements": [
+    {
+      "name": "title_game",
+      "description": "游戏标题 - 技能消消消",
+      "x": 100,
+      "y": 80,
+      "width": 824,
+      "height": 180,
+      "auto_trim": true,
+      "remove_bg": false
+    },
+    {
+      "name": "gems_decoration",
+      "description": "宝石装饰组",
+      "x": 150,
+      "y": 200,
+      "width": 724,
+      "height": 250,
+      "auto_trim": true,
+      "remove_bg": false
+    },
+    {
+      "name": "btn_start_game",
+      "description": "开始游戏按钮",
+      "x": 200,
+      "y": 500,
+      "width": 624,
+      "height": 140,
+      "auto_trim": true,
+      "remove_bg": false,
+      "nine_patch": {
+        "left": 80,
+        "top": 40,
+        "right": 80,
+        "bottom": 40
+      }
+    },
+    {
+      "name": "btn_leaderboard",
+      "description": "排行榜按钮",
+      "x": 200,
+      "y": 680,
+      "width": 624,
+      "height": 140,
+      "auto_trim": true,
+      "remove_bg": false,
+      "nine_patch": {
+        "left": 80,
+        "top": 40,
+        "right": 80,
+        "bottom": 40
+      }
+    },
+    {
+      "name": "btn_settings",
+      "description": "设置按钮",
+      "x": 200,
+      "y": 860,
+      "width": 624,
+      "height": 140,
+      "auto_trim": true,
+      "remove_bg": false,
+      "nine_patch": {
+        "left": 80,
+        "top": 40,
+        "right": 80,
+        "bottom": 40
+      }
+    },
+    {
+      "name": "btn_exit",
+      "description": "退出按钮",
+      "x": 200,
+      "y": 1040,
+      "width": 624,
+      "height": 140,
+      "auto_trim": true,
+      "remove_bg": false,
+      "nine_patch": {
+        "left": 80,
+        "top": 40,
+        "right": 80,
+        "bottom": 40
+      }
+    },
+    {
+      "name": "bg_main_menu",
+      "description": "完整背景",
+      "x": 0,
+      "y": 0,
+      "width": 1024,
+      "height": 1536,
+      "auto_trim": false,
+      "remove_bg": false
+    }
+  ]
+}

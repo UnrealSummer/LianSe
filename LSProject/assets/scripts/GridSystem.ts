@@ -268,17 +268,27 @@ export class GridSystem extends Component {
                 const pos = blockScript.getPosition();
                 this.blocks[pos.row][pos.col] = null;
                 
-                // Animate removal
+                // Animate removal with particle effect
                 const promise = new Promise<void>((resolve) => {
-                    import('cc').then(({ tween, Vec3 }) => {
-                        tween(block)
-                            .to(0.2, { scale: new Vec3(0, 0, 1) }, { easing: 'backIn' })
-                            .call(() => {
-                                block.destroy();
-                                resolve();
-                            })
-                            .start();
-                    });
+                    // Trigger particle effect
+                    const blockScript = block.getComponent('Block');
+                    if (blockScript && blockScript.triggerEliminate) {
+                        // Use Block's built-in eliminate with particles
+                        blockScript.playEliminateAnimation(() => {
+                            resolve();
+                        });
+                    } else {
+                        // Fallback to old animation
+                        import('cc').then(({ tween, Vec3 }) => {
+                            tween(block)
+                                .to(0.2, { scale: new Vec3(0, 0, 1) }, { easing: 'backIn' })
+                                .call(() => {
+                                    block.destroy();
+                                    resolve();
+                                })
+                                .start();
+                        });
+                    }
                 });
                 removeAnimations.push(promise);
             }

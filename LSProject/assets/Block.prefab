@@ -113,7 +113,7 @@
       "a": 255
     },
     "_spriteFrame": {
-      "__uuid__": "55916bac-faa4-4b58-82fe-ac4a9b53eafd@f9941",
+      "__uuid__": "f080579c-4efa-48aa-90c8-a20c2c6c9f79@f9941",
       "__expectedType__": "cc.SpriteFrame"
     },
     "_type": 0,
@@ -152,29 +152,54 @@
     },
     "selectedScale": 1.1,
     "redSprite": {
-      "__uuid__": "3a0c3544-8792-422a-b732-ca24e7725394@f9941",
+      "__uuid__": "f080579c-4efa-48aa-90c8-a20c2c6c9f79@f9941",
       "__expectedType__": "cc.SpriteFrame"
     },
     "yellowSprite": {
-      "__uuid__": "380910ed-3ae1-4c0a-a740-64b3276ea429@f9941",
+      "__uuid__": "08edf932-a5c3-4546-a7e6-c7ac9a5befc1@f9941",
       "__expectedType__": "cc.SpriteFrame"
     },
     "blueSprite": {
-      "__uuid__": "59bae9bb-c03a-4bbc-9c4c-03e8035b2b7d@f9941",
+      "__uuid__": "de80c74e-1c7d-4718-98b5-9ec14d2df943@f9941",
       "__expectedType__": "cc.SpriteFrame"
     },
     "orangeSprite": {
-      "__uuid__": "fa075b04-ad8f-409c-b271-9d64e0007f95@f9941",
+      "__uuid__": "36b0eb52-2777-4385-8c4f-d2cd5381e22c@f9941",
       "__expectedType__": "cc.SpriteFrame"
     },
     "purpleSprite": {
-      "__uuid__": "ee33dcc5-6cbc-4562-a5ba-879ca2c51d93@f9941",
+      "__uuid__": "20f875a9-21ba-4e14-8541-a2a80be1c5cd@f9941",
       "__expectedType__": "cc.SpriteFrame"
     },
     "greenSprite": {
-      "__uuid__": "b39dc018-55af-4d0a-a420-c49b83a9545d@f9941",
+      "__uuid__": "c7ece23a-84d2-4271-8536-4dba04db85da@f9941",
       "__expectedType__": "cc.SpriteFrame"
     },
+    "rainbowSprite": {
+      "__uuid__": "ca2a315a-f0e2-42ce-af1f-1a86af94a04d@f9941",
+      "__expectedType__": "cc.SpriteFrame"
+    },
+    "stoneSprite": {
+      "__uuid__": "e0c84c6d-bd32-4895-ae9d-cd4c821013d2@f9941",
+      "__expectedType__": "cc.SpriteFrame"
+    },
+    "frozenOverlaySprite": {
+      "__uuid__": "11cb4ba9-e1ba-4608-8ee4-ed01547049bd@f9941",
+      "__expectedType__": "cc.SpriteFrame"
+    },
+    "iceCracksSprite": {
+      "__uuid__": "8f6b47a3-a442-4e1e-ad7c-fd3f01806222@f9941",
+      "__expectedType__": "cc.SpriteFrame"
+    },
+    "bombSprite": {
+      "__uuid__": "1ac604d1-5f8a-4d36-8e83-24975296dc92@f9941",
+      "__expectedType__": "cc.SpriteFrame"
+    },
+    "rainbowBlockSprite": {
+      "__uuid__": "e8cf7789-e304-4de1-a0bb-18865f9f1b0d@f9941",
+      "__expectedType__": "cc.SpriteFrame"
+    },
+    "eliminateFrames": [],
     "_id": ""
   },
   {

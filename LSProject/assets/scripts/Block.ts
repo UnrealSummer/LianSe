@@ -21,7 +21,9 @@ export enum BlockType {
     NORMAL = 0,      // 普通方块
     FROZEN = 1,      // 冰冻方块
     STONE = 2,       // 石头方块
-    CHAINED = 3      // 锁链方块
+    CHAINED = 3,     // 锁链方块
+    BOMB = 4,        // 炸弹方块
+    RAINBOW_BLOCK = 5 // 彩虹方块（特殊）
 }
 
 /**
@@ -66,6 +68,31 @@ export class Block extends Component {
     @property(SpriteFrame)
     greenSprite: SpriteFrame = null;
 
+    // ========== 特殊方块资源 ==========
+    @property(SpriteFrame)
+    rainbowSprite: SpriteFrame = null;
+
+    @property(SpriteFrame)
+    stoneSprite: SpriteFrame = null;
+
+    @property(SpriteFrame)
+    frozenOverlaySprite: SpriteFrame = null;
+    
+    @property(SpriteFrame)
+    iceCracksSprite: SpriteFrame = null;
+    
+    @property(SpriteFrame)
+    bombSprite: SpriteFrame = null;
+    
+    @property(SpriteFrame)
+    rainbowBlockSprite: SpriteFrame = null;
+    // ==================================
+    
+    // ========== 消除动画资源 ==========
+    @property([SpriteFrame])
+    eliminateFrames: SpriteFrame[] = [];
+    // ==================================
+
     private colorType: ColorType;
     private blockType: BlockType = BlockType.NORMAL;
     private frozenLevel: number = 0;  // 冰冻层数（0=未冰冻）
@@ -74,6 +101,7 @@ export class Block extends Component {
     private col: number;
     private isSelected: boolean = false;
     private frozenOverlay: Node = null;  // 冰冻覆盖层
+    private frozenCracks: Node = null;  // 冰裂纹层
     private baseScale: number = 1;  // 基础缩放（由GridSystem设置）
     private touchStartPos: Vec3 = null;  // 触摸开始位置
     private isDragging: boolean = false;  // 是否正在拖拽
@@ -112,13 +140,6 @@ export class Block extends Component {
             return;
         }
         
-        // 彩虹方块保持白色
-        if (this.colorType === ColorType.RAINBOW) {
-            this.sprite.color = COLOR_MAP[this.colorType];
-            this.sprite.spriteFrame = null;
-            return;
-        }
-        
         // 根据颜色类型选择对应的图片
         let spriteFrame: SpriteFrame = null;
         switch (this.colorType) {
@@ -139,6 +160,9 @@ export class Block extends Component {
                 break;
             case ColorType.GREEN:
                 spriteFrame = this.greenSprite;
+                break;
+            case ColorType.RAINBOW:
+                spriteFrame = this.rainbowSprite;
                 break;
         }
         
@@ -326,10 +350,16 @@ export class Block extends Component {
         
         console.log(`[Block] Setting stone at [${this.row}, ${this.col}]`);
         
-        // Change to gray color
-        if (this.sprite) {
-            this.sprite.color = new Color(100, 100, 100, 255);  // 深灰色
-            console.log(`[Block] Changed color to gray at [${this.row}, ${this.col}]`);
+        // 使用石头图片
+        if (this.sprite && this.stoneSprite) {
+            this.sprite.spriteFrame = this.stoneSprite;
+            this.sprite.color = Color.WHITE;  // 显示原色
+            console.log(`[Block] Using stone sprite at [${this.row}, ${this.col}]`);
+        } else if (this.sprite) {
+            // 降级：如果没有图片，使用灰色
+            this.sprite.spriteFrame = null;
+            this.sprite.color = new Color(100, 100, 100, 255);
+            console.log(`[Block] Using gray color (no sprite) at [${this.row}, ${this.col}]`);
         }
     }
 
@@ -385,7 +415,7 @@ export class Block extends Component {
     }
 
     /**
-     * 创建冰冻覆盖层
+     * 创建冰冻覆盖层（纯代码实现）
      */
     private createFrozenOverlay(): void {
         if (this.frozenOverlay) {
@@ -403,20 +433,46 @@ export class Block extends Component {
         sprite.type = Sprite.Type.SIMPLE;
         sprite.sizeMode = Sprite.SizeMode.CUSTOM;
         
-        // Set bright blue color with high alpha
-        sprite.color = new Color(0, 150, 255, 220);  // 明亮的蓝色，高不透明度
+        // 纯色半透明浅蓝色覆盖层
+        sprite.color = new Color(180, 220, 255, 100);  // 浅蓝色，半透明（alpha=100）
         
         // Add UITransform
         import('cc').then(({ UITransform }) => {
             const transform = this.frozenOverlay.getComponent(UITransform) || this.frozenOverlay.addComponent(UITransform);
-            transform.setContentSize(60, 60);
-            console.log(`[Block] Frozen overlay size set: 60x60`);
+            transform.setContentSize(64, 64);
+            console.log(`[Block] Frozen overlay size set: 64x64`);
         });
         
         this.frozenOverlay.setPosition(0, 0, 1);  // z=1 to be on top
-        this.frozenOverlay.setScale(1.1, 1.1, 1);
+        this.frozenOverlay.setScale(1.0, 1.0, 1);
+        
+        // 添加白色边框增强冰冻效果
+        this.addFrozenBorder();
         
         console.log(`[Block] Frozen overlay created successfully at [${this.row}, ${this.col}]`);
+    }
+
+    /**
+     * 添加冰冻边框效果
+     */
+    private addFrozenBorder(): void {
+        const border = new Node('FrozenBorder');
+        border.setParent(this.frozenOverlay);
+        border.layer = this.node.layer;
+        
+        const sprite = border.addComponent(Sprite);
+        sprite.type = Sprite.Type.SIMPLE;
+        sprite.sizeMode = Sprite.SizeMode.CUSTOM;
+        
+        // 白色边框，半透明
+        sprite.color = new Color(255, 255, 255, 120);
+        
+        import('cc').then(({ UITransform }) => {
+            const transform = border.getComponent(UITransform) || border.addComponent(UITransform);
+            transform.setContentSize(68, 68);  // 比主体稍大
+        });
+        
+        border.setPosition(0, 0, -1);  // z=-1 在主体后面
     }
 
     /**
@@ -437,6 +493,11 @@ export class Block extends Component {
                 // Normal: decrease level
                 this.frozenLevel--;
                 console.log(`[Block] Frozen level decreased: ${this.frozenLevel}`);
+                
+                // 如果还有冰层，显示裂纹
+                if (this.frozenLevel === 1) {
+                    this.showFrozenCracks();
+                }
             }
             
             if (this.frozenLevel === 0) {
@@ -458,7 +519,134 @@ export class Block extends Component {
             this.frozenOverlay.destroy();
             this.frozenOverlay = null;
         }
+        
+        if (this.frozenCracks) {
+            this.frozenCracks.destroy();
+            this.frozenCracks = null;
+        }
+        
         console.log(`[Block] Unfrozen at [${this.row}, ${this.col}]`);
+    }
+
+    /**
+     * 显示冰裂纹效果
+     */
+    private showFrozenCracks(): void {
+        if (this.frozenCracks || !this.frozenOverlay) {
+            return;
+        }
+
+        console.log(`[Block] Showing frozen cracks at [${this.row}, ${this.col}]`);
+        
+        this.frozenCracks = new Node('FrozenCracks');
+        this.frozenCracks.setParent(this.frozenOverlay);
+        this.frozenCracks.layer = this.node.layer;
+        
+        const sprite = this.frozenCracks.addComponent(Sprite);
+        sprite.type = Sprite.Type.SIMPLE;
+        sprite.sizeMode = Sprite.SizeMode.CUSTOM;
+        
+        // 优先使用裂纹图片
+        if (this.iceCracksSprite) {
+            sprite.spriteFrame = this.iceCracksSprite;
+            sprite.color = Color.WHITE;  // 显示原色
+            console.log(`[Block] Using ice cracks sprite`);
+            
+            import('cc').then(({ UITransform }) => {
+                const transform = this.frozenCracks.getComponent(UITransform) || this.frozenCracks.addComponent(UITransform);
+                transform.setContentSize(64, 64);
+            });
+            
+            this.frozenCracks.setPosition(0, 0, 2);  // z=2 在冰层上方
+        } else {
+            // 降级：使用代码绘制
+            console.log(`[Block] No sprite, using code-drawn cracks`);
+            this.drawCodeCracks();
+        }
+    }
+
+    /**
+     * 代码绘制裂纹（降级方案）
+     */
+    private drawCodeCracks(): void {
+        import('cc').then(({ Graphics, UITransform, Color }) => {
+            const graphics = this.frozenCracks.addComponent(Graphics);
+            const transform = this.frozenCracks.getComponent(UITransform) || this.frozenCracks.addComponent(UITransform);
+            transform.setContentSize(64, 64);
+            
+            graphics.lineWidth = 3;
+            graphics.strokeColor = new Color(255, 255, 255, 220);
+            
+            // 绘制放射状裂纹
+            const centerX = 0;
+            const centerY = 0;
+            const numMainCracks = 4;
+            
+            for (let i = 0; i < numMainCracks; i++) {
+                const angle = (Math.PI * 2 / numMainCracks) * i + (Math.random() - 0.5) * 0.3;
+                this.drawRadialCrack(graphics, centerX, centerY, angle);
+            }
+            
+            for (let i = 0; i < 3; i++) {
+                this.drawSmallCrack(graphics);
+            }
+            
+            graphics.stroke();
+            this.frozenCracks.setPosition(0, 0, 2);
+        });
+    }
+
+    /**
+     * 绘制放射状裂纹
+     */
+    private drawRadialCrack(graphics: any, centerX: number, centerY: number, angle: number): void {
+        graphics.moveTo(centerX, centerY);
+        
+        // 主裂纹 - 从中心向外
+        const length = 25 + Math.random() * 10;
+        let currentX = centerX;
+        let currentY = centerY;
+        
+        // 分段绘制，增加曲折感
+        const segments = 3;
+        for (let i = 0; i < segments; i++) {
+            const segmentLength = length / segments;
+            const segmentAngle = angle + (Math.random() - 0.5) * 0.2;  // 轻微偏移
+            
+            currentX += Math.cos(segmentAngle) * segmentLength;
+            currentY += Math.sin(segmentAngle) * segmentLength;
+            graphics.lineTo(currentX, currentY);
+        }
+        
+        // 添加分支
+        const branchX = centerX + Math.cos(angle) * length * 0.6;
+        const branchY = centerY + Math.sin(angle) * length * 0.6;
+        graphics.moveTo(branchX, branchY);
+        
+        const branchAngle = angle + (Math.random() > 0.5 ? 0.5 : -0.5);
+        const branchLength = length * 0.4;
+        graphics.lineTo(
+            branchX + Math.cos(branchAngle) * branchLength,
+            branchY + Math.sin(branchAngle) * branchLength
+        );
+    }
+
+    /**
+     * 绘制小裂纹
+     */
+    private drawSmallCrack(graphics: any): void {
+        const startX = (Math.random() - 0.5) * 40;
+        const startY = (Math.random() - 0.5) * 40;
+        
+        graphics.moveTo(startX, startY);
+        
+        const angle = Math.random() * Math.PI * 2;
+        const length = 8 + Math.random() * 8;
+        
+        graphics.lineTo(
+            startX + Math.cos(angle) * length,
+            startY + Math.sin(angle) * length
+        );
     }
 
     /**
@@ -506,5 +694,114 @@ export class Block extends Component {
      */
     isFrozen(): boolean {
         return this.blockType === BlockType.FROZEN && this.frozenLevel > 0;
+    }
+    
+    /**
+     * 播放消除动画
+     */
+    playEliminateAnimation(callback?: Function) {
+        // 生成粒子特效
+        import('./ParticleManager').then(({ ParticleManager }) => {
+            const particleManager = ParticleManager.getInstance();
+            if (particleManager) {
+                const worldPos = this.node.getWorldPosition();
+                particleManager.spawnStarBurst(worldPos, 8);
+                console.log('[Block] Spawned star particles at', worldPos);
+            } else {
+                console.warn('[Block] ParticleManager not found');
+            }
+        });
+        
+        // 如果没有动画帧，直接销毁
+        if (!this.eliminateFrames || this.eliminateFrames.length === 0) {
+            if (callback) callback();
+            this.node.destroy();
+            return;
+        }
+        
+        // 播放帧动画
+        let frameIndex = 0;
+        const frameRate = 10; // 10帧/秒
+        const frameInterval = 1.0 / frameRate;
+        let elapsed = 0;
+        
+        const updateFrame = (dt: number) => {
+            elapsed += dt;
+            if (elapsed >= frameInterval) {
+                elapsed = 0;
+                frameIndex++;
+                
+                if (frameIndex >= this.eliminateFrames.length) {
+                    // 动画播放完毕
+                    this.unschedule(updateFrame);
+                    if (callback) callback();
+                    this.node.destroy();
+                } else {
+                    // 更新帧
+                    if (this.sprite) {
+                        this.sprite.spriteFrame = this.eliminateFrames[frameIndex];
+                    }
+                }
+            }
+        };
+        
+        // 设置第一帧
+        if (this.sprite) {
+            this.sprite.spriteFrame = this.eliminateFrames[0];
+        }
+        
+        // 开始播放
+        this.schedule(updateFrame, 0);
+    }
+    
+    /**
+     * 触发消除（带粒子特效）
+     */
+    triggerEliminate() {
+        // 生成粒子特效
+        const ParticleManager = require('./ParticleManager').ParticleManager;
+        const particleManager = ParticleManager.getInstance();
+        if (particleManager) {
+            const worldPos = this.node.getWorldPosition();
+            particleManager.spawnStarBurst(worldPos, 8);
+        }
+        
+        // 播放消除动画
+        this.playEliminateAnimation();
+    }
+    
+    /**
+     * 设置为炸弹方块
+     */
+    setAsBomb() {
+        this.blockType = BlockType.BOMB;
+        if (this.sprite && this.bombSprite) {
+            this.sprite.spriteFrame = this.bombSprite;
+        }
+    }
+    
+    /**
+     * 设置为彩虹方块
+     */
+    setAsRainbowBlock() {
+        this.blockType = BlockType.RAINBOW_BLOCK;
+        this.colorType = ColorType.RAINBOW;
+        if (this.sprite && this.rainbowBlockSprite) {
+            this.sprite.spriteFrame = this.rainbowBlockSprite;
+        }
+    }
+    
+    /**
+     * 是否是炸弹方块
+     */
+    isBomb(): boolean {
+        return this.blockType === BlockType.BOMB;
+    }
+    
+    /**
+     * 是否是彩虹方块（特殊）
+     */
+    isRainbowBlock(): boolean {
+        return this.blockType === BlockType.RAINBOW_BLOCK;
     }
 }
