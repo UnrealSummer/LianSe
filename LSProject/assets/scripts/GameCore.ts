@@ -115,8 +115,10 @@ export class GameCore extends Component {
         
         // Auto-find ModifierSelectionUI
         const modifierUINode = this.node.parent.getChildByName('ModifierSelectionUI');
+        console.log('[GameCore] Looking for ModifierSelectionUI, found node:', !!modifierUINode);
         if (modifierUINode) {
             this.modifierSelectionUI = modifierUINode.getComponent(ModifierSelectionUI);
+            console.log('[GameCore] ModifierSelectionUI component:', !!this.modifierSelectionUI);
         }
         
         // Auto-find EffectManager
@@ -188,9 +190,12 @@ export class GameCore extends Component {
         
         // Listen for GameFlowController events
         const flowController = this.node.parent?.getChildByName('GameFlowController');
+        console.log('[GameCore] Looking for GameFlowController:', !!flowController);
         if (flowController) {
             flowController.on('show-modifier-selection', this.showModifierSelection, this);
             console.log('[GameCore] Listening to GameFlowController events');
+        } else {
+            console.warn('[GameCore] GameFlowController not found! Cannot listen to events.');
         }
         
         // Listen for enemy skill events
@@ -826,8 +831,12 @@ export class GameCore extends Component {
      * 显示词条选择
      */
     private showModifierSelection(): void {
+        console.log('[GameCore] showModifierSelection() called!');
+        console.log('[GameCore] Starting import...');
         import('./Modifiers').then(({ getWeightedRandomModifiers }) => {
+            console.log('[GameCore] Import success, getting modifiers...');
             const options = getWeightedRandomModifiers(3);
+            console.log('[GameCore] Got options:', options.length, options);
             
             console.log('[GameCore] 🎲 Choose a modifier:');
             options.forEach((mod, index) => {
@@ -836,7 +845,9 @@ export class GameCore extends Component {
             });
             
             // Show UI if available
+            console.log('[GameCore] Checking modifierSelectionUI:', !!this.modifierSelectionUI);
             if (this.modifierSelectionUI) {
+                console.log('[GameCore] Calling modifierSelectionUI.show()');
                 this.modifierSelectionUI.show(options, (selected) => {
                     this.onModifierSelected(selected);
                 });
@@ -847,6 +858,8 @@ export class GameCore extends Component {
                     this.onModifierSelected(options[0]);
                 }, 2000);
             }
+        }).catch(err => {
+            console.error('[GameCore] Failed to import Modifiers:', err);
         });
     }
 

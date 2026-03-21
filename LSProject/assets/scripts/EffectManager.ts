@@ -191,4 +191,152 @@ export class EffectManager extends Component {
             .to(0.1, { color: originalColor })
             .start();
     }
+    
+    /**
+     * 爆炸特效
+     */
+    playExplosion(position: Vec3): void {
+        console.log('[EffectManager] Playing explosion at', position);
+        
+        // 简单版本：红色圆圈扩散 + 震动
+        const explosion = new Node('Explosion');
+        this.effectRoot.addChild(explosion);
+        explosion.setPosition(position);
+        
+        // 创建红色圆圈（使用Label临时替代）
+        const circle = explosion.addComponent(Label);
+        circle.string = '💥';
+        circle.fontSize = 60;
+        
+        explosion.setScale(0.5, 0.5, 1);
+        
+        // 动画：放大 + 淡出
+        tween(explosion)
+            .to(0.3, { scale: new Vec3(2, 2, 1) }, { easing: 'sineOut' })
+            .call(() => explosion.destroy())
+            .start();
+        
+        // 屏幕震动
+        this.shakeScreen(10, 0.2);
+    }
+    
+    /**
+     * 十字清除特效
+     */
+    playCrossClear(position: Vec3, row: number, col: number): void {
+        console.log('[EffectManager] Playing cross clear at', position);
+        
+        // 简单版本：金色十字 + 闪光
+        const cross = new Node('CrossClear');
+        this.effectRoot.addChild(cross);
+        cross.setPosition(position);
+        
+        // 创建十字符号（使用Label临时替代）
+        const symbol = cross.addComponent(Label);
+        symbol.string = '✨';
+        symbol.fontSize = 80;
+        symbol.color = new cc.Color(255, 215, 0); // 金色
+        
+        cross.setScale(0.5, 0.5, 1);
+        
+        // 动画：放大 + 旋转 + 淡出
+        tween(cross)
+            .to(0.4, { 
+                scale: new Vec3(2.5, 2.5, 1),
+                angle: 360 
+            }, { easing: 'sineOut' })
+            .call(() => cross.destroy())
+            .start();
+        
+        // 轻微震动
+        this.shakeScreen(5, 0.2);
+    }
+    
+    /**
+     * 屏幕震动
+     */
+    private shakeScreen(amplitude: number, duration: number): void {
+        if (!this.camera) return;
+        
+        const cameraNode = this.camera.node;
+        const originalPos = cameraNode.position.clone();
+        
+        const shakeCount = 10;
+        const interval = duration / shakeCount;
+        
+        let count = 0;
+        const shakeInterval = setInterval(() => {
+            if (count >= shakeCount) {
+                cameraNode.setPosition(originalPos);
+                clearInterval(shakeInterval);
+                return;
+            }
+            
+            const offsetX = (Math.random() - 0.5) * amplitude * 2;
+            const offsetY = (Math.random() - 0.5) * amplitude * 2;
+            cameraNode.setPosition(
+                originalPos.x + offsetX, 
+                originalPos.y + offsetY, 
+                originalPos.z
+            );
+            
+            count++;
+        }, interval * 1000);
+    }
+    
+    /**
+     * 流派锁定提示
+     */
+    showBuildLock(buildType: string): void {
+        console.log('[EffectManager] Build locked:', buildType);
+        
+        const notification = new Node('BuildLock');
+        this.effectRoot.addChild(notification);
+        notification.setPosition(0, 200, 0);
+        
+        const label = notification.addComponent(Label);
+        label.string = '🔒 流派锁定！+3秒';
+        label.fontSize = 48;
+        label.color = new cc.Color(255, 215, 0); // 金色
+        
+        notification.setScale(0, 0, 1);
+        
+        // 动画：放大 → 停留 → 淡出
+        tween(notification)
+            .to(0.3, { scale: new Vec3(1.2, 1.2, 1) }, { easing: 'backOut' })
+            .to(0.2, { scale: new Vec3(1, 1, 1) })
+            .delay(1.5)
+            .to(0.3, { scale: new Vec3(0, 0, 1) })
+            .call(() => notification.destroy())
+            .start();
+    }
+    
+    /**
+     * 流派共鸣特效
+     */
+    showBuildResonance(buildType: string): void {
+        console.log('[EffectManager] Build resonance:', buildType);
+        
+        const notification = new Node('BuildResonance');
+        this.effectRoot.addChild(notification);
+        notification.setPosition(0, 100, 0);
+        
+        const label = notification.addComponent(Label);
+        label.string = '✨ 流派共鸣！';
+        label.fontSize = 64;
+        label.color = new cc.Color(255, 100, 255); // 紫色
+        
+        notification.setScale(0, 0, 1);
+        
+        // 动画：爆炸式放大 + 震动
+        tween(notification)
+            .to(0.5, { scale: new Vec3(1.5, 1.5, 1) }, { easing: 'backOut' })
+            .delay(1.0)
+            .to(0.3, { scale: new Vec3(0, 0, 1) })
+            .call(() => notification.destroy())
+            .start();
+        
+        // 强烈震动
+        this.shakeScreen(15, 0.5);
+    }
 }

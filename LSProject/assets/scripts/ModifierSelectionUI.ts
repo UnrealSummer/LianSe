@@ -33,6 +33,11 @@ export class ModifierSelectionUI extends Component {
      * 显示词条选择
      */
     show(modifiers: IModifier[], onSelect: (modifier: IModifier) => void): void {
+        console.log('[ModifierSelectionUI] show() called with modifiers:', modifiers);
+        console.log('[ModifierSelectionUI] option1:', this.option1?.name);
+        console.log('[ModifierSelectionUI] option2:', this.option2?.name);
+        console.log('[ModifierSelectionUI] option3:', this.option3?.name);
+        
         this.modifiers = modifiers;
         this.onSelectCallback = onSelect;
         
@@ -76,12 +81,19 @@ export class ModifierSelectionUI extends Component {
      * 更新选项显示
      */
     private updateOption(option: Node, modifier: IModifier): void {
-        if (!option || !modifier) return;
+        console.log('[ModifierSelectionUI] updateOption called:', option?.name, modifier);
+        
+        if (!option || !modifier) {
+            console.warn('[ModifierSelectionUI] updateOption: option or modifier is null!', {option: !!option, modifier: !!modifier});
+            return;
+        }
         
         // Find name label
         const nameLabel = option.getChildByName('Name')?.getComponent(Label);
+        console.log('[ModifierSelectionUI] nameLabel found:', !!nameLabel);
         if (nameLabel) {
             nameLabel.string = modifier.name;
+            console.log('[ModifierSelectionUI] Set name to:', modifier.name);
             
             // Set color by rarity
             if (modifier.rarity === 'epic') {
@@ -95,8 +107,10 @@ export class ModifierSelectionUI extends Component {
         
         // Find description label
         const descLabel = option.getChildByName('Description')?.getComponent(Label);
+        console.log('[ModifierSelectionUI] descLabel found:', !!descLabel);
         if (descLabel) {
             descLabel.string = modifier.description;
+            console.log('[ModifierSelectionUI] Set description to:', modifier.description);
         }
         
         console.log(`[ModifierSelectionUI] Updated option: ${modifier.name}`);

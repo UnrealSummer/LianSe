@@ -57,6 +57,12 @@ export class GameFlowController extends Component {
         }
 
         GameFlowController._instance = this;
+        
+        // 确保状态已初始化
+        if (!this.currentState) {
+            this.currentState = GameState.MENU;
+        }
+        
         console.log('[GameFlowController] Instance created');
     }
 
@@ -309,6 +315,7 @@ export class GameFlowController extends Component {
         }
 
         // 通知GameCore显示词条选择
+        console.log('[GameFlowController] Emitting show-modifier-selection event');
         this.node.emit('show-modifier-selection');
     }
 

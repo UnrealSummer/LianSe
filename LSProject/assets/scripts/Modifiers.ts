@@ -9,16 +9,122 @@ const { ccclass } = _decorator;
 // ========== 伤害类词条 ==========
 
 /**
- * 力量强化 - 所有伤害+20%
+ * 红色精通 - 红色块消除伤害+50%
  */
-export class PowerBoost implements IModifier {
-    id = 'power_boost';
-    name = '力量强化';
-    description = '所有伤害+20%';
+export class RedMastery implements IModifier {
+    id = 'red_mastery';
+    name = '红色精通';
+    description = '红色块消除伤害+50%';
     rarity: 'common' | 'rare' | 'epic' = 'common';
+    buildType: 'burst' | 'time' | 'chain' | 'berserk' = 'burst';
     
-    onDamageCalculate(damage: number): number {
-        return damage * 1.2;
+    onMatch(data: MatchData): MatchData {
+        if (data.color === 'red') {
+            const oldDamage = data.baseDamage;
+            data.baseDamage = Math.floor(data.baseDamage * 1.5);
+            console.log(`[Modifier] 🔴 Red Mastery! ${oldDamage} -> ${data.baseDamage}`);
+        }
+        return data;
+    }
+}
+
+/**
+ * 黄色精通 - 黄色块消除伤害+50%
+ */
+export class YellowMastery implements IModifier {
+    id = 'yellow_mastery';
+    name = '黄色精通';
+    description = '黄色块消除伤害+50%';
+    rarity: 'common' | 'rare' | 'epic' = 'common';
+    buildType: 'burst' | 'time' | 'chain' | 'berserk' = 'burst';
+    
+    onMatch(data: MatchData): MatchData {
+        if (data.color === 'yellow') {
+            const oldDamage = data.baseDamage;
+            data.baseDamage = Math.floor(data.baseDamage * 1.5);
+            console.log(`[Modifier] 🟡 Yellow Mastery! ${oldDamage} -> ${data.baseDamage}`);
+        }
+        return data;
+    }
+}
+
+/**
+ * 蓝色精通 - 蓝色块消除伤害+50%
+ */
+export class BlueMastery implements IModifier {
+    id = 'blue_mastery';
+    name = '蓝色精通';
+    description = '蓝色块消除伤害+50%';
+    rarity: 'common' | 'rare' | 'epic' = 'common';
+    buildType: 'burst' | 'time' | 'chain' | 'berserk' = 'burst';
+    
+    onMatch(data: MatchData): MatchData {
+        if (data.color === 'blue') {
+            const oldDamage = data.baseDamage;
+            data.baseDamage = Math.floor(data.baseDamage * 1.5);
+            console.log(`[Modifier] 🔵 Blue Mastery! ${oldDamage} -> ${data.baseDamage}`);
+        }
+        return data;
+    }
+}
+
+/**
+ * 橙色精通 - 橙色块消除伤害+50%
+ */
+export class OrangeMastery implements IModifier {
+    id = 'orange_mastery';
+    name = '橙色精通';
+    description = '橙色块消除伤害+50%';
+    rarity: 'common' | 'rare' | 'epic' = 'common';
+    buildType: 'burst' | 'time' | 'chain' | 'berserk' = 'burst';
+    
+    onMatch(data: MatchData): MatchData {
+        if (data.color === 'orange') {
+            const oldDamage = data.baseDamage;
+            data.baseDamage = Math.floor(data.baseDamage * 1.5);
+            console.log(`[Modifier] 🟠 Orange Mastery! ${oldDamage} -> ${data.baseDamage}`);
+        }
+        return data;
+    }
+}
+
+/**
+ * 紫色精通 - 紫色块消除伤害+50%
+ */
+export class PurpleMastery implements IModifier {
+    id = 'purple_mastery';
+    name = '紫色精通';
+    description = '紫色块消除伤害+50%';
+    rarity: 'common' | 'rare' | 'epic' = 'common';
+    buildType: 'burst' | 'time' | 'chain' | 'berserk' = 'burst';
+    
+    onMatch(data: MatchData): MatchData {
+        if (data.color === 'purple') {
+            const oldDamage = data.baseDamage;
+            data.baseDamage = Math.floor(data.baseDamage * 1.5);
+            console.log(`[Modifier] 🟣 Purple Mastery! ${oldDamage} -> ${data.baseDamage}`);
+        }
+        return data;
+    }
+}
+
+/**
+ * 绿色精通 - 绿色块消除伤害+50%
+ */
+export class GreenMastery implements IModifier {
+    id = 'green_mastery';
+    name = '绿色精通';
+    description = '绿色块消除伤害+50%';
+    rarity: 'common' | 'rare' | 'epic' = 'common';
+    buildType: 'burst' | 'time' | 'chain' | 'berserk' = 'burst';
+    
+    onMatch(data: MatchData): MatchData {
+        if (data.color === 'green') {
+            const oldDamage = data.baseDamage;
+            data.baseDamage = Math.floor(data.baseDamage * 1.5);
+            console.log(`[Modifier] 🟢 Green Mastery! ${oldDamage} -> ${data.baseDamage}`);
+        }
+        return data;
     }
 }
 
@@ -30,11 +136,106 @@ export class ChainMaster implements IModifier {
     name = '连锁大师';
     description = '连锁伤害倍率大幅提升';
     rarity: 'common' | 'rare' | 'epic' = 'common';
+    buildType: 'burst' | 'time' | 'chain' | 'berserk' = 'chain';
     
     onChain(chainLevel: number): number {
         // 基础：1.1倍 (1连=1.1, 2连=1.21, 3连=1.33)
         // 连锁大师：1.5倍 (1连=1.5, 2连=2.25, 3连=3.38)
         return Math.pow(1.5, chainLevel);
+    }
+}
+
+// ========== 时间机制类词条 ==========
+
+/**
+ * 连锁减缓 - 连锁3次以上时，时间流速减半（持续1秒）
+ */
+export class ChainSlowdown implements IModifier {
+    id = 'chain_slowdown';
+    name = '连锁减缓';
+    description = '连锁3次以上时，时间流速减半（持续1秒）';
+    rarity: 'common' | 'rare' | 'epic' = 'rare';
+    buildType: 'burst' | 'time' | 'chain' | 'berserk' = 'time';
+    
+    onMatch(data: MatchData): MatchData {
+        if (data.chainLevel >= 3) {
+            console.log('[Modifier] ⏰ Chain Slowdown! Time slowed for 1s');
+            // 在 GameCore 中处理时间减缓
+            // 这里只是标记，实际效果由 GameCore 监听
+        }
+        return data;
+    }
+}
+
+/**
+ * 消除冻结 - 5连消时，时间流速减半（持续2秒）
+ */
+export class MatchFreeze implements IModifier {
+    id = 'match_freeze';
+    name = '消除冻结';
+    description = '5连消时，时间流速减半（持续2秒）';
+    rarity: 'common' | 'rare' | 'epic' = 'rare';
+    buildType: 'burst' | 'time' | 'chain' | 'berserk' = 'time';
+    
+    onMatch(data: MatchData): MatchData {
+        if (data.count >= 5) {
+            console.log('[Modifier] ❄️ Match Freeze! Time slowed for 2s');
+            // 在 GameCore 中处理时间减缓
+        }
+        return data;
+    }
+}
+
+/**
+ * 时间狂怒 - 时间越少伤害越高（最高2倍）
+ */
+export class TimeRage implements IModifier {
+    id = 'time_rage';
+    name = '时间狂怒';
+    description = '时间越少伤害越高（最高2倍）';
+    rarity: 'common' | 'rare' | 'epic' = 'rare';
+    buildType: 'burst' | 'time' | 'chain' | 'berserk' = 'berserk';
+    
+    private gameCore: any = null;
+    
+    onAcquire(): void {
+        // 需要在 ModifierSystem 中设置 gameCore 引用
+    }
+    
+    onDamageCalculate(damage: number): number {
+        if (this.gameCore) {
+            const timeLeft = this.gameCore.getTimeLeft();
+            const maxTime = this.gameCore.getMaxTime();
+            const timePercent = timeLeft / maxTime;
+            
+            // 时间<5秒时，伤害2倍
+            // 时间5-15秒时，线性插值 1.0x - 2.0x
+            if (timeLeft < 5) {
+                console.log('[Modifier] 💢 Time Rage! 2x damage (time < 5s)');
+                return damage * 2;
+            } else if (timeLeft < 15) {
+                const multiplier = 1 + (15 - timeLeft) / 10;  // 15s=1x, 5s=2x
+                console.log(`[Modifier] 💢 Time Rage! ${multiplier.toFixed(2)}x damage`);
+                return damage * multiplier;
+            }
+        }
+        return damage;
+    }
+}
+
+/**
+ * 击杀回时 - 击败敌人返还剩余时间的30%
+ */
+export class KillTimeRefund implements IModifier {
+    id = 'kill_time_refund';
+    name = '击杀回时';
+    description = '击败敌人返还剩余时间的30%';
+    rarity: 'common' | 'rare' | 'epic' = 'rare';
+    buildType: 'burst' | 'time' | 'chain' | 'berserk' = 'time';
+    
+    onEnemyKill(enemy: any): void {
+        console.log('[Modifier] ⏱️ Kill Time Refund! +30% time');
+        // 在 GameCore 中处理时间返还
     }
 }
 
@@ -46,6 +247,7 @@ export class CriticalHit implements IModifier {
     name = '暴击';
     description = '20%概率造成双倍伤害';
     rarity: 'common' | 'rare' | 'epic' = 'rare';
+    buildType: 'burst' | 'time' | 'chain' | 'berserk' = 'burst';
     
     onDamageCalculate(damage: number): number {
         if (Math.random() < 0.2) {
@@ -64,6 +266,7 @@ export class LongMatch implements IModifier {
     name = '长消除';
     description = '消除4个及以上时，额外+50%伤害';
     rarity: 'common' | 'rare' | 'epic' = 'common';
+    buildType: 'burst' | 'time' | 'chain' | 'berserk' = 'burst';
     
     onMatch(data: MatchData): MatchData {
         if (data.count >= 4) {
@@ -75,45 +278,51 @@ export class LongMatch implements IModifier {
     }
 }
 
-// ========== 辅助类词条 ==========
+// ========== 特殊效果类词条 ==========
 
 /**
- * 时间延长 - 每关时间+10秒
+ * 爆炸大师 - 4连消触发爆炸，消除周围8格
  */
-export class TimeExtension implements IModifier {
-    id = 'time_extension';
-    name = '时间延长';
-    description = '每关时间+10秒';
-    rarity: 'common' | 'rare' | 'epic' = 'common';
+export class ExplosionMaster implements IModifier {
+    id = 'explosion_master';
+    name = '爆炸大师';
+    description = '4连消触发爆炸，消除周围8格';
+    rarity: 'common' | 'rare' | 'epic' = 'rare';
+    buildType: 'burst' | 'time' | 'chain' | 'berserk' = 'burst';
     
-    // 在GameCore中处理
-}
-
-/**
- * 金币收集者 - 金币获取+50%
- */
-export class GoldCollector implements IModifier {
-    id = 'gold_collector';
-    name = '金币收集者';
-    description = '金币获取+50%';
-    rarity: 'common' | 'rare' | 'epic' = 'common';
-    
-    onCoinCollect(amount: number): number {
-        return amount * 1.5;
+    onMatch(data: MatchData): MatchData {
+        if (data.count >= 4) {
+            console.log('[Modifier] 💣 Explosion Master! Triggering explosion');
+            // 标记需要触发爆炸效果
+            // 实际爆炸逻辑在 GridManager 中处理
+            (data as any).triggerExplosion = true;
+        }
+        return data;
     }
 }
 
 /**
- * 冰霜解冻 - 冰冻方块只需解冻1次
+ * 十字清除 - 5连消清除整行+整列
  */
-export class FrostBreaker implements IModifier {
-    id = 'frost_breaker';
-    name = '冰霜解冻';
-    description = '冰冻方块只需解冻1次';
-    rarity: 'common' | 'rare' | 'epic' = 'rare';
+export class CrossClear implements IModifier {
+    id = 'cross_clear';
+    name = '十字清除';
+    description = '5连消清除整行+整列';
+    rarity: 'common' | 'rare' | 'epic' = 'epic';
+    buildType: 'burst' | 'time' | 'chain' | 'berserk' = 'burst';
     
-    // 在Block中处理
+    onMatch(data: MatchData): MatchData {
+        if (data.count >= 5) {
+            console.log('[Modifier] ✨ Cross Clear! Clearing row and column');
+            // 标记需要触发十字清除效果
+            // 实际清除逻辑在 GridManager 中处理
+            (data as any).triggerCrossClear = true;
+        }
+        return data;
+    }
 }
+
+// ========== 辅助类词条 ==========
 
 // ========== 史诗词条 ==========
 
@@ -125,6 +334,7 @@ export class Berserk implements IModifier {
     name = '狂暴';
     description = '敌人血量低于30%时，伤害翻倍';
     rarity: 'common' | 'rare' | 'epic' = 'epic';
+    buildType: 'burst' | 'time' | 'chain' | 'berserk' = 'berserk';
     
     private enemySystem: any = null;
     
@@ -152,6 +362,7 @@ export class RainbowBlessing implements IModifier {
     name = '彩虹祝福';
     description = '每关开始时，随机生成1个彩虹方块';
     rarity: 'common' | 'rare' | 'epic' = 'epic';
+    buildType: 'burst' | 'time' | 'chain' | 'berserk' = 'burst';
     
     // 在GameCore中处理
 }
@@ -164,6 +375,7 @@ export class PerfectChain implements IModifier {
     name = '完美连锁';
     description = '连锁3次及以上时，额外+100%伤害';
     rarity: 'common' | 'rare' | 'epic' = 'epic';
+    buildType: 'burst' | 'time' | 'chain' | 'berserk' = 'chain';
     
     onMatch(data: MatchData): MatchData {
         if (data.chainLevel >= 3) {
@@ -182,16 +394,30 @@ export class PerfectChain implements IModifier {
  */
 export function getAllModifiers(): IModifier[] {
     return [
-        new PowerBoost(),
+        // 颜色精通（6个）
+        new RedMastery(),
+        new YellowMastery(),
+        new BlueMastery(),
+        new OrangeMastery(),
+        new PurpleMastery(),
+        new GreenMastery(),
+        // 连锁类
         new ChainMaster(),
+        new PerfectChain(),
+        // 时间机制（4个）
+        new ChainSlowdown(),
+        new MatchFreeze(),
+        new TimeRage(),
+        new KillTimeRefund(),
+        // 特殊效果（3个）
+        new ExplosionMaster(),
+        new CrossClear(),
+        new RainbowBlessing(),
+        // 其他
         new CriticalHit(),
         new LongMatch(),
-        new TimeExtension(),
-        new GoldCollector(),
-        new FrostBreaker(),
-        new Berserk(),
-        new RainbowBlessing(),
-        new PerfectChain()
+        // new GoldCollector(),  // TODO: 未实现
+        new Berserk()
     ];
 }
 

@@ -9,6 +9,7 @@ export interface IModifier {
     name: string;
     description: string;
     rarity: 'common' | 'rare' | 'epic';
+    buildType?: 'burst' | 'time' | 'chain' | 'berserk';  // 流派类型
     
     // 生命周期钩子
     onAcquire?(): void;
@@ -30,6 +31,7 @@ export interface IModifier {
 export interface MatchData {
     blocks: any[];          // 消除的方块
     count: number;          // 消除数量
+    color?: string;         // 消除的颜色
     chainLevel: number;     // 连锁层数
     matchType: string;      // 消除类型
     baseDamage: number;     // 基础伤害
@@ -43,6 +45,9 @@ export interface MatchData {
 export class ModifierSystem extends Component {
     private activeModifiers: Map<string, IModifier> = new Map();
     private enemySystem: any = null;  // 敌人系统引用
+    private gameCore: any = null;  // GameCore 引用
+    private buildSystem: any = null;  // BuildSystem 引用
+    private effectManager: any = null;  // EffectManager 引用
     
     start() {
         // Auto-find EnemySystem
@@ -50,6 +55,27 @@ export class ModifierSystem extends Component {
         if (enemyNode) {
             this.enemySystem = enemyNode.getComponent('EnemySystem');
             console.log('[ModifierSystem] EnemySystem found:', !!this.enemySystem);
+        }
+        
+        // Auto-find GameCore
+        const gameCoreNode = this.node.parent.getChildByName('GameCore');
+        if (gameCoreNode) {
+            this.gameCore = gameCoreNode.getComponent('GameCore');
+            console.log('[ModifierSystem] GameCore found:', !!this.gameCore);
+        }
+        
+        // Auto-find BuildSystem
+        const buildSystemNode = this.node.parent.getChildByName('BuildSystem');
+        if (buildSystemNode) {
+            this.buildSystem = buildSystemNode.getComponent('BuildSystem');
+            console.log('[ModifierSystem] BuildSystem found:', !!this.buildSystem);
+        }
+        
+        // Auto-find EffectManager
+        const effectManagerNode = this.node.parent.parent?.getChildByName('EffectManager');
+        if (effectManagerNode) {
+            this.effectManager = effectManagerNode.getComponent('EffectManager');
+            console.log('[ModifierSystem] EffectManager found:', !!this.effectManager);
         }
     }
     
@@ -81,6 +107,38 @@ export class ModifierSystem extends Component {
         // Inject enemySystem for modifiers that need it
         if (modifier.id === 'berserk' && this.enemySystem) {
             (modifier as any).enemySystem = this.enemySystem;
+        }
+        
+        // Inject gameCore for modifiers that need it
+        if (modifier.id === 'time_rage' && this.gameCore) {
+            (modifier as any).gameCore = this.gameCore;
+        }
+        
+        // 通知 BuildSystem
+        if (this.buildSystem && modifier.buildType) {
+            const result = this.buildSystem.addModifier(modifier.buildType);
+            
+            // 触发流派锁定
+            if (result.locked) {
+                console.log(`[ModifierSystem] 🔒 Build Locked: ${modifier.buildType}`);
+                
+                // 播放流派锁定特效
+                if (this.effectManager) {
+                    this.effectManager.showBuildLock(modifier.buildType);
+                }
+                
+                // TODO: 给予+3秒奖励（需要在 GameCore 中实现）
+            }
+            
+            // 触发流派共鸣
+            if (result.resonance) {
+                console.log(`[ModifierSystem] ✨ Build Resonance Activated!`);
+                
+                // 播放流派共鸣特效
+                if (this.effectManager) {
+                    this.effectManager.showBuildResonance(modifier.buildType);
+                }
+            }
         }
         
         modifier.onAcquire?.();
@@ -134,11 +192,25 @@ export class ModifierSystem extends Component {
      */
     triggerMatch(data: MatchData): MatchData {
         let result = { ...data };
+        
+        // 应用词条效果
         this.activeModifiers.forEach(modifier => {
             if (modifier.onMatch) {
+                const oldDamage = result.baseDamage;
                 result = modifier.onMatch(result);
+                
+                // 应用流派加成
+                if (this.buildSystem && modifier.buildType && result.baseDamage !== oldDamage) {
+                    const multiplier = this.buildSystem.calculateBuildMultiplier(modifier.buildType);
+                    if (multiplier !== 1.0) {
+                        const boostedDamage = Math.floor(result.baseDamage * multiplier);
+                        console.log(`[ModifierSystem] Build bonus: ${result.baseDamage} × ${multiplier} = ${boostedDamage}`);
+                        result.baseDamage = boostedDamage;
+                    }
+                }
             }
         });
+        
         return result;
     }
     

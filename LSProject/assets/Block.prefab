@@ -113,7 +113,7 @@
       "a": 255
     },
     "_spriteFrame": {
-      "__uuid__": "f080579c-4efa-48aa-90c8-a20c2c6c9f79@f9941",
+      "__uuid__": "eb7ab353-5d7b-496b-9984-064e0dbac3be@f9941",
       "__expectedType__": "cc.SpriteFrame"
     },
     "_type": 0,
@@ -152,27 +152,27 @@
     },
     "selectedScale": 1.1,
     "redSprite": {
-      "__uuid__": "f080579c-4efa-48aa-90c8-a20c2c6c9f79@f9941",
+      "__uuid__": "eb7ab353-5d7b-496b-9984-064e0dbac3be@f9941",
       "__expectedType__": "cc.SpriteFrame"
     },
     "yellowSprite": {
-      "__uuid__": "08edf932-a5c3-4546-a7e6-c7ac9a5befc1@f9941",
+      "__uuid__": "413843fa-db91-402f-9f99-164ace2e011d@f9941",
       "__expectedType__": "cc.SpriteFrame"
     },
     "blueSprite": {
-      "__uuid__": "de80c74e-1c7d-4718-98b5-9ec14d2df943@f9941",
+      "__uuid__": "08171070-f8e7-4db0-9e61-755274443a6e@f9941",
       "__expectedType__": "cc.SpriteFrame"
     },
     "orangeSprite": {
-      "__uuid__": "36b0eb52-2777-4385-8c4f-d2cd5381e22c@f9941",
+      "__uuid__": "d16ef98a-e9bc-40b5-9694-c41ac2f86e20@f9941",
       "__expectedType__": "cc.SpriteFrame"
     },
     "purpleSprite": {
-      "__uuid__": "20f875a9-21ba-4e14-8541-a2a80be1c5cd@f9941",
+      "__uuid__": "52ecf1ac-cb42-4f38-b566-ad9a0d07c401@f9941",
       "__expectedType__": "cc.SpriteFrame"
     },
     "greenSprite": {
-      "__uuid__": "c7ece23a-84d2-4271-8536-4dba04db85da@f9941",
+      "__uuid__": "eeaaa9b4-9c64-4b49-9916-0832d83c5231@f9941",
       "__expectedType__": "cc.SpriteFrame"
     },
     "rainbowSprite": {
