@@ -221,7 +221,7 @@ export class LevelGenerator extends Component {
      * 第一关及以后都是30秒
      */
     getInitialTime(): number {
-        return 30;
+        return 60;
     }
 
     /**

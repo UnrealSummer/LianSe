@@ -325,6 +325,7 @@ export class GameFlowController extends Component {
     public resumeGame() {
         if (this.currentState === GameState.PAUSED) {
             this.changeState(this.previousState);
+            this.node.emit('game-resumed');
         }
     }
 

@@ -1,6 +1,7 @@
 import { _decorator, Component } from 'cc';
 import { DataManager } from './DataManager';
 import { GameUI } from './GameUI';
+import { TopBar } from './TopBar';
 const { ccclass } = _decorator;
 
 /**
@@ -13,12 +14,9 @@ export class CoinSystem extends Component {
     private gameUI: GameUI = null;
 
     start() {
-        // Load coins from DataManager
-        const dataManager = DataManager.getInstance();
-        if (dataManager) {
-            this.totalCoins = dataManager.getTotalCoins();
-            console.log(`[CoinSystem] Loaded ${this.totalCoins} coins from save`);
-        }
+        // 每局独立，不从存档加载金币
+        this.totalCoins = 0;
+        this.stageCoins = 0;
         
         // Find GameUI - try multiple ways
         this.gameUI = this.node.parent?.getComponentInChildren(GameUI);
@@ -105,5 +103,12 @@ export class CoinSystem extends Component {
         this.totalCoins = 0;
         this.stageCoins = 0;
         console.log('[CoinSystem] Reset all coins');
+        if (this.gameUI) {
+            this.gameUI.updateCoins(0);
+        }
+        const topBar = TopBar.getInstance();
+        if (topBar) {
+            topBar.updateCoins(0);
+        }
     }
 }

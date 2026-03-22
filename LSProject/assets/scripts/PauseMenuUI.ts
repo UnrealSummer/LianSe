@@ -54,6 +54,9 @@ export class PauseMenuUI extends Component {
         if (flowController) {
             flowController.resumeGame();
         }
+        
+        // 隐藏暂停面板
+        this.node.active = false;
     }
 
     /**

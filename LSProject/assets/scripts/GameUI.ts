@@ -127,12 +127,14 @@ export class GameUI extends Component {
      */
     updateTime(timeLeft: number) {
         if (this.timeLabel) {
-            this.timeLabel.string = `时间: ${Math.ceil(timeLeft)}s`;
+            const totalSecs = Math.ceil(timeLeft);
+            const minutes = Math.floor(totalSecs / 60);
+            const secs = totalSecs % 60;
+            this.timeLabel.string = `${minutes}:${secs.toString().padStart(2, '0')}`;
             
             // 时间警告效果（剩余10秒）
             if (timeLeft <= 10) {
                 this.timeLabel.node.setScale(1.2, 1.2, 1);
-                // 可以添加颜色变化
                 // this.timeLabel.color = new Color(255, 0, 0);
             } else {
                 this.timeLabel.node.setScale(1, 1, 1);

@@ -230,7 +230,10 @@ export class EnemySystem extends Component {
         
         if (this.hpBarFill) {
             const hpPercent = this.currentHp / this.maxHp;
-            this.hpBarFill.setScale(hpPercent, 1, 1);
+            const sprite = this.hpBarFill.getComponent(Sprite);
+            if (sprite) {
+                sprite.fillRange = Math.max(0, Math.min(1, hpPercent));
+            }
         }
         
         // 更新敌人名称

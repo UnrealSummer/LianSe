@@ -193,6 +193,14 @@ export class GameCore extends Component {
         console.log('[GameCore] Looking for GameFlowController:', !!flowController);
         if (flowController) {
             flowController.on('show-modifier-selection', this.showModifierSelection, this);
+            flowController.on('game-paused', () => { this.isPaused = true; }, this);
+            flowController.on('game-resumed', () => { this.isPaused = false; }, this);
+            flowController.on('game-restart', () => {
+                this.isPaused = false;
+                this.node.active = false;
+                this.node.active = true;
+                this.startNewGame();
+            }, this);
             console.log('[GameCore] Listening to GameFlowController events');
         } else {
             console.warn('[GameCore] GameFlowController not found! Cannot listen to events.');
@@ -319,6 +327,14 @@ export class GameCore extends Component {
         console.log('[GameCore] New game started');
         this.progressionManager.reset();
         
+        // Reset coins
+        if (this.coinSystem) {
+            this.coinSystem.reset();
+        }
+        
+        // Reset max combo
+        this.maxCombo = 0;
+        
         // GM: Set start stage
         if (this.gmStartStage > 1) {
             console.log(`[GameCore] GM: Starting from stage ${this.gmStartStage}`);
@@ -409,6 +425,7 @@ export class GameCore extends Component {
 
     update(dt: number) {
         if (!this.isGameRunning) return;
+        if (this.isPaused) return;
         
         this.timeLeft -= dt;
         if (this.timeLeft <= 0) {
@@ -981,6 +998,9 @@ export class GameCore extends Component {
     resumeGame(): void {
         this.isPaused = false;
         console.log('[GameCore] Game resumed');
+        if (this.pauseUI) {
+            this.pauseUI.hide();
+        }
     }
 
     /**
